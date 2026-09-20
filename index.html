@@ -1192,6 +1192,7 @@
         <div><h2 style="margin:0; font-size:20px; color:var(--good);">💰 Quỹ Tiền Tổng &amp; Tiền Trong Ca Quán</h2></div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn success" id="btn-open-z-money">💵 Nhập Quỹ Đầu Ngày (Z)</button>
+          <button class="btn ghost small" onclick="openFundAudit()">🔎 Đối Soát Quỹ Tổng</button>
           <button class="btn danger small" id="btn-reset-shift-cash">🔄 Reset Tiền Ca</button>
         </div>
       </div>
@@ -1380,13 +1381,15 @@ function startLiveClock() {
     const month = String(vnTime.getMonth() + 1).padStart(2, '0');
     const year = vnTime.getFullYear();
     clockSpan.textContent = `${hours}:${mins}:${secs} (${day}/${month}/${year})`;
+    if (checkShiftDayRollover()) {
+      renderHeaderMoneyBadge();
+      showToast(`🔄 Đã sang ngày mới! Doanh thu ngày trước đã chốt dồn vào Quỹ Tổng.`);
+    }
     const currentDateStr = toVNDateStr(vnTime);
     if (currentDateStr !== lastCheckedDateStr) {
-      processMidnightShiftSettlement(lastCheckedDateStr);
       lastCheckedDateStr = currentDateStr;
       const historyDateInp = document.getElementById('history-date');
       if (historyDateInp) { historyDateInp.value = currentDateStr; renderHistoryOrders(); }
-      showToast(`🔄 Đã sang ngày mới! Tiền mặt trong ca đã chốt dồn vào Quỹ Tổng.`);
     }
   }
   updateClock();
@@ -1658,37 +1661,63 @@ function ensureFundStructure(){
     if(i.restockCount === undefined) i.restockCount = 1;
     if(i.statusMsg === undefined) i.statusMsg = '';
   });
-  const todayStr = toVNDateStr(getVietnamTimeNow());
-  if(DATA.shiftCashFund.lastSettledDate !== todayStr) {
-    processMidnightShiftSettlement(DATA.shiftCashFund.lastSettledDate || todayStr);
+  if(!DATA.settledShiftDays) DATA.settledShiftDays = {};
+  checkShiftDayRollover();
+}
+
+/* ============ CA / NGÀY: một quy tắc duy nhất (0h-6h sáng tính vào ca hôm trước) ============ */
+function addDaysToDateStr(str, n){
+  const p = String(str).split('-').map(Number);
+  const dt = new Date(Date.UTC(p[0], p[1]-1, p[2]+n));
+  return dt.toISOString().slice(0,10);
+}
+function getShiftDayStr(){
+  const v = getVietnamTimeNow();
+  const d = toVNDateStr(v);
+  return v.getHours() < 6 ? addDaysToDateStr(d, -1) : d;
+}
+function getOrderShiftDay(o){
+  let day = (o && o.dateIso) || '';
+  const m = /^\s*(\d{1,2}):\d{2}/.exec((o && o.time) || '');
+  if(day && m && parseInt(m[1],10) < 6) day = addDaysToDateStr(day, -1);
+  return day;
+}
+function isBankOrder(o){ return !!o && o.paymentMethod === 'Chuyển khoản'; }
+function isCancelledOrder(o){ return !!o && (o.status === 'Đã hủy' || o.status === 'Yêu cầu hủy'); }
+function isOrderSettled(o){ const d = getOrderShiftDay(o); return !!d && d < getShiftDayStr(); }
+function getStaffOrderTotals(staffName, opts){
+  let cash = 0, bank = 0;
+  (DATA.orders || []).forEach(o => {
+    if(o.staffName !== staffName || isCancelledOrder(o)) return;
+    const match = opts.shiftDay ? (getOrderShiftDay(o) === opts.shiftDay) : (o.dateIso === opts.dateStr);
+    if(!match) return;
+    if(isBankOrder(o)) bank += (o.totalPrice || 0); else cash += (o.totalPrice || 0);
+  });
+  return { cash, bank };
+}
+
+/* Nhập/đổi Quỹ Đầu Ngày (Z): lấy phần chênh từ Quỹ Tiền Mặt Tổng ra két; cuối ngày gom trả lại */
+function setShiftZ(newZ, note){
+  ensureFundStructure();
+  const ded = DATA.shiftCashFund.zDeducted || 0;
+  const delta = newZ - ded;
+  if(delta !== 0){
+    logCashFundChange('manual', 'cash', -delta, `${delta > 0 ? 'Lấy' : 'Trả lại'} ${fmt(Math.abs(delta))}đ ${delta > 0 ? 'từ Quỹ Tổng ra két' : 'từ két về Quỹ Tổng'} (Quỹ đầu ngày Z ${fmt(newZ)}đ)${note || ''}`);
   }
+  DATA.shiftCashFund.zDeducted = newZ;
+  DATA.shiftCashFund.zMoney = newZ;
 }
 
 /* ============ FIX #4: TÍNH TIỀN CA ============ */
 function recalculateShiftFundFromOrders(){
     if(!DATA || !DATA.shiftCashFund) return;
-    
-    // --- THÊM LOGIC LÙI NGÀY NẾU QUA 12H ĐÊM ---
-    let vTime = getVietnamTimeNow();
-    // Nếu đang là từ 0h đến 6h sáng, lùi lại 1 ngày để gom chung vào quỹ ca hôm qua
-    if (vTime.getHours() < 6) {
-        vTime.setDate(vTime.getDate() - 1);
-    }
-    const todayStr = toVNDateStr(vTime); 
-    // ------------------------------------------
-
-    const todayOrders = (DATA.orders || []).filter(o => 
-        o.dateIso === todayStr 
-        && o.status !== 'Đã hủy' 
-        && o.status !== 'Yêu cầu hủy'
-    );
-    
+    const todayStr = getShiftDayStr();
     let orderCashTotal = 0, orderBankTotal = 0;
-    todayOrders.forEach(o => {
-        if(o.paymentMethod === 'Chuyển khoản') orderBankTotal += (o.totalPrice || 0);
+    (DATA.orders || []).forEach(o => {
+        if(isCancelledOrder(o) || getOrderShiftDay(o) !== todayStr) return;
+        if(isBankOrder(o)) orderBankTotal += (o.totalPrice || 0);
         else orderCashTotal += (o.totalPrice || 0);
     });
-    
     const z = DATA.shiftCashFund.zMoney || 0;
     DATA.shiftCashFund.cash = z + orderCashTotal + (DATA.shiftCashFund.manualAdjustCash || 0);
     DATA.shiftCashFund.bank = 0 + orderBankTotal + (DATA.shiftCashFund.manualAdjustBank || 0);
@@ -1700,28 +1729,63 @@ const FUND_LABELS = {
   shiftCash: '⚡ Tiền Mặt Trong Ca', shiftBank: '⚡ Tiền Chuyển Khoản Trong Ca'
 };
 
-/* ============ FIX #3: CHỐT DỒN 12H ĐÊM ============ */
-function processMidnightShiftSettlement(oldDateStr){
-  if(!DATA || !DATA.shiftCashFund) return;
-  const cashToSettle = DATA.shiftCashFund.cash || 0;
-  const bankToSettle = DATA.shiftCashFund.bank || 0;
-  if(cashToSettle !== 0){
-    DATA.cashFund.cash = (DATA.cashFund.cash || 0) + cashToSettle;
-    logCashFundOnly('midnight-settle', 'cash', cashToSettle,
-      `Chốt dồn tiền MẶT trong ca ngày ${oldDateStr || '?'}`);
-  }
-  if(bankToSettle !== 0){
-    DATA.cashFund.bank = (DATA.cashFund.bank || 0) + bankToSettle;
-    logCashFundOnly('midnight-settle', 'bank', bankToSettle,
-      `Chốt dồn tiền CK trong ca ngày ${oldDateStr || '?'}`);
-  }
-  DATA.shiftCashFund.cash = 0;
-  DATA.shiftCashFund.bank = 0;
-  DATA.shiftCashFund.manualAdjustCash = 0;
-  DATA.shiftCashFund.manualAdjustBank = 0;
-  DATA.shiftCashFund.zMoney = 0;
-  DATA.shiftCashFund.lastSettledDate = toVNDateStr(getVietnamTimeNow());
+/* ============ FIX #3: CHỐT DỒN CUỐI NGÀY (chỉ chốt 1 lần / ngày, không cộng Z) ============ */
+var _settlingShift = false;
+function checkShiftDayRollover(){
+  if(_settlingShift || !DATA || !DATA.shiftCashFund) return false;
+  const cur = getShiftDayStr();
+  const last = DATA.shiftCashFund.lastSettledDate;
+  if(!last){ DATA.shiftCashFund.lastSettledDate = cur; return false; }
+  if(last >= cur) return false;
+  return processMidnightShiftSettlement(last);
+}
+function processMidnightShiftSettlement(startDay){
+  if(_settlingShift || !DATA || !DATA.shiftCashFund) return false;
+  _settlingShift = true;
+  let did = false;
+  try{
+    const cur = getShiftDayStr();
+    if(!DATA.settledShiftDays) DATA.settledShiftDays = {};
+    let day = startDay || DATA.shiftCashFund.lastSettledDate || cur;
+    const firstDay = day;
+    let guard = 0;
+    while(day < cur && guard++ < 62){
+      if(!DATA.settledShiftDays[day]){
+        // Tính thẳng từ đơn hàng của ngày đó (không dùng số dư ca đang lưu) → không thể bị cộng dồn nhiều lần.
+        // Quỹ đầu ngày Z KHÔNG được cộng vào quỹ tổng vì đó là tiền có sẵn trong két, không phải doanh thu.
+        let cash = 0, bank = 0;
+        (DATA.orders || []).forEach(o => {
+          if(isCancelledOrder(o) || getOrderShiftDay(o) !== day) return;
+          if(isBankOrder(o)) bank += (o.totalPrice || 0); else cash += (o.totalPrice || 0);
+        });
+        if(day === firstDay){
+          cash += (DATA.shiftCashFund.manualAdjustCash || 0);
+          bank += (DATA.shiftCashFund.manualAdjustBank || 0);
+          // Quỹ đầu ngày (Z) đã được trừ khỏi Quỹ Tổng lúc nhập → cuối ngày gom trả lại
+          cash += (DATA.shiftCashFund.zDeducted || 0);
+        }
+        if(cash !== 0){
+          DATA.cashFund.cash = (DATA.cashFund.cash || 0) + cash;
+          logCashFundOnly('midnight-settle', 'cash', cash, `Chốt dồn tiền MẶT trong ca ngày ${day}`);
+        }
+        if(bank !== 0){
+          DATA.cashFund.bank = (DATA.cashFund.bank || 0) + bank;
+          logCashFundOnly('midnight-settle', 'bank', bank, `Chốt dồn tiền CK trong ca ngày ${day}`);
+        }
+        DATA.settledShiftDays[day] = { cash, bank, at: Date.now() };
+        did = true;
+      }
+      day = addDaysToDateStr(day, 1);
+    }
+    DATA.shiftCashFund.manualAdjustCash = 0;
+    DATA.shiftCashFund.manualAdjustBank = 0;
+    DATA.shiftCashFund.zMoney = 0;
+    DATA.shiftCashFund.zDeducted = 0;
+    DATA.shiftCashFund.lastSettledDate = cur;
+  } finally { _settlingShift = false; }
+  recalculateShiftFundFromOrders();
   saveDataDirect();
+  return did;
 }
 
 function renderHeaderMoneyBadge(){
@@ -1872,7 +1936,7 @@ function renderCashFundTab(){
   const logs = DATA.cashFundLogs || [];
   if(logs.length === 0){ logWrap.innerHTML = '<p style="color:var(--muted); text-align:center; margin:10px 0;">Chưa có lịch sử biến động quỹ.</p>'; return; }
   const sourceIcon = { order: '🧾', 'order-delete': '🗑️', 'order-edit': '✏️', restock: '📦', 'restock-delete': '🗑️', manual: '✍️', 'midnight-settle': '🌙' };
-  const sourceLabel = { order: 'Order bán hàng', 'order-delete': 'Xóa hóa đơn', 'order-edit': 'Sửa hóa đơn', restock: 'Mua bổ sung kho', 'restock-delete': 'Xóa lịch sử mua kho', manual: 'Điều chỉnh thủ công', 'midnight-settle': 'Chốt dồn 12h đêm' };
+  const sourceLabel = { order: 'Order bán hàng', 'order-delete': 'Xóa hóa đơn', 'order-edit': 'Sửa hóa đơn', restock: 'Mua bổ sung kho', 'restock-delete': 'Xóa lịch sử mua kho', manual: 'Điều chỉnh thủ công', 'midnight-settle': 'Chốt dồn cuối ngày' };
   const rowFn = l => {
     const isPositive = l.amount >= 0;
     const canDelete = CURRENT_USER && CURRENT_USER.role === 'owner' && l.source !== 'midnight-settle';
@@ -1893,6 +1957,195 @@ function renderCashFundTab(){
   };
   const sumFn = list => { const net = list.reduce((s,x) => s + (x.amount || 0), 0); return `${net >= 0 ? '+' : ''}${fmt(net)}đ`; };
   logWrap.innerHTML = renderLogsByDay('cashfund', logs, rowFn, sumFn);
+}
+
+
+/* ============ ĐƠN ĐÃ CHỐT: chỉnh/xóa thì quỹ tổng tự cộng trừ ============ */
+function logSettledOrderAdjust(source, fund, amount, reason, order){
+  logCashFundChange(source, fund, amount, reason, order.id);
+  const l = DATA.cashFundLogs[0];
+  if(l){ l.orderShiftDay = getOrderShiftDay(order); l.orderStaff = order.staffName || ''; }
+}
+function getLogShiftDay(l){
+  const m = /\((\d{2})\/(\d{2})\/(\d{4})\)/.exec(l.time || '');
+  if(!m) return '';
+  let day = `${m[3]}-${m[2]}-${m[1]}`;
+  const h = /^(\d{2}):/.exec(l.time || '');
+  if(h && parseInt(h[1],10) < 6) day = addDaysToDateStr(day, -1);
+  return day;
+}
+
+/* ============ LỆCH QUỸ: tính lại theo đơn hiện tại ============ */
+function findCheckoutRecForDiff(a){
+  const list = DATA.attendance || [];
+  if(a.checkoutId){ const r = list.find(x => x.id === a.checkoutId); if(r) return r; }
+  return list.find(x => x.type === 'Ra ca làm' && x.staffId === a.staffId && x.time === a.time && x.countedCash !== undefined) || null;
+}
+function computeCheckoutDiscrepancy(rec){
+  const t = getStaffOrderTotals(rec.staffName, rec.shiftDay ? { shiftDay: rec.shiftDay } : { dateStr: rec.dateStr });
+  const X1 = t.cash, Y1 = t.bank, Z = rec.zMoney || 0, X2 = rec.countedCash || 0;
+  const y2Auto = (rec.y2Auto !== undefined) ? rec.y2Auto : (rec.y2 === rec.transferTotal);
+  const Y2 = y2Auto ? Y1 : (rec.y2 || 0);
+  const formula = rec.formula || getCheckoutFormula();
+  const values = { X1, Y1, Z, X2, Y2 };
+  const vt = evaluateFormulaSide(formula.left, values), vp = evaluateFormulaSide(formula.right, values);
+  return { X1, Y1, Z, X2, Y2, y2Auto, formula, vt, vp, diff: vp - vt, cashDiff: X2 - (X1 + Z), bankDiff: Y2 - Y1 };
+}
+function discLabel(a){
+  const rec = findCheckoutRecForDiff(a);
+  if(!rec) return a.type;
+  const d = computeCheckoutDiscrepancy(rec);
+  if(Math.abs(d.diff) < 1){
+    const o = a.discrepancyAmount || 0;
+    return `Lệch quỹ đã khớp ✅ (ban đầu ${o > 0 ? 'Thừa ' : 'Thiếu '}${fmt(Math.abs(o))})`;
+  }
+  return `Lệch quỹ (${d.diff > 0 ? 'Thừa ' + fmt(d.diff) : 'Thiếu ' + fmt(Math.abs(d.diff))})`;
+}
+function refreshDiscrepanciesForOrder(order){
+  if(!order || !DATA.attendance) return;
+  DATA.attendance.filter(r => r.type === 'Ra ca làm' && r.countedCash !== undefined && r.staffName === order.staffName).forEach(rec => {
+    const same = rec.shiftDay ? (rec.shiftDay === getOrderShiftDay(order)) : (rec.dateStr === order.dateIso);
+    if(!same) return;
+    const existing = DATA.attendance.find(a => a.isDiscrepancy && findCheckoutRecForDiff(a) === rec);
+    if(existing) return;
+    const d = computeCheckoutDiscrepancy(rec);
+    if(Math.abs(d.diff) >= 1){
+      DATA.attendance.unshift({ id: uid('att_diff'), staffId: rec.staffId, staffName: rec.staffName,
+        type: `Lệch quỹ (${d.diff > 0 ? 'Thừa ' + fmt(d.diff) : 'Thiếu ' + fmt(Math.abs(d.diff))})`,
+        time: rec.time, timestamp: rec.timestamp, dateStr: rec.dateStr, shiftDay: rec.shiftDay,
+        isDiscrepancy: true, discrepancyAmount: d.diff, checkoutId: rec.id, autoFromEdit: true });
+    }
+  });
+}
+function showInfoModal(title, html){
+  let ov = document.getElementById('info-modal-overlay');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.className = 'modal-overlay'; ov.id = 'info-modal-overlay';
+    ov.innerHTML = `<div class="modal-card" style="max-width:640px; max-height:92vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <h3 id="info-modal-title" style="margin:0; font-size:18px;"></h3>
+        <button class="icon-btn" onclick="document.getElementById('info-modal-overlay').style.display='none'">✕</button>
+      </div>
+      <div id="info-modal-body" style="margin-top:12px; font-size:13px;"></div>
+    </div>`;
+    document.body.appendChild(ov);
+    ov.addEventListener('click', e => { if(e.target === ov) ov.style.display = 'none'; });
+  }
+  document.getElementById('info-modal-title').textContent = title;
+  document.getElementById('info-modal-body').innerHTML = html;
+  ov.style.display = 'flex';
+}
+function openDiscrepancyDetail(attId){
+  if(!CURRENT_USER || CURRENT_USER.role !== 'owner') return;
+  const a = (DATA.attendance || []).find(x => x.id === attId);
+  if(!a) return;
+  const rec = findCheckoutRecForDiff(a);
+  if(!rec){ alert('⚠️ Không tìm thấy bản ghi ra ca gốc của lần lệch quỹ này.'); return; }
+  const d = computeCheckoutDiscrepancy(rec);
+  const day = rec.shiftDay || rec.dateStr;
+  const row = (label, val, extra) => `<div style="display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px dashed #e6e0d0;"><span>${label}</span><b style="text-align:right;">${val}${extra ? `<div style="font-weight:600; font-size:11px; color:var(--muted);">${extra}</div>` : ''}</b></div>`;
+  const signed = n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${fmt(Math.abs(n))}đ`;
+  const color = n => Math.abs(n) < 1 ? 'var(--good)' : (n > 0 ? '#e65100' : 'var(--bad)');
+  const denomHtml = rec.denoms && Object.keys(rec.denoms).length
+    ? Object.keys(rec.denoms).sort((x,y)=>y-x).map(k => `${fmt(Number(k))}đ × ${rec.denoms[k]}`).join(' · ') : '';
+  const logs = (DATA.cashFundLogs || []);
+  const manual = logs.filter(l => l.source === 'manual' && getLogShiftDay(l) === day);
+  const orderAdj = logs.filter(l => l.orderShiftDay === day && l.orderStaff === rec.staffName);
+  const logRow = l => `<div style="display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px dashed #e6e0d0; font-size:12px;">
+      <span>${FUND_LABELS[l.fund] || l.fund}<div style="color:var(--muted); font-size:11px;">${escapeHtml(l.reason || '')} — 🕒 ${escapeHtml(l.time || '')}${l.staffName ? ' — ' + escapeHtml(l.staffName) : ''}</div></span>
+      <b style="white-space:nowrap; color:${(l.amount||0) >= 0 ? 'var(--good)' : 'var(--bad)'};">${(l.amount||0) >= 0 ? '+' : ''}${fmt(l.amount||0)}đ</b></div>`;
+  const manualNet = { shiftCash: 0, shiftBank: 0 };
+  manual.forEach(l => { if(manualNet[l.fund] !== undefined) manualNet[l.fund] += (l.amount || 0); });
+  const html = `
+    <div style="background:var(--soft); border-radius:10px; padding:10px 12px; margin-bottom:12px;">
+      👤 <b>${escapeHtml(rec.staffName)}</b> — ra ca lúc ${escapeHtml(rec.time)}<br>
+      <span style="color:var(--muted); font-size:12px;">Ca ngày: ${escapeHtml(day)}</span>
+    </div>
+    <div style="font-weight:800; color:var(--accent); margin-bottom:4px;">📊 Số liệu kiểm kê (tính lại theo đơn hiện tại)</div>
+    ${row('💵 Tiền nộp đầu ngày (Z)', fmt(d.Z) + 'đ')}
+    ${row('🧾 Tiền mặt thu trong ca (X1)', fmt(d.X1) + 'đ', (rec.expectedCash !== undefined && rec.expectedCash !== d.X1) ? `lúc ra ca: ${fmt(rec.expectedCash)}đ — đã đổi do chỉnh đơn` : '')}
+    ${row('📱 Chuyển khoản thu trong ca (Y1)', fmt(d.Y1) + 'đ', (rec.transferTotal !== undefined && rec.transferTotal !== d.Y1) ? `lúc ra ca: ${fmt(rec.transferTotal)}đ — đã đổi do chỉnh đơn` : '')}
+    ${row('🧮 Tiền mặt nhân viên đếm (X2)', fmt(d.X2) + 'đ', denomHtml)}
+    ${row('🏦 CK nhân viên nhập (Y2)', fmt(d.Y2) + 'đ', d.y2Auto ? 'nhân viên để mặc định = CK theo đơn (Y1)' : 'nhân viên tự nhập')}
+    ${row('📐 Công thức', escapeHtml(d.formula.left) + ' = ' + escapeHtml(d.formula.right))}
+    ${row('VT (vế trái)', fmt(d.vt) + 'đ')}
+    ${row('VP (vế phải)', fmt(d.vp) + 'đ')}
+    <div style="margin-top:8px; padding:10px; border-radius:10px; text-align:center; font-weight:900; font-size:15px; background:#fff8e1; color:${color(d.diff)};">
+      ${Math.abs(d.diff) < 1 ? '✅ ĐÃ KHỚP QUỸ' : (d.diff > 0 ? '⚠️ LỆCH THỪA ' : '⚠️ LỆCH THIẾU ') + fmt(Math.abs(d.diff)) + 'đ'}
+      <div style="font-size:11.5px; font-weight:700; color:var(--muted); margin-top:3px;">Ban đầu lúc ra ca: ${(a.discrepancyAmount||0) > 0 ? 'Thừa ' : 'Thiếu '}${fmt(Math.abs(a.discrepancyAmount||0))}đ</div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:8px; font-size:12px;">
+      <div style="flex:1; background:#f0f7f3; border-radius:8px; padding:8px; text-align:center;">Lệch tiền mặt<br><b style="color:${color(d.cashDiff)};">${signed(d.cashDiff)}</b></div>
+      <div style="flex:1; background:#eef2fa; border-radius:8px; padding:8px; text-align:center;">Lệch chuyển khoản<br><b style="color:${color(d.bankDiff)};">${signed(d.bankDiff)}</b></div>
+    </div>
+    <div style="font-weight:800; color:var(--accent); margin:16px 0 4px;">✍️ Điều chỉnh thu chi thủ công (Tab 8) — ngày ${escapeHtml(day)}</div>
+    ${manual.length ? manual.map(logRow).join('') + `<div style="font-size:11.5px; color:var(--muted); margin-top:4px;">Cộng/trừ tay vào tiền ca: mặt ${signed(manualNet.shiftCash)} · CK ${signed(manualNet.shiftBank)}</div>` : '<div style="color:var(--muted); font-size:12px;">Không có điều chỉnh tay nào trong ngày này.</div>'}
+    <div style="font-weight:800; color:var(--accent); margin:16px 0 4px;">✏️ Quỹ tổng đã tự cộng/trừ do sửa/xóa đơn của ca này</div>
+    ${orderAdj.length ? orderAdj.map(logRow).join('') : '<div style="color:var(--muted); font-size:12px;">Chưa có đơn nào của ca này bị sửa/xóa sau khi chốt ngày.</div>'}
+  `;
+  showInfoModal('🔎 Chi tiết lệch quỹ', html);
+}
+
+/* ============ ĐỐI SOÁT QUỸ TỔNG ============ */
+function openFundAudit(){
+  ensureFundStructure();
+  const days = {};
+  const get = k => (days[k] = days[k] || { oc: 0, ob: 0, sc: 0, sb: 0, n: 0 });
+  (DATA.orders || []).forEach(o => {
+    if(isCancelledOrder(o)) return;
+    const k = getOrderShiftDay(o); if(!k) return;
+    const r = get(k);
+    if(isBankOrder(o)) r.ob += (o.totalPrice || 0); else r.oc += (o.totalPrice || 0);
+  });
+  (DATA.cashFundLogs || []).forEach(l => {
+    if(l.source !== 'midnight-settle') return;
+    const m = /(\d{4}-\d{2}-\d{2})/.exec(l.reason || ''); if(!m) return;
+    const r = get(m[1]);
+    if(l.fund === 'cash') r.sc += (l.amount || 0); else if(l.fund === 'bank') r.sb += (l.amount || 0);
+    r.n++;
+  });
+  const cur = getShiftDayStr();
+  const keys = Object.keys(days).filter(k => days[k].n > 0 || (k < cur && (days[k].oc || days[k].ob))).sort().reverse().slice(0, 40);
+  let exCash = 0, exBank = 0;
+  const rows = keys.map(k => {
+    const r = days[k];
+    const settled = r.n > 0;
+    const dc = r.sc - r.oc, db = r.sb - r.ob;
+    if(settled){ exCash += dc; exBank += db; }
+    const cc = v => Math.abs(v) < 1 ? 'var(--muted)' : (v > 0 ? 'var(--bad)' : '#e65100');
+    return `<tr style="border-bottom:1px solid #eee;">
+      <td style="padding:5px 4px;">${k}${r.n > 2 ? ` <span style="color:var(--bad); font-weight:800;">(chốt ${r.n} lần!)</span>` : ''}</td>
+      <td style="text-align:right;">${fmt(r.oc)}<br><span style="color:var(--muted);">${fmt(r.ob)}</span></td>
+      <td style="text-align:right;">${settled ? fmt(r.sc) : '—'}<br><span style="color:var(--muted);">${settled ? fmt(r.sb) : '—'}</span></td>
+      <td style="text-align:right; font-weight:800;">${settled ? `<span style="color:${cc(dc)};">${dc > 0 ? '+' : ''}${fmt(dc)}</span><br><span style="color:${cc(db)};">${db > 0 ? '+' : ''}${fmt(db)}</span>` : '<span style="color:var(--muted); font-weight:600;">chưa chốt</span>'}</td>
+    </tr>`;
+  }).join('');
+  const html = `
+    <p style="margin:0 0 10px; color:var(--muted); font-size:12.5px;">So sánh <b>doanh thu đơn</b> của từng ngày với số tiền đã <b>chốt dồn vào Quỹ Tổng</b>. Mỗi ô có 2 dòng: <b>tiền mặt</b> (trên) / <b>chuyển khoản</b> (dưới). Dương đỏ = quỹ đang chốt <b>dư</b> so với doanh thu (thường do trước đây cộng cả Quỹ Đầu Ngày Z hoặc chốt trùng nhiều lần). Phần chênh cũng có thể gồm các khoản bạn cộng/trừ tay hợp lệ, nên hãy xem lại trước khi sửa.</p>
+    <div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+      <thead><tr style="text-align:right; color:var(--muted); border-bottom:2px solid #ddd;"><th style="text-align:left; padding:4px;">Ngày</th><th>Doanh thu đơn</th><th>Đã chốt vào quỹ</th><th>Chênh</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="4" style="padding:12px; text-align:center; color:var(--muted);">Chưa có ngày nào được chốt.</td></tr>'}</tbody>
+    </table></div>
+    <div style="margin-top:12px; padding:10px; background:#fff8e1; border-radius:10px;">
+      Tổng chênh (các ngày đã chốt): tiền mặt <b>${exCash > 0 ? '+' : ''}${fmt(exCash)}đ</b> · chuyển khoản <b>${exBank > 0 ? '+' : ''}${fmt(exBank)}đ</b>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        ${Math.abs(exCash) >= 1 ? `<button class="btn small" onclick="prefillFundFix('cash', ${exCash})">Điền sẵn phiếu chỉnh Quỹ Tiền Mặt</button>` : ''}
+        ${Math.abs(exBank) >= 1 ? `<button class="btn small" onclick="prefillFundFix('bank', ${exBank})">Điền sẵn phiếu chỉnh Quỹ Tài Khoản</button>` : ''}
+      </div>
+      <div style="font-size:11.5px; color:var(--muted); margin-top:6px;">Chỉ điền sẵn vào form "Điều chỉnh thu chi thủ công", bạn kiểm tra rồi bấm Lưu (cần PIN cấp hai).</div>
+    </div>`;
+  showInfoModal('🔎 Đối soát Quỹ Tổng', html);
+}
+function prefillFundFix(fund, excess){
+  const ov = document.getElementById('info-modal-overlay'); if(ov) ov.style.display = 'none';
+  document.getElementById('cashfund-adjust-fund').value = fund;
+  document.getElementById('cashfund-adjust-dir').value = excess > 0 ? 'sub' : 'add';
+  document.getElementById('cashfund-adjust-amount').value = Math.abs(Math.round(excess));
+  document.getElementById('cashfund-adjust-reason').value = 'Đối soát: sửa phần quỹ chốt dồn chênh so với doanh thu đơn';
+  dirtyTabs['cashfund'] = true;
+  const btn = document.getElementById('btn-save-cashfund-adjust');
+  if(btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 /* ============ FIX #7: XÓA NHẬT KÝ QUỸ ============ */
@@ -1980,7 +2233,7 @@ document.getElementById('btn-save-z-money').addEventListener('click', ()=>{
   const oldZ = DATA.shiftCashFund.zMoney || 0;
   const nowVN = getVietnamTimeNow();
   const timeStr = `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')} (${String(nowVN.getDate()).padStart(2,'0')}/${String(nowVN.getMonth()+1).padStart(2,'0')})`;
-  DATA.shiftCashFund.zMoney = newZ;
+  setShiftZ(newZ);
   const diffZ = newZ - oldZ;
   if(diffZ !== 0){
     logCashFundOnly('manual', 'shiftCash', diffZ,
@@ -2554,11 +2807,17 @@ function deleteOrder(id){
   if(code !== secPin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
   const order = (DATA.orders || []).find(o => o.id === id);
   if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
-  const todayStr = toVNDateStr(getVietnamTimeNow());
-  if(order.dateIso === todayStr){
-    const isBank = (order.paymentMethod === 'Chuyển khoản');
-    logCashFundOnly('order-delete', isBank ? 'shiftBank' : 'shiftCash', -order.totalPrice,
-      `Xóa hóa đơn bàn ${order.table}`, order.id);
+  checkShiftDayRollover();
+  if(!isCancelledOrder(order)){
+    const isBank = isBankOrder(order);
+    if(isOrderSettled(order)){
+      // Ngày của đơn đã chốt vào Quỹ Tổng → trừ thẳng khỏi Quỹ Tổng
+      logSettledOrderAdjust('order-delete', isBank ? 'bank' : 'cash', -(order.totalPrice || 0),
+        `Xóa hóa đơn bàn ${order.table} (ngày ${order.dateIso})`, order);
+    } else {
+      logCashFundOnly('order-delete', isBank ? 'shiftBank' : 'shiftCash', -order.totalPrice,
+        `Xóa hóa đơn bàn ${order.table}`, order.id);
+    }
   }
   const customerPhone = order.customerPhone;
   if(customerPhone && useFirebase && db){
@@ -2603,6 +2862,7 @@ function deleteOrder(id){
     }).catch(err => console.error('❌ Lỗi thu hồi:', err));
   }
   DATA.orders = DATA.orders.filter(o => o.id !== id);
+  refreshDiscrepanciesForOrder(order);
   saveDataDirect();
   renderHistoryOrders();
   alert('✅ Đã xóa hóa đơn!');
@@ -2724,23 +2984,45 @@ document.getElementById('btn-save-edit-order').addEventListener('click', ()=>{
   const totalQty = editOrderDraftItems.reduce((s,i)=>s+i.qty, 0);
   const totalPrice = editOrderDraftItems.reduce((s,i)=>s+(i.unitPrice*i.qty), 0);
   const totalCost = editOrderDraftItems.reduce((s,i)=>s+(i.unitCost*i.qty), 0);
-  const oldIsBank = (order.paymentMethod === 'Chuyển khoản');
-  const todayStrEdit = toVNDateStr(getVietnamTimeNow());
-  if(order.dateIso === todayStrEdit){
-    logCashFundOnly('order-edit', oldIsBank ? 'shiftBank' : 'shiftCash', -order.totalPrice, `Hoàn tác hóa đơn cũ (Bàn ${order.table})`, order.id);
+  checkShiftDayRollover();
+  const oldIsBank = isBankOrder(order);
+  const oldTotal = order.totalPrice || 0;
+  const wasCancelled = isCancelledOrder(order);
+  const settledOrder = isOrderSettled(order);
+  if(!settledOrder){
+    logCashFundOnly('order-edit', oldIsBank ? 'shiftBank' : 'shiftCash', -oldTotal, `Hoàn tác hóa đơn cũ (Bàn ${order.table})`, order.id);
   }
   order.table = newTable; order.paymentMethod = newPayment; order.generalNote = newNote;
   order.items = JSON.parse(JSON.stringify(editOrderDraftItems));
   order.totalQty = totalQty; order.totalPrice = totalPrice; order.totalCost = totalCost;
   order.editedAt = new Date().toISOString();
   const newIsBank = (newPayment === 'Chuyển khoản');
-  if(order.dateIso === todayStrEdit){
+  let fundMsg = '';
+  if(!settledOrder){
     logCashFundOnly('order-edit', newIsBank ? 'shiftBank' : 'shiftCash', totalPrice, `Cập nhật hóa đơn (Bàn ${order.table})`, order.id);
+  } else if(!wasCancelled){
+    // Đơn của ngày đã chốt: chuyển tiền giữa các quỹ TỔNG cho khớp
+    const oldLbl = oldIsBank ? 'Chuyển khoản' : 'Tiền mặt', newLbl = newIsBank ? 'Chuyển khoản' : 'Tiền mặt';
+    if(oldIsBank === newIsBank){
+      const delta = totalPrice - oldTotal;
+      if(delta !== 0){
+        logSettledOrderAdjust('order-edit', newIsBank ? 'bank' : 'cash', delta,
+          `Sửa hóa đơn bàn ${order.table} (${order.dateIso}): ${fmt(oldTotal)}đ → ${fmt(totalPrice)}đ`, order);
+        fundMsg = `\n💰 Quỹ Tổng (${newLbl}) đã ${delta > 0 ? 'cộng' : 'trừ'} ${fmt(Math.abs(delta))}đ.`;
+      }
+    } else {
+      logSettledOrderAdjust('order-edit', oldIsBank ? 'bank' : 'cash', -oldTotal,
+        `Sửa hóa đơn bàn ${order.table} (${order.dateIso}): đổi ${oldLbl} → ${newLbl}, trừ ${fmt(oldTotal)}đ khỏi quỹ ${oldLbl}`, order);
+      logSettledOrderAdjust('order-edit', newIsBank ? 'bank' : 'cash', totalPrice,
+        `Sửa hóa đơn bàn ${order.table} (${order.dateIso}): đổi ${oldLbl} → ${newLbl}, cộng ${fmt(totalPrice)}đ vào quỹ ${newLbl}`, order);
+      fundMsg = `\n💰 Quỹ Tổng: trừ ${fmt(oldTotal)}đ (${oldLbl}), cộng ${fmt(totalPrice)}đ (${newLbl}).`;
+    }
   }
+  refreshDiscrepanciesForOrder(order);
   saveDataDirect();
   closeEditOrderModal();
   renderHistoryOrders();
-  alert('✅ Đã lưu điều chỉnh hóa đơn!');
+  alert('✅ Đã lưu điều chỉnh hóa đơn!' + fundMsg);
 });
 
 function getIng(id){
@@ -3326,9 +3608,9 @@ function saveAttendanceCfg(){
 document.getElementById('btn-clock-out').addEventListener('click', ()=>{
   const todayStr = toVNDateStr(getVietnamTimeNow());
   const staffName = CURRENT_USER.name;
-  const todayOrders = (DATA.orders || []).filter(o => o.dateIso === todayStr && o.staffName === staffName);
-  let expectedCash = 0, transferTotal = 0;
-  todayOrders.forEach(o => { if(!o.paymentMethod || o.paymentMethod === 'Tiền mặt') expectedCash += o.totalPrice; else transferTotal += o.totalPrice; });
+  const shiftDay = getShiftDayStr();
+  const _totals = getStaffOrderTotals(staffName, { shiftDay });
+  let expectedCash = _totals.cash, transferTotal = _totals.bank;
   const z = getTodayZMoney();
 
   window.__CHECKOUT_X1 = expectedCash;
@@ -3533,9 +3815,9 @@ document.getElementById('btn-confirm-checkout').addEventListener('click', ()=>{
   });
   const todayStr = toVNDateStr(getVietnamTimeNow());
   const staffName = CURRENT_USER.name;
-  const todayOrders = (DATA.orders || []).filter(o => o.dateIso === todayStr && o.staffName === staffName);
-  let expectedCash = 0, transferTotal = 0;
-  todayOrders.forEach(o => { if(!o.paymentMethod || o.paymentMethod === 'Tiền mặt') expectedCash += o.totalPrice; else transferTotal += o.totalPrice; });
+  const shiftDay = getShiftDayStr();
+  const _totals = getStaffOrderTotals(staffName, { shiftDay });
+  let expectedCash = _totals.cash, transferTotal = _totals.bank;
 
   const z  = parseFloat(document.getElementById('co-z-money').value) || 0;
   const y2 = parseFloat(document.getElementById('co-y2-input').value) || 0;
@@ -3548,17 +3830,21 @@ document.getElementById('btn-confirm-checkout').addEventListener('click', ()=>{
   const nowVN = getVietnamTimeNow();
   const timeStr = `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')}:${String(nowVN.getSeconds()).padStart(2,'0')} — ${String(nowVN.getDate()).padStart(2,'0')}/${String(nowVN.getMonth()+1).padStart(2,'0')}/${nowVN.getFullYear()}`;
 
+  const checkoutId = uid('att');
+  const denoms = {};
+  document.querySelectorAll('.denom-inp').forEach(inp => { const q = parseFloat(inp.value) || 0; if(q > 0) denoms[inp.getAttribute('data-val')] = q; });
+  const y2Auto = (y2 === transferTotal);
   if(Math.abs(diff) > 0){
     alert(`⚠️ CẢNH BÁO LỆCH QUỸ!\n- Tiền trong ca: ${fmt(vt)}đ\n- Tiền thực nhận: ${fmt(vp)}đ\n- Chênh lệch: ${diff > 0 ? '+' : ''}${fmt(diff)}đ`);
-    DATA.attendance.unshift({ id: uid('att_diff'), staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: `Lệch quỹ (${diff > 0 ? 'Thừa ' + fmt(diff) : 'Thiếu ' + fmt(Math.abs(diff))})`, time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, isDiscrepancy: true, discrepancyAmount: diff });
+    DATA.attendance.unshift({ id: uid('att_diff'), staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: `Lệch quỹ (${diff > 0 ? 'Thừa ' + fmt(diff) : 'Thiếu ' + fmt(Math.abs(diff))})`, time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, shiftDay, checkoutId, isDiscrepancy: true, discrepancyAmount: diff });
   } else {
     alert(`✅ Kiểm kê tiền mặt khớp hoàn toàn! Ra ca thành công.`);
   }
 
-  DATA.attendance.unshift({ id: uid('att'), staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Ra ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, countedCash, expectedCash, transferTotal, zMoney: z, y2 });
+  DATA.attendance.unshift({ id: checkoutId, staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Ra ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, shiftDay, countedCash, expectedCash, transferTotal, zMoney: z, y2, y2Auto, denoms, formula: { left: formula.left, right: formula.right } });
 
   if(z !== (DATA.shiftCashFund.zMoney || 0)){
-    DATA.shiftCashFund.zMoney = z;
+    setShiftZ(z, ' — lúc ra ca');
     logCashFundOnly('manual', 'shiftCash', 0, `Cập nhật Quỹ Đầu Ngày (Z) lúc ra ca: ${fmt(z)}đ`, 'z-' + Date.now());
   }
 
@@ -3793,7 +4079,7 @@ function renderShiftTab(){
           ${dayShifts.map(s => `<div class="shift-badge"><span><b>${escapeHtml(s.name.replace('Nhân viên ', ''))}</b>: ${escapeHtml(s.shift)} (${s.timeframe || s.hours + 'h'})</span>${isOwner ? `<span onclick="event.stopPropagation(); deleteCalendarShift('${s.id}')" style="color:var(--bad); cursor:pointer; font-weight:bold; margin-left:4px;">×</span>` : ''}</div>`).join('')}
           ${manualAtts.map(a => `<div class="shift-badge" style="background:#eaf4ed; border-color:var(--good);"><span><b>${escapeHtml(a.staffName.replace('Nhân viên ', ''))}</b>: Bù ${a.manualHours}h</span>${isOwner ? `<span onclick="event.stopPropagation(); deleteAttendanceLog('${a.id}')" style="color:var(--bad); cursor:pointer; font-weight:bold; margin-left:4px;">×</span>` : ''}</div>`).join('')}
           ${deductionAtts.map(a => `<div class="shift-badge" style="background:#fbe9e7; border-color:var(--bad);"><span><b>${escapeHtml(a.staffName.replace('Nhân viên ', ''))}</b>: Phạt -${fmt(a.deductionAmount)}đ</span>${isOwner ? `<span onclick="event.stopPropagation(); deleteAttendanceLog('${a.id}')" style="color:var(--bad); cursor:pointer; font-weight:bold; margin-left:4px;">×</span>` : ''}</div>`).join('')}
-          ${diffAtts.map(a => `<div class="shift-badge" style="background:#fff3cd; border-color:#ffeeba; color:#856404;"><span>⚠️ ${escapeHtml(a.staffName)}: ${a.type}</span>${isOwner ? `<span onclick="event.stopPropagation(); deleteAttendanceLog('${a.id}')" style="color:var(--bad); cursor:pointer; font-weight:bold; margin-left:4px;">×</span>` : ''}</div>`).join('')}
+          ${diffAtts.map(a => `<div class="shift-badge" style="background:#fff3cd; border-color:#ffeeba; color:#856404;"><span ${isOwner ? `onclick="event.stopPropagation(); openDiscrepancyDetail('${a.id}')" style="cursor:pointer; text-decoration:underline dotted;" title="Bấm để xem chi tiết"` : ''}>⚠️ ${escapeHtml(a.staffName)}: ${escapeHtml(discLabel(a))}${isOwner ? ' 🔍' : ''}</span>${isOwner ? `<span onclick="event.stopPropagation(); deleteAttendanceLog('${a.id}')" style="color:var(--bad); cursor:pointer; font-weight:bold; margin-left:4px;">×</span>` : ''}</div>`).join('')}
         </div>
       </div>`;
   }
@@ -3803,7 +4089,7 @@ function renderShiftTab(){
   if(!isOwner) attendanceData = attendanceData.filter(a => a.staffId === CURRENT_USER.id);
   const attRow = a => {
     const isIn = a.type.includes('Vào') || a.type.includes('Bù');
-    return `<div class="log-row ${(a.isDiscrepancy || a.farFromShop) ? 'warn' : (isIn ? 'pos' : 'info')}" style="display:flex; justify-content:space-between; align-items:center; font-size:13px; gap:8px;"><span style="display:flex; align-items:center; gap:8px; min-width:0;">${attThumbHtml(a)}<span>👤 <b>${escapeHtml(a.staffName)}</b> — <span style="color:${isIn?'var(--good)':'var(--bad)'}; font-weight:700;">${escapeHtml(a.type)}</span>${attFlagsHtml(a)}</span></span><div style="display:flex; align-items:center; gap:10px;"><span style="color:var(--muted);">${escapeHtml(a.time)}</span>${isOwner ? `<button class="icon-btn danger" style="width:24px; height:24px; font-size:11px;" onclick="deleteAttendanceLog('${a.id}')">✕</button>` : ''}</div></div>`;
+    return `<div class="log-row ${(a.isDiscrepancy || a.farFromShop) ? 'warn' : (isIn ? 'pos' : 'info')}" style="display:flex; justify-content:space-between; align-items:center; font-size:13px; gap:8px;"><span style="display:flex; align-items:center; gap:8px; min-width:0;">${attThumbHtml(a)}<span>👤 <b>${escapeHtml(a.staffName)}</b> — <span style="color:${isIn?'var(--good)':'var(--bad)'}; font-weight:700;${a.isDiscrepancy && isOwner ? ' cursor:pointer; text-decoration:underline dotted;' : ''}" ${a.isDiscrepancy && isOwner ? `onclick="openDiscrepancyDetail('${a.id}')" title="Bấm để xem chi tiết"` : ''}>${escapeHtml(a.isDiscrepancy ? discLabel(a) : a.type)}${a.isDiscrepancy && isOwner ? ' 🔍' : ''}</span>${attFlagsHtml(a)}</span></span><div style="display:flex; align-items:center; gap:10px;"><span style="color:var(--muted);">${escapeHtml(a.time)}</span>${isOwner ? `<button class="icon-btn danger" style="width:24px; height:24px; font-size:11px;" onclick="deleteAttendanceLog('${a.id}')">✕</button>` : ''}</div></div>`;
   };
   logWrap.innerHTML = attendanceData.length === 0 ? '<div style="font-size:12.5px; color:var(--muted);">Chưa có dữ liệu chấm công.</div>' : renderLogsByDay('attendance', attendanceData, attRow);
   hydrateAttThumbs();
