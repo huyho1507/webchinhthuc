@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<script>try{ if(localStorage.getItem('meoxam_theme_priority')==='1') document.documentElement.classList.add('priority'); }catch(e){}</script>
 <style>
   :root{
     --ink:#0f0f0f; --paper:#f6f2e9; --card:#ffffff; --line:#0f0f0f; --muted:#6b675e;
@@ -469,6 +470,116 @@
   header.top .titles h1 .l1{ display:block; font-size:13px; font-weight:800; letter-spacing:4px; color:#4a6b5a; margin-bottom:3px; }
   header.top .titles h1 .l2{ display:block; font-size:31px; font-weight:900; letter-spacing:.5px; color:#0f0f0f; line-height:.95; }
   @media (max-width:768px){ header.top .cat{ width:58px; height:58px; } header.top .titles h1 .l2{ font-size:28px; } }
+
+  /* =====================================================================
+     GIAO DIỆN PRIORITY (bật/tắt trong ⚙️ Thiết lập — chỉ Quản lý, lưu riêng trên từng máy)
+     Nền tối ấm, nét vẽ vàng champagne — cảm hứng VCB Digibank Priority
+     ===================================================================== */
+  :root{
+    --bg-priority:
+      url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNDIwIiB2aWV3Qm94PSIwIDAgNDIwIDQyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDRiNDgzIiBzdHJva2Utb3BhY2l0eT0iMC4xNyIgc3Ryb2tlLXdpZHRoPSIyLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI4LDMwKSByb3RhdGUoLTggNDAgNDApIj48cGF0aCBkPSJNOCA0MCBRNSAxMiAxNCA4IEwyNyAyMSBRNDAgMTcgNTMgMjEgTDY2IDggUTc1IDEyIDcyIDQwIFE3MiA2OCA0MCA2OCBROCA2OCA4IDQwWiIvPjxwYXRoIGQ9Ik0yOCA0MWguMU01MiA0MWguMSIgc3Ryb2tlLXdpZHRoPSI1Ii8+PHBhdGggZD0iTTM1IDUxIFE0MCA1NiA0NSA1MSIvPjxwYXRoIGQ9Ik00IDQ0IEwxOCA0Nk00IDUzIEwxOCA1MU03NiA0NCBMNjIgNDZNNzYgNTMgTDYyIDUxIi8+PC9nPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNjIsMjQpIHJvdGF0ZSg4IDM1IDQ1KSI+PHBhdGggZD0iTTEwIDIySDYwTDU0IDg2UTUzIDkyIDQ3IDkySDIzUTE3IDkyIDE2IDg2WiIvPjxwYXRoIGQ9Ik02IDIySDY0Ii8+PHBhdGggZD0iTTQyIDIyTDU0IDAiLz48Y2lyY2xlIGN4PSIyOCIgY3k9Ijc2IiByPSI0LjUiLz48Y2lyY2xlIGN4PSI0MSIgY3k9IjgwIiByPSI0LjUiLz48Y2lyY2xlIGN4PSI0OCIgY3k9IjY5IiByPSI0LjUiLz48Y2lyY2xlIGN4PSIzNCIgY3k9IjY2IiByPSI0LjUiLz48cGF0aCBkPSJNMTQgMzhINTYiIHN0cm9rZS1kYXNoYXJyYXk9IjMgNiIvPjwvZz4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTUwLDQwKSI+PHBhdGggZD0iTTAgMTJRLTktNi0yMiAyUS0zMCAxNiAwIDM4UTMwIDE2IDIyIDJROS02IDAgMTJaIi8+PC9nPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNjAsMTUwKSI+PHBhdGggZD0iTTAtMjAgNi03IDIwLTcgOSAzIDEzIDE4IDAgMTAtMTMgMTgtOSAzLTIwLTctNi03WiIvPjwvZz4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjAsMTcwKSByb3RhdGUoLTE0IDMwIDMwKSI+PHBhdGggZD0iTTQgMzBRMjggMiA1NCAzMFEyOCA1OCA0IDMwWiIvPjxwYXRoIGQ9Ik01NCAzMEw3NiAxMlY0OFoiLz48Y2lyY2xlIGN4PSIxOSIgY3k9IjI2IiByPSIyLjYiLz48cGF0aCBkPSJNMzAgMjBRMzQgMzAgMzAgNDAiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE1MCwxNjApIj48cGF0aCBkPSJNMCAzNFEtNSAxNCAxNCAxNFExNi00IDM0IDRRNDgtNiA1OCAxMlE3NiAxMiA3MCAzNFoiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI1OCwyMTIpIHJvdGF0ZSgxNCAzMCA0MCkiPjxlbGxpcHNlIGN4PSIzMCIgY3k9IjUwIiByeD0iMTciIHJ5PSIxNCIvPjxlbGxpcHNlIGN4PSI3IiBjeT0iMjgiIHJ4PSI2IiByeT0iOC41Ii8+PGVsbGlwc2UgY3g9IjIyIiBjeT0iMTQiIHJ4PSI2IiByeT0iOC41Ii8+PGVsbGlwc2UgY3g9IjM5IiBjeT0iMTQiIHJ4PSI2IiByeT0iOC41Ii8+PGVsbGlwc2UgY3g9IjU0IiBjeT0iMjgiIHJ4PSI2IiByeT0iOC41Ii8+PC9nPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNCwzMTgpIHJvdGF0ZSg2IDQwIDMwKSI+PGNpcmNsZSBjeD0iMzQiIGN5PSIzNCIgcj0iMjYiLz48cGF0aCBkPSJNMTIgMjJRMzQgNDAgNTYgMjBNMTAgMzZRMzQgNTIgNTggMzRNMjAgNTZRNDAgMzAgNTAgMTIiLz48cGF0aCBkPSJNNTggNTBRNzYgNTggODQgNDRROTAgMzQgMTAwIDQwIiAvPjwvZz4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYwLDMwMCkgcm90YXRlKC0xMCAzMCAzMCkiPjxwYXRoIGQ9Ik02IDQ0UTYgOCA0MiA2UTQ0IDQ0IDYgNDRaIi8+PHBhdGggZD0iTTYgNDRMMzAgMjAiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI1MCwzMjYpIHJvdGF0ZSgtNiA0MCAzMCkiPjxwYXRoIGQ9Ik02IDE0SDMwTDM2IDRINjJMNjggMTRIODZROTQgMTQgOTQgMjJWNTJROTQgNjAgODYgNjBIMTRRNiA2MCA2IDUyVjIyUTYgMTQgNiAxNFoiIHRyYW5zZm9ybT0ic2NhbGUoLjgpIi8+PGNpcmNsZSBjeD0iNDQiIGN5PSIzNCIgcj0iMTIiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1MiwyNjIpIj48cGF0aCBkPSJNMC0xNFYxNE0tMTQgMEgxNCIvPjwvZz4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTIwLDExOCkiPjxwYXRoIGQ9Ik0wLTlWOU0tOSAwSDkiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM5Miw0MCkiPjxwYXRoIGQ9Ik0wLTlWOU0tOSAwSDkiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyMCwxNTApIj48Y2lyY2xlIHI9IjMiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOTAsMjkwKSI+PGNpcmNsZSByPSIzIi8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMzMCwyNDApIj48Y2lyY2xlIHI9IjMiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjAwLDI1OCkiPjxjaXJjbGUgcj0iMyIvPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzOTUsMzYwKSI+PGNpcmNsZSByPSIzIi8+PC9nPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNDAsMzQwKSByb3RhdGUoMTApIj48cGF0aCBkPSJNMCA4US02LTYtMTUgMFEtMjEgOSAwIDI1UTIxIDkgMTUgMFE2LTYgMCA4WiIgdHJhbnNmb3JtPSJzY2FsZSguNykiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIwNiwzOTgpIHJvdGF0ZSgtMjApIj48cGF0aCBkPSJNMCAwSDM2TTgtOCAwIDAgOCA4TTI4LTggMzYgMCAyOCA4Ii8+PC9nPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5NiwzOTIpIj48cGF0aCBkPSJNMCAwUTEyLTE0IDI0IDBUNDggMCIvPjwvZz4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTEwLDI1MCkiPjxwYXRoIGQ9Ik0wIDBRNi0xMiAxNCAwUTYgMTIgMCAwWiIvPjwvZz4KPC9zdmc+Cg=="),
+      radial-gradient(ellipse at 12% -6%, rgba(126,92,54,.60) 0, transparent 56%),
+      radial-gradient(ellipse at 100% 100%, rgba(96,68,40,.55) 0, transparent 52%),
+      radial-gradient(ellipse at 30% 88%, rgba(58,42,28,.55) 0, transparent 60%),
+      linear-gradient(160deg,#1b1511 0%,#0d0a08 55%,#16110d 100%);
+  }
+  html.priority{
+    --ink:#f2eadb; --paper:#0d0a08; --card:#17130f; --line:rgba(212,180,131,.5); --muted:#a99b85;
+    --good:#8fcaa6; --warn:#e0a94f; --bad:#e2786d; --soft:#211b15; --accent:#d9b97a;
+    --bd-soft:rgba(212,180,131,.28); --ring:0 0 0 4px rgba(217,185,122,.20);
+    --shadow-soft:0 1px 2px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.45);
+    --shadow-pop:0 2px 4px rgba(0,0,0,.5), 0 18px 44px rgba(0,0,0,.6);
+    background:#0d0a08; color-scheme:dark;
+  }
+  html.priority body::before{ background:var(--bg-priority); }
+  html.priority .login-screen{ background:var(--bg-priority) !important; }
+
+  /* Khung đầu trang */
+  html.priority header.top{ background:rgba(23,19,15,.86); border:1px solid rgba(212,180,131,.35); }
+  html.priority header.top .titles h1{ color:#f2eadb; }
+  html.priority header.top .titles h1 .l1{ color:#c9a96e; }
+  html.priority header.top .titles h1 .l2{ color:#f2eadb !important; }
+  html.priority header.top .titles p{ color:var(--muted); }
+  html.priority header.top .cat{ background:#e3e3e3; border-color:#365691; filter:invert(1) sepia(.4) saturate(1.3); }
+  html.priority .owner-money-badge, html.priority .shift-money-badge, html.priority .live-clock-badge, html.priority .user-badge, html.priority .bell-btn{
+    background:rgba(212,180,131,.09); border-color:rgba(212,180,131,.35); color:var(--ink); }
+  html.priority .shift-money-badge{ border-style:dashed; }
+  html.priority #hdr-bank-amount{ color:#9db8e8; }
+  html.priority .live-clock-badge{ color:#e6cf9f; }
+  html.priority .noti-dropdown{ background:#17130f; border-color:rgba(212,180,131,.4); box-shadow:0 12px 34px rgba(0,0,0,.6); }
+  html.priority .noti-header{ background:rgba(212,180,131,.10); border-bottom-color:rgba(212,180,131,.3); }
+  html.priority .noti-item{ border-bottom-color:rgba(212,180,131,.15); }
+  html.priority .noti-item:hover{ background:rgba(212,180,131,.08); }
+  html.priority .noti-item.unread{ background:rgba(212,180,131,.14); }
+
+  /* Thanh tab */
+  html.priority nav.tabs{ background:rgba(23,19,15,.88); border:1px solid rgba(212,180,131,.30); }
+  html.priority nav.tabs button[data-tab]{ background:rgba(255,255,255,.04); color:#d8cbb4; }
+  html.priority nav.tabs button.active[data-tab]{ background:linear-gradient(135deg,#ecd8ab,#b8935a); color:#1a130b; box-shadow:0 4px 14px rgba(184,147,90,.28); }
+
+  /* Thẻ / bảng / ô nhập */
+  html.priority .card{ background:rgba(28,23,18,.84); border-color:rgba(212,180,131,.28); color:var(--ink); }
+  html.priority .panel .card{ border-color:rgba(212,180,131,.28) !important; }
+  html.priority .panel .card h2, html.priority .card h2, html.priority h1, html.priority h3{ color:#e6cf9f !important; }
+  html.priority th{ color:var(--muted); border-bottom-color:rgba(212,180,131,.35); }
+  html.priority td{ border-bottom-color:rgba(212,180,131,.14); }
+  html.priority input, html.priority select, html.priority textarea{ background:rgba(255,255,255,.05); color:#f2eadb; border-color:rgba(212,180,131,.35); }
+  html.priority input:focus, html.priority select:focus, html.priority textarea:focus{ border-color:#d9b97a; box-shadow:var(--ring); }
+  html.priority select option{ background:#17130f; color:#f2eadb; }
+  html.priority ::placeholder{ color:#7d725f; }
+
+  /* Nút */
+  html.priority .btn, html.priority .btn.success{ background:linear-gradient(135deg,#ecd8ab,#c4a067 55%,#a07f45); color:#1a130b; border-color:#d9b97a; box-shadow:0 4px 14px rgba(184,147,90,.22); }
+  html.priority .btn.ghost{ background:transparent; color:#e6cf9f; border-color:rgba(212,180,131,.5); box-shadow:none; }
+  html.priority .btn.danger{ background:rgba(226,120,109,.14); color:#f0a59c; border-color:rgba(226,120,109,.5); box-shadow:none; }
+  html.priority .icon-btn{ background:rgba(212,180,131,.10); color:#e6cf9f; border-color:rgba(212,180,131,.38); }
+  html.priority .icon-btn.danger{ color:#f0a59c; }
+  html.priority .chip{ background:rgba(255,255,255,.04); color:#d8cbb4; border-color:rgba(212,180,131,.30); }
+  html.priority .chip.active{ background:linear-gradient(135deg,#ecd8ab,#b8935a); color:#1a130b; border-color:#d9b97a; }
+
+  /* Cửa sổ / đăng nhập */
+  html.priority .login-card, html.priority .modal-card{ background:#17130f; border:1px solid rgba(212,180,131,.4); color:var(--ink); box-shadow:0 20px 50px rgba(0,0,0,.6); }
+  html.priority .pin-input{ background:rgba(255,255,255,.05); border-color:rgba(212,180,131,.4); }
+
+  /* Danh sách / nhật ký / lịch */
+  html.priority .day-group{ background:rgba(28,23,18,.6); border-color:rgba(212,180,131,.25); }
+  html.priority .day-group-head{ background:linear-gradient(90deg,#4a3820,#2a2015); color:#f0dfb9; }
+  html.priority .day-group.today .day-group-head{ background:linear-gradient(90deg,#8a6c3a,#b8935a); color:#1a130b; }
+  html.priority .log-row{ background:rgba(255,255,255,.04); border-color:rgba(212,180,131,.16); color:var(--ink); }
+  html.priority .log-row.pos{ background:linear-gradient(90deg,rgba(143,202,166,.14),rgba(255,255,255,.03)); border-left-color:#8fcaa6; }
+  html.priority .log-row.neg{ background:linear-gradient(90deg,rgba(226,120,109,.16),rgba(255,255,255,.03)); border-left-color:#e2786d; }
+  html.priority .log-row.info{ background:linear-gradient(90deg,rgba(157,184,232,.14),rgba(255,255,255,.03)); border-left-color:#9db8e8; }
+  html.priority .log-row.warn{ background:linear-gradient(90deg,rgba(224,169,79,.16),rgba(255,255,255,.03)); border-left-color:#e0a94f; }
+  html.priority .pos-item, html.priority .bill-card, html.priority .topping-select-list, html.priority .edit-order-item-row,
+  html.priority .edit-order-item-row .eo-topping-list, html.priority .metric-box, html.priority .image-card, html.priority .denom-card,
+  html.priority .denom-card .denom-inp, html.priority .customer-search-bar, html.priority .ing-searchbar, html.priority .print-check{ background:rgba(255,255,255,.05); border-color:rgba(212,180,131,.28); color:var(--ink); }
+  html.priority .image-card .img-wrap{ background:rgba(255,255,255,.04); }
+  html.priority .calendar-cell{ background:rgba(255,255,255,.04); border-color:rgba(212,180,131,.2); }
+  html.priority .calendar-cell.other-month{ background:rgba(255,255,255,.015); opacity:.6; }
+  html.priority .calendar-cell.today{ background:rgba(212,180,131,.14); }
+  html.priority .calendar-cell.my-shift-day{ background:rgba(143,202,166,.12); }
+  html.priority .calendar-weekday{ background:rgba(212,180,131,.12); color:#e6cf9f; }
+  html.priority #tab-ing tbody tr.ing-row, html.priority #tab-ing tbody tr.ing-row:hover, html.priority #tab-ing tbody tr:hover{ background:rgba(255,255,255,.04); }
+  html.priority #tab-ing td.c-cost{ background:rgba(143,202,166,.12); }
+  html.priority .checkin-gps.ok{ background:rgba(143,202,166,.15); }
+  html.priority .checkin-gps.warn, html.priority .att-flag, html.priority .ing-status-warn{ background:rgba(224,169,79,.18); border-color:rgba(224,169,79,.4); }
+
+  /* Các khối nền sáng viết trực tiếp trong HTML/JS → nền tối trong suốt */
+  html.priority [style*="background:#f"], html.priority [style*="background: #f"],
+  html.priority [style*="background:#e"], html.priority [style*="background: #e"]{
+    background:rgba(255,255,255,.05) !important; color:#f2eadb;
+  }
+  html.priority [style*="border:2.5px solid var(--accent)"], html.priority [style*="border:2px dashed var(--accent)"],
+  html.priority [style*="border:2.5px solid var(--good)"], html.priority [style*="border:2.5px solid var(--ink)"]{ border-color:rgba(212,180,131,.45) !important; }
+
+  /* Công tắc giao diện */
+  .theme-switch{ display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer; }
+  .theme-switch small{ display:block; font-size:12px; color:var(--muted); font-weight:600; margin-top:3px; }
+  .theme-switch input{ position:absolute; opacity:0; width:0; height:0; }
+  .theme-switch .sw{ flex:none; width:52px; height:30px; border-radius:999px; background:#cfd8cf; position:relative; transition:background .2s; }
+  .theme-switch .sw::after{ content:''; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,.3); transition:transform .2s; }
+  .theme-switch input:checked + .sw{ background:linear-gradient(135deg,#ecd8ab,#b8935a); }
+  .theme-switch input:checked + .sw::after{ transform:translateX(22px); background:#1a130b; }
 </style>
 </head>
 <body>
@@ -1037,6 +1148,13 @@
       </details>
     </div>
     <div id="owner-settings-view" class="owner-only">
+      <div class="card" id="theme-card" style="margin-bottom:14px;">
+        <h2 style="margin:0 0 10px;">🎨 Giao diện</h2>
+        <label class="theme-switch">
+          <span><b>Giao diện Priority</b><small>Nền tối ấm, nét vẽ vàng champagne. Chỉ đổi trên máy này, tắt là về giao diện xanh như cũ.</small></span>
+          <input type="checkbox" id="theme-priority-toggle"><span class="sw"></span>
+        </label>
+      </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;" class="card">
         <h2 style="margin:0;">⚙️ Thiết Lập Hệ Thống &amp; Tài Khoản</h2>
         <button class="btn success" id="btn-save-settings-tab">💾 LƯU THIẾT LẬP</button>
@@ -1095,8 +1213,8 @@
       <div class="card" style="margin-top:14px;">
         <h2>🎟️ Cấu Hình Vòng Quay Cụ Thể (Đồng bộ Web Order)</h2>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; margin-bottom: 14px; background:var(--soft); padding:10px; border-radius:10px;">
-          <div><label style="font-size:11.5px; font-weight:700;">Tỷ lệ nhận Ticket khi khách mua hàng (%):</label><input type="number" id="cfg-ticket-spin-rate" min="0" max="100" style="margin-top:4px;"></div>
-          <div><label style="font-size:11.5px; font-weight:700;">Số Ticket tặng thêm cho khách (nếu có):</label><input type="number" id="cfg-ticket-reward-amount" min="1" style="margin-top:4px;"></div>
+          <div><label style="font-size:11.5px; font-weight:700;">Tỷ lệ nhận Ticket khi khách mua hàng (%):</label><input type="number" id="cfg-ticket-spin-rate" min="0" max="100" style="margin-top:4px;" oninput="DATA.config.ticketSpinRate = parseFloat(this.value) || 0; window.__wheelDirty = true;"></div>
+          <div><label style="font-size:11.5px; font-weight:700;">Số Ticket tặng thêm cho khách (nếu có):</label><input type="number" id="cfg-ticket-reward-amount" min="1" style="margin-top:4px;" oninput="DATA.config.ticketRewardAmount = parseInt(this.value) || 1; window.__wheelDirty = true;"></div>
         </div>
         <div style="border:1.5px solid var(--line); border-radius:12px; overflow:hidden;">
             <table style="width:100%; text-align:center; font-size:12px;">
@@ -1477,6 +1595,7 @@ function loadData(){
             // --- BẮT ĐẦU ĐOẠN CHỐT CHẶN (ĐÃ SỬA LỖI ĐĂNG NHẬP) ---
             const activeTag = document.activeElement ? document.activeElement.tagName : '';
             if ((activeTag === 'INPUT' || activeTag === 'TEXTAREA') && isInitialLoad === false) {
+                window.__keepWheelDraft && window.__keepWheelDraft(val);
                 DATA = val;
                 return; 
             }
@@ -1490,6 +1609,7 @@ function loadData(){
         }
         previousAttendanceCount = val.attendance ? val.attendance.length : 0;
         const preservedCustomers = (DATA && DATA.customers && DATA.customers.length) ? DATA.customers : [];
+        window.__keepWheelDraft && window.__keepWheelDraft(val);
         DATA = val;
         DATA.customers = preservedCustomers;
         if(!DATA.productImages) DATA.productImages = {};
@@ -4881,7 +5001,34 @@ loadData();
 
 setTimeout(() => { if(typeof initStaffChat === 'function') initStaffChat(); }, 1500);
 
+/* Gõ số trong bảng vòng quay: chỉ cập nhật dữ liệu + % thực tế, KHÔNG dựng lại bảng (nên bàn phím không bị tắt) */
+window.__wheelDirty = false;
+window.__wheelInput = function(index, field, el) {
+    const list = DATA && DATA.config && DATA.config.wheel_config;
+    if (!list || !list[index]) return;
+    if (field === 'name') list[index].name = el.value;
+    else list[index][field] = parseFloat(el.value) || 0;
+    window.__wheelDirty = true;
+    if (field === 'weight') window.__updateWheelChances();
+};
+window.__updateWheelChances = function() {
+    const list = (DATA && DATA.config && DATA.config.wheel_config) || [];
+    const total = list.reduce((sum, it) => sum + (parseFloat(it.weight) || 0), 0) || 1;
+    list.forEach((it, i) => {
+        const sp = document.getElementById('wheel-chance-' + i);
+        if (sp) sp.textContent = ((parseFloat(it.weight) || 0) / total * 100).toFixed(1) + '% thực tế';
+    });
+};
+window.__keepWheelDraft = function(val) {
+    if (!window.__wheelDirty || !DATA || !DATA.config || !val || !val.config) return;
+    val.config.wheel_config = DATA.config.wheel_config;
+    val.config.ticketSpinRate = DATA.config.ticketSpinRate;
+    val.config.ticketRewardAmount = DATA.config.ticketRewardAmount;
+};
 window.renderWheelConfig = function() {
+    // Đang gõ trong khu vực cấu hình vòng quay thì không vẽ lại (tránh mất bàn phím / mất số đang nhập)
+    const _ae = document.activeElement;
+    if (_ae && /^(INPUT|TEXTAREA|SELECT)$/.test(_ae.tagName) && (_ae.closest('#wheel-config-tbody') || _ae.id === 'cfg-ticket-spin-rate' || _ae.id === 'cfg-ticket-reward-amount')) return;
     const spinRateInp = document.getElementById('cfg-ticket-spin-rate');
     const rewardAmtInp = document.getElementById('cfg-ticket-reward-amount');
     if (spinRateInp) spinRateInp.value = (DATA.config.ticketSpinRate ?? 10);
@@ -4908,16 +5055,16 @@ window.renderWheelConfig = function() {
         <tr>
             <td style="padding:6px;">
                 <input type="text" value="${safeName}"
-                    oninput="DATA.config.wheel_config[${index}].name = this.value">
+                    oninput="__wheelInput(${index}, 'name', this)">
             </td>
             <td style="padding:6px;">
                 <input type="number" value="${item.discountValue || 0}"
-                    oninput="DATA.config.wheel_config[${index}].discountValue = parseFloat(this.value) || 0">
+                    oninput="__wheelInput(${index}, 'discountValue', this)">
             </td>
             <td style="padding:6px;">
                 <input type="number" value="${item.weight || 0}" style="width:70px; text-align:center;"
-                    oninput="DATA.config.wheel_config[${index}].weight = parseFloat(this.value) || 0; renderWheelConfig();">
-                <br><span style="font-size:11px; color:var(--accent); font-weight:800;">${chance}% thực tế</span>
+                    oninput="__wheelInput(${index}, 'weight', this)">
+                <br><span id="wheel-chance-${index}" style="font-size:11px; color:var(--accent); font-weight:800;">${chance}% thực tế</span>
             </td>
             <td style="padding:6px;">
                 <button class="icon-btn danger" onclick="safeDeleteWheelItem(${index})">✕</button>
@@ -4953,6 +5100,7 @@ window.safeSaveWheelConfig = function() {
     const code = prompt('🔒 Nhập Mã PIN Cấp Hai để lưu cấu hình vòng quay:');
     if (code === null) return;
     if (code !== secPin) { alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
+    window.__wheelDirty = false;
     saveDataDirect();
     alert('✅ Đã lưu cấu hình Vòng Quay thành công!');
     renderWheelConfig();
@@ -5118,6 +5266,81 @@ function printOrderById(id){
   printOrder(o);
 }
 initPrinterUI();
+
+/* ============ GIAO DIỆN PRIORITY (bật/tắt) ============ */
+function applyPriorityTheme(on){
+  document.documentElement.classList.toggle('priority', !!on);
+  try{ localStorage.setItem('meoxam_theme_priority', on ? '1' : '0'); }catch(e){}
+}
+(function(){
+  const t = document.getElementById('theme-priority-toggle');
+  if(!t) return;
+  t.checked = document.documentElement.classList.contains('priority');
+  t.addEventListener('change', () => applyPriorityTheme(t.checked));
+})();
+
+/* ============ TỰ ĐỘNG THÊM DẤU . NGĂN CÁCH HÀNG NGHÌN CHO MỌI Ô NHẬP SỐ (1.333 · 2.551.000) ============
+   Ô vẫn "tự khai báo" là type=number và .value luôn trả về số thô (2551000), nên code cũ đọc/ghi không đổi. */
+(function(){
+  const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  const isSig = ch => /[0-9,\-]/.test(ch);
+  function group(digits){ return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  // Người dùng gõ / dán: dấu . là ngăn cách nghìn, dấu , là thập phân ("12.5" 1-2 số lẻ được hiểu là 12,5)
+  function fmtDisplay(str){
+    str = String(str == null ? '' : str).trim();
+    const neg = str.charAt(0) === '-';
+    if(str.indexOf(',') < 0 && /^-?\d+\.\d{1,2}$/.test(str)) str = str.replace('.', ',');
+    let intPart = str, dec = null;
+    const ci = str.indexOf(',');
+    if(ci >= 0){ intPart = str.slice(0, ci); dec = str.slice(ci + 1).replace(/\D/g, ''); }
+    intPart = group(intPart.replace(/\D/g, ''));
+    return (neg ? '-' : '') + intPart + (dec !== null ? ',' + dec : '');
+  }
+  // Code gán số thô (JS): 2551000 hoặc 12.5
+  function rawToDisplay(v){
+    let s = String(v == null ? '' : v);
+    if(!/^-?\d*\.?\d*$/.test(s) || s === '' || s === '-') return s;
+    const neg = s.charAt(0) === '-'; if(neg) s = s.slice(1);
+    const parts = s.split('.');
+    return (neg ? '-' : '') + group(parts[0]) + (parts.length > 1 ? ',' + parts[1] : '');
+  }
+  function toRaw(display){ return fmtDisplay(display).replace(/\./g, '').replace(',', '.'); }
+  function onInput(e){
+    const el = e.target, cur = desc.get.call(el), pos = el.selectionStart;
+    const sigBefore = cur.slice(0, pos == null ? cur.length : pos).replace(/[^0-9,\-]/g, '').length;
+    const f = fmtDisplay(cur);
+    if(f !== cur){
+      desc.set.call(el, f);
+      let n = 0, p = 0;
+      for(; p < f.length && n < sigBefore; p++){ if(isSig(f.charAt(p))) n++; }
+      try{ el.setSelectionRange(p, p); }catch(_){}
+    }
+  }
+  function enhance(inp){
+    if(inp._nf || inp.hasAttribute('data-nofmt')) return;
+    inp._nf = true;
+    const initial = desc.get.call(inp);
+    inp.type = 'text';
+    inp.setAttribute('inputmode', 'decimal');
+    inp.setAttribute('autocomplete', 'off');
+    Object.defineProperty(inp, 'type', { configurable: true, get: function(){ return 'number'; } });
+    Object.defineProperty(inp, 'value', {
+      configurable: true,
+      get: function(){ return toRaw(desc.get.call(this)); },
+      set: function(v){ desc.set.call(this, rawToDisplay(v)); }
+    });
+    desc.set.call(inp, rawToDisplay(initial));
+    inp.addEventListener('input', onInput);
+  }
+  function scan(root){
+    if(root.matches && root.matches('input[type="number"]')) enhance(root);
+    if(root.querySelectorAll) root.querySelectorAll('input[type="number"]').forEach(enhance);
+  }
+  scan(document);
+  new MutationObserver(function(muts){
+    muts.forEach(function(m){ m.addedNodes.forEach(function(n){ if(n.nodeType === 1) scan(n); }); });
+  }).observe(document.body, { childList: true, subtree: true });
+})();
 </script>
 </body>
 </html>
