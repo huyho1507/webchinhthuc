@@ -970,6 +970,15 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="move-category-modal" style="display:none;">
+  <div class="modal-card" style="max-width:380px;">
+    <h3 style="margin-top:0; font-size:18px;">🔀 Chuyển Món Sang Mục Khác</h3>
+    <p style="font-size:12px; color:var(--muted); margin-top:-8px;" id="move-cat-current-label">Đang ở mục: ---</p>
+    <div style="margin-bottom:16px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Chuyển Đến Mục:</label><select id="move-cat-select" style="margin-top:4px; font-weight:700;"></select></div>
+    <div style="display:flex; gap:10px;"><button class="btn ghost" style="flex:1;" id="btn-cancel-move-cat">Hủy</button><button class="btn success" style="flex:1.5;" id="btn-confirm-move-cat">CHUYỂN MỤC</button></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="shift-modal" style="display:none;">
   <div class="modal-card" style="max-width:440px;">
     <h3 style="margin-top:0; font-size:18px;">📅 Set Ca &amp; Giờ Làm Việc</h3>
@@ -3461,6 +3470,31 @@ function renderCategoryChips(){
   if(cats.length > 0 && !cats.includes(activeCategory)) activeCategory = cats[0];
   wrap.innerHTML = cats.map(cat=>`<button class="chip ${cat===activeCategory?'active':''}" onclick="setCat('${cat}')">${cat}</button>`).join('');
 }
+function openMoveCategoryModal(){
+  if(!activeProductId) return;
+  const p = DATA.products.find(x=>x.id===activeProductId);
+  if(!p) return;
+  const cats = [...new Set(DATA.products.map(x=>x.category))].filter(c=>c!==p.category);
+  if(cats.length === 0){ alert('⚠️ Chưa có mục lớn nào khác để chuyển đến. Hãy tạo thêm danh mục trước.'); return; }
+  document.getElementById('move-cat-current-label').textContent = `Đang ở mục: ${p.category}`;
+  document.getElementById('move-cat-select').innerHTML = cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  document.getElementById('move-category-modal').style.display = 'flex';
+}
+document.getElementById('btn-cancel-move-cat').addEventListener('click', ()=>{ document.getElementById('move-category-modal').style.display = 'none'; });
+document.getElementById('btn-confirm-move-cat').addEventListener('click', ()=>{
+  const newCat = document.getElementById('move-cat-select').value;
+  const p = DATA.products.find(x=>x.id===activeProductId);
+  if(!p || !newCat) return;
+  if(hasUnsavedRecipeChanges){ p.name = draftProductName.trim() || p.name; p.sizes = JSON.parse(JSON.stringify(draftProductSizes)); }
+  const oldCat = p.category;
+  p.category = newCat;
+  if(saveWithSecurity()){
+    hasUnsavedRecipeChanges = false;
+    document.getElementById('move-category-modal').style.display = 'none';
+    activeCategory = newCat;
+    renderCategoryChips(); renderProductList(); selectProduct(p.id);
+  } else { p.category = oldCat; }
+});
 function setCat(cat){
   if(hasUnsavedRecipeChanges){
     const wantToSave = confirm('⚠️ Có thay đổi CHƯA LƯU! OK để lưu và chuyển.');
@@ -3547,7 +3581,7 @@ function renderRecipeDetail(){
   let html = `
     <div style="display:flex;justify-content:space-between;align-items:center;">
       ${isOwner ? `<input id="prod-name-input" value="${escapeHtml(draftProductName)}" style="font-weight:800; font-size:15px;" oninput="updateDraftName(this.value)">` : `<h3>${escapeHtml(draftProductName)}</h3>`}
-      ${isOwner ? `<button class="icon-btn danger" onclick="delProduct('${activeProductId}')">✕</button>` : ''}
+      ${isOwner ? `<div style="display:flex; gap:6px;"><button class="btn ghost small" onclick="openMoveCategoryModal()">🔀 Đổi Mục</button><button class="icon-btn danger" onclick="delProduct('${activeProductId}')">✕</button></div>` : ''}
     </div>
     <div class="size-tabs" style="margin-top:10px;">${sizes.map(s=>`<button class="${s===activeSize?'active':''}" onclick="setSize('${s}')">Size ${s}</button>`).join('')}</div>
   `;
