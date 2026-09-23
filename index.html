@@ -152,6 +152,8 @@
   .size-tabs button.active{background:var(--ink);color:var(--paper);}
   .recipe-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
   .recipe-row select{flex:2.2;}
+  .recipe-row .ing-pick-btn{ flex:2.2; text-align:left; background:#fffdf8; border:1.5px solid #cfc7b2; border-radius:8px; padding:6px 8px; font-family:inherit; font-size:13px; font-weight:700; color:var(--ink); cursor:pointer; overflow:hidden; display:flex; justify-content:space-between; align-items:center; gap:4px; }
+  .recipe-row .ing-pick-btn span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .recipe-row input{flex:0.9;text-align:right;}
   .recipe-row .u{flex:0.6;font-size:12px;color:var(--muted);}
   .order-container{ display:grid; grid-template-columns:1fr 1.1fr; gap:14px; }
@@ -384,12 +386,13 @@
   #staff-chat-btn{ bottom:22px !important; right:18px !important; }
 
   /* ===================== TAB KHO ===================== */
-  .ing-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .ing-sticky-wrap{ position:sticky; top:0; z-index:60; background:var(--card,#fff); padding-top:2px; margin:-2px -2px 16px; padding-left:2px; padding-right:2px; }
+  .ing-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; padding-top:6px; }
   .ing-head h2{ margin:0; }
   .ing-searchbar{
-    position:sticky; top:8px; z-index:60; display:flex; align-items:center; gap:6px;
+    position:relative; top:0; z-index:60; display:flex; align-items:center; gap:6px;
     background:#fff; border:2px solid #b3e5cd; border-radius:999px; padding:5px 8px 5px 16px;
-    box-shadow:0 8px 22px rgba(20,80,50,.16); margin-bottom:16px; transition:border-color .15s, box-shadow .15s;
+    box-shadow:0 8px 22px rgba(20,80,50,.16); margin-bottom:0; transition:border-color .15s, box-shadow .15s;
   }
   .ing-searchbar:focus-within{ border-color:#10b981; box-shadow:0 0 0 4px rgba(16,185,129,.18), 0 8px 22px rgba(20,80,50,.16); }
   .ing-searchbar .s-ico{ font-size:18px; line-height:1; }
@@ -463,7 +466,8 @@
     .ing-row.staff .ing-buy-btn{ width:100%; }
     #tab-ing td.c-del{ position:absolute; top:12px; right:12px; }
     #tab-ing td.c-del .icon-btn{ width:38px; height:38px; font-size:15px; color:var(--bad); border-color:#f2c7c4; background:#fff5f4; }
-    .ing-searchbar{ top:6px; }
+    .ing-searchbar{ top:0; }
+    .ing-sticky-wrap{ top:0; }
   }
 
   .print-check{ display:flex; align-items:center; gap:10px; background:#eef8f2; border:1.5px solid #cfe6da; border-radius:16px; padding:10px 14px; margin-bottom:10px; font-weight:800; font-size:14px; cursor:pointer; }
@@ -979,6 +983,18 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="ing-picker-modal" style="display:none;">
+  <div class="modal-card" style="max-width:420px; max-height:80vh; display:flex; flex-direction:column;">
+    <h3 style="margin-top:0; font-size:18px;">🧪 Chọn Nguyên Liệu</h3>
+    <div class="ing-searchbar" style="margin-bottom:10px;">
+      <span class="s-ico">🔍</span>
+      <input type="text" id="ing-picker-search" placeholder="Tìm nguyên liệu theo tên…" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="search" enterkeyhint="search" oninput="renderIngPickerList()">
+    </div>
+    <div id="ing-picker-list" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:4px; min-height:120px;"></div>
+    <div style="display:flex; gap:10px; margin-top:14px;"><button class="btn ghost" style="flex:1;" id="btn-cancel-ing-picker">Đóng</button></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="shift-modal" style="display:none;">
   <div class="modal-card" style="max-width:440px;">
     <h3 style="margin-top:0; font-size:18px;">📅 Set Ca &amp; Giờ Làm Việc</h3>
@@ -1291,19 +1307,23 @@
 
   <section class="panel staff-visible" id="tab-ing">
     <div class="card">
-      <div class="ing-head">
-        <h2>📦 Quản Lý Tồn Kho &amp; Giá Vốn Nguyên Liệu</h2>
-        <button class="btn success owner-only" id="btn-save-all-ingredients">💾 LƯU GIÁ VỐN KHO</button>
-      </div>
-      <div class="ing-searchbar">
-        <span class="s-ico">🔍</span>
-        <input type="text" id="ing-search" placeholder="Tìm nguyên liệu theo tên…" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="search" enterkeyhint="search">
-        <span class="s-count" id="ing-search-count"></span>
-        <button type="button" class="s-clear" id="ing-search-clear" aria-label="Xóa tìm kiếm">✕</button>
+      <div class="ing-sticky-wrap">
+        <div class="ing-head">
+          <h2>📦 Quản Lý Tồn Kho &amp; Giá Vốn Nguyên Liệu</h2>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn ghost small owner-only" id="btn-add-ing">+ Thêm nguyên liệu mới</button>
+            <button class="btn success owner-only" id="btn-save-all-ingredients">💾 LƯU GIÁ VỐN KHO</button>
+          </div>
+        </div>
+        <div class="ing-searchbar">
+          <span class="s-ico">🔍</span>
+          <input type="text" id="ing-search" placeholder="Tìm nguyên liệu theo tên…" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="search" enterkeyhint="search">
+          <span class="s-count" id="ing-search-count"></span>
+          <button type="button" class="s-clear" id="ing-search-clear" aria-label="Xóa tìm kiếm">✕</button>
+        </div>
       </div>
       <table><thead><tr id="ing-thead-tr"></tr></thead><tbody id="ing-tbody"></tbody></table>
       <div class="ing-empty" id="ing-empty" style="display:none;">😿 Không tìm thấy nguyên liệu nào khớp.</div>
-      <div class="row-add owner-only" style="margin-top:14px;"><button class="btn ghost small" id="btn-add-ing">+ Thêm nguyên liệu mới</button></div>
     </div>
     <div class="finance-grid">
       <div class="card" style="margin-bottom:0;"><h3 style="font-size:14px; margin-top:0; text-align:center;">📊 Chi Phí Nguyên Liệu (Tốn nhiều nhất)</h3><div style="position: relative; height: 360px; width: 100%;"><canvas id="ingCostChart"></canvas></div></div>
@@ -3636,7 +3656,7 @@ function renderRecipeLines(sizeData, isOwner){
     return `
       <div class="recipe-row" id="recipe-row-${idx}">
         ${isOwner ? `
-          <select onchange="updateLineIng(${idx}, this.value)">${(DATA.ingredients||[]).map(i=>`<option value="${i.id}" ${i.id===line.ing?'selected':''}>${escapeHtml(i.name)}</option>`).join('')}</select>
+          <button type="button" class="ing-pick-btn" onclick="openIngPickerModal(${idx})"><span>${ing?escapeHtml(ing.name):'-- Chọn nguyên liệu --'}</span><span style="opacity:.55; flex:none;">▾</span></button>
           <input type="number" step="any" value="${line.qty}" oninput="updateLineQty(${idx}, this.value)">
           <button class="icon-btn danger" onclick="delRecipeLine(${idx})">✕</button>
         ` : `
@@ -3668,6 +3688,28 @@ function updateRecipeLiveCalc(){
   });
 }
 function updateLineIng(idx, val){ draftProductSizes[activeSize].recipe[idx].ing = val; hasUnsavedRecipeChanges = true; renderRecipeDetail(); }
+let ingPickerTargetIdx = null;
+function openIngPickerModal(idx){
+  ingPickerTargetIdx = idx;
+  document.getElementById('ing-picker-search').value = '';
+  renderIngPickerList();
+  document.getElementById('ing-picker-modal').style.display = 'flex';
+}
+function renderIngPickerList(){
+  const q = (document.getElementById('ing-picker-search').value||'').trim().toLowerCase();
+  const list = (DATA.ingredients||[])
+    .filter(i => !q || (i.name||'').toLowerCase().includes(q))
+    .sort((a,b)=> (a.name||'').localeCompare((b.name||''), 'vi'));
+  const wrap = document.getElementById('ing-picker-list');
+  if(list.length === 0){ wrap.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted); font-weight:700;">😿 Không tìm thấy nguyên liệu nào.</div>`; return; }
+  wrap.innerHTML = list.map(i=>`<div class="chip" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:10px 12px; border-radius:10px;" onclick="selectIngForLine('${i.id}')"><span>${escapeHtml(i.name)}</span><span style="font-size:11px; color:var(--muted); font-weight:600;">${escapeHtml(i.unit||'')}</span></div>`).join('');
+}
+function selectIngForLine(id){
+  if(ingPickerTargetIdx === null) return;
+  updateLineIng(ingPickerTargetIdx, id);
+  document.getElementById('ing-picker-modal').style.display = 'none';
+}
+document.getElementById('btn-cancel-ing-picker').addEventListener('click', ()=>{ document.getElementById('ing-picker-modal').style.display = 'none'; });
 function updateLineQty(idx, val){ if(!draftProductSizes[activeSize] || !draftProductSizes[activeSize].recipe[idx]) return; draftProductSizes[activeSize].recipe[idx].qty = parseFloat(val)||0; hasUnsavedRecipeChanges = true; updateRecipeLiveCalc(); }
 function delRecipeLine(idx){ draftProductSizes[activeSize].recipe.splice(idx, 1); hasUnsavedRecipeChanges = true; renderRecipeDetail(); }
 function addRecipeLine(){ if(!draftProductSizes[activeSize]) draftProductSizes[activeSize] = { price: 0, recipe: [] }; if(!draftProductSizes[activeSize].recipe) draftProductSizes[activeSize].recipe = []; const first = (DATA.ingredients||[])[0]; draftProductSizes[activeSize].recipe.push({ing: first?first.id:'', qty:0}); hasUnsavedRecipeChanges = true; renderRecipeDetail(); }
