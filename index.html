@@ -3583,7 +3583,7 @@ function renderRecipeDetail(){
       ${isOwner ? `<input id="prod-name-input" value="${escapeHtml(draftProductName)}" style="font-weight:800; font-size:15px;" oninput="updateDraftName(this.value)">` : `<h3>${escapeHtml(draftProductName)}</h3>`}
       ${isOwner ? `<div style="display:flex; gap:6px;"><button class="btn ghost small" onclick="openMoveCategoryModal()">🔀 Đổi Mục</button><button class="icon-btn danger" onclick="delProduct('${activeProductId}')">✕</button></div>` : ''}
     </div>
-    <div class="size-tabs" style="margin-top:10px;">${sizes.map(s=>`<button class="${s===activeSize?'active':''}" onclick="setSize('${s}')">Size ${s}</button>`).join('')}</div>
+    <div class="size-tabs" style="margin-top:10px;">${sizes.map(s=>`<span style="position:relative; display:inline-flex; align-items:center;"><button class="${s===activeSize?'active':''}" onclick="setSize('${s}')">Size ${s}</button>${isOwner && sizes.length>1 ? `<span onclick="delSize('${s}')" title="Xóa size ${s}" style="cursor:pointer; margin-left:-9px; margin-top:-14px; background:var(--bad); color:#fff; border-radius:50%; width:16px; height:16px; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:800; z-index:2;">✕</span>` : ''}</span>`).join('')}</div>
   `;
   const sizeData = draftProductSizes[activeSize] || { price: 0, recipe: [] };
   const cost = recipeCost(sizeData.recipe);
@@ -3618,6 +3618,16 @@ function renderRecipeDetail(){
 function updateDraftName(val){ draftProductName = val; hasUnsavedRecipeChanges = true; }
 function updateDraftPrice(val){ if(draftProductSizes[activeSize]) draftProductSizes[activeSize].price = parseFloat(String(val||'').replace(/\D/g,'')) || 0; hasUnsavedRecipeChanges = true; updateRecipeLiveCalc(); }
 function setSize(s){ activeSize = s; renderRecipeDetail(); }
+function delSize(s){
+  const sizes = Object.keys(draftProductSizes);
+  if(sizes.length <= 1){ alert('⚠️ Phải giữ lại ít nhất 1 size!'); return; }
+  if(!confirm(`Xóa Size ${s}? Công thức và giá của size này sẽ mất khi bạn lưu lại.`)) return;
+  delete draftProductSizes[s];
+  if(activeSize === s){ activeSize = Object.keys(draftProductSizes)[0]; }
+  hasUnsavedRecipeChanges = true;
+  renderRecipeDetail();
+  alert(`✅ Đã xóa size "${s}" khỏi bản nháp! Bấm LƯU CÔNG THỨC để lưu lại.`);
+}
 function renderRecipeLines(sizeData, isOwner){
   const wrap = document.getElementById('recipe-lines');
   wrap.innerHTML = (sizeData.recipe||[]).map((line, idx)=>{
