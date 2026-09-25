@@ -152,8 +152,6 @@
   .size-tabs button.active{background:var(--ink);color:var(--paper);}
   .recipe-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
   .recipe-row select{flex:2.2;}
-  .recipe-row .ing-pick-btn{ flex:2.2; text-align:left; background:#fffdf8; border:1.5px solid #cfc7b2; border-radius:8px; padding:6px 8px; font-family:inherit; font-size:13px; font-weight:700; color:var(--ink); cursor:pointer; overflow:hidden; display:flex; justify-content:space-between; align-items:center; gap:4px; }
-  .recipe-row .ing-pick-btn span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .recipe-row input{flex:0.9;text-align:right;}
   .recipe-row .u{flex:0.6;font-size:12px;color:var(--muted);}
   .order-container{ display:grid; grid-template-columns:1fr 1.1fr; gap:14px; }
@@ -386,13 +384,12 @@
   #staff-chat-btn{ bottom:22px !important; right:18px !important; }
 
   /* ===================== TAB KHO ===================== */
-  .ing-sticky-wrap{ position:sticky; top:0; z-index:60; background:var(--card,#fff); padding-top:2px; margin:-2px -2px 16px; padding-left:2px; padding-right:2px; }
-  .ing-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; padding-top:6px; }
+  .ing-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
   .ing-head h2{ margin:0; }
   .ing-searchbar{
-    position:relative; top:0; z-index:60; display:flex; align-items:center; gap:6px;
+    position:sticky; top:8px; z-index:60; display:flex; align-items:center; gap:6px;
     background:#fff; border:2px solid #b3e5cd; border-radius:999px; padding:5px 8px 5px 16px;
-    box-shadow:0 8px 22px rgba(20,80,50,.16); margin-bottom:0; transition:border-color .15s, box-shadow .15s;
+    box-shadow:0 8px 22px rgba(20,80,50,.16); margin-bottom:16px; transition:border-color .15s, box-shadow .15s;
   }
   .ing-searchbar:focus-within{ border-color:#10b981; box-shadow:0 0 0 4px rgba(16,185,129,.18), 0 8px 22px rgba(20,80,50,.16); }
   .ing-searchbar .s-ico{ font-size:18px; line-height:1; }
@@ -466,8 +463,7 @@
     .ing-row.staff .ing-buy-btn{ width:100%; }
     #tab-ing td.c-del{ position:absolute; top:12px; right:12px; }
     #tab-ing td.c-del .icon-btn{ width:38px; height:38px; font-size:15px; color:var(--bad); border-color:#f2c7c4; background:#fff5f4; }
-    .ing-searchbar{ top:0; }
-    .ing-sticky-wrap{ top:0; }
+    .ing-searchbar{ top:6px; }
   }
 
   .print-check{ display:flex; align-items:center; gap:10px; background:#eef8f2; border:1.5px solid #cfe6da; border-radius:16px; padding:10px 14px; margin-bottom:10px; font-weight:800; font-size:14px; cursor:pointer; }
@@ -983,15 +979,25 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="ing-picker-modal" style="display:none;">
-  <div class="modal-card" style="max-width:420px; max-height:80vh; display:flex; flex-direction:column;">
-    <h3 style="margin-top:0; font-size:18px;">🧪 Chọn Nguyên Liệu</h3>
-    <div class="ing-searchbar" style="margin-bottom:10px;">
-      <span class="s-ico">🔍</span>
-      <input type="text" id="ing-picker-search" placeholder="Tìm nguyên liệu theo tên…" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="search" enterkeyhint="search" oninput="renderIngPickerList()">
+<div class="modal-overlay" id="print-menu-options-modal" style="display:none;">
+  <div class="modal-card" style="max-width:380px;">
+    <h3 style="margin-top:0; font-size:18px;">🖨️ Quy Cách In Menu</h3>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px; font-weight:700; color:var(--muted);">Số bản trên mỗi trang:</label>
+      <select id="print-menu-copies" style="margin-top:4px; font-weight:700;">
+        <option value="1" selected>1 bản (full trang)</option>
+        <option value="2">2 bản (song song, cắt đôi)</option>
+        <option value="3">3 bản (song song)</option>
+      </select>
     </div>
-    <div id="ing-picker-list" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:4px; min-height:120px;"></div>
-    <div style="display:flex; gap:10px; margin-top:14px;"><button class="btn ghost" style="flex:1;" id="btn-cancel-ing-picker">Đóng</button></div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:12px; font-weight:700; color:var(--muted);">Khổ giấy:</label>
+      <select id="print-menu-paper" style="margin-top:4px; font-weight:700;">
+        <option value="A4" selected>A4</option>
+        <option value="A5">A5</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:10px;"><button class="btn ghost" style="flex:1;" id="btn-cancel-print-menu">Hủy</button><button class="btn success" style="flex:1.5;" id="btn-confirm-print-menu">IN MENU</button></div>
   </div>
 </div>
 
@@ -1134,7 +1140,7 @@
       <div class="notification-bell-container" id="noti-bell-container" style="display:none;">
         <button class="bell-btn" id="btn-toggle-noti">🔔<span class="bell-badge" id="noti-badge-count">0</span></button>
         <div class="noti-dropdown" id="noti-dropdown-menu">
-          <div class="noti-header"><span>Thông Báo Báo Hết</span><span style="font-size:11px; color:var(--accent); cursor:pointer;" onclick="markAllNotificationsAsRead()">Đánh dấu đã đọc</span></div>
+          <div class="noti-header"><span>Thông Báo</span><span style="font-size:11px; color:var(--accent); cursor:pointer;" onclick="markAllNotificationsAsRead()">Đánh dấu đã đọc</span></div>
           <div class="noti-body" id="noti-list-body"><div style="padding:16px; text-align:center; font-size:12px; color:var(--muted);">Không có thông báo nào</div></div>
         </div>
       </div>
@@ -1246,7 +1252,10 @@
   <section class="panel" id="tab-recipe">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
       <div class="chips" id="cat-chips" style="margin-bottom:0;"></div>
-      <button class="btn success small owner-only" id="btn-open-add-category">📁 + Thêm Đề Mục Lớn</button>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn ghost small" id="btn-print-menu">🖨️ In Menu</button>
+        <button class="btn success small owner-only" id="btn-open-add-category">📁 + Thêm Đề Mục Lớn</button>
+      </div>
     </div>
     <div class="owner-only" id="current-menu-preview" style="margin-bottom:10px; display:flex; flex-wrap:wrap; align-items:center; gap:6px;"></div>
     <div class="product-list" id="product-list"></div>
@@ -1307,23 +1316,19 @@
 
   <section class="panel staff-visible" id="tab-ing">
     <div class="card">
-      <div class="ing-sticky-wrap">
-        <div class="ing-head">
-          <h2>📦 Quản Lý Tồn Kho &amp; Giá Vốn Nguyên Liệu</h2>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn ghost small owner-only" id="btn-add-ing">+ Thêm nguyên liệu mới</button>
-            <button class="btn success owner-only" id="btn-save-all-ingredients">💾 LƯU GIÁ VỐN KHO</button>
-          </div>
-        </div>
-        <div class="ing-searchbar">
-          <span class="s-ico">🔍</span>
-          <input type="text" id="ing-search" placeholder="Tìm nguyên liệu theo tên…" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="search" enterkeyhint="search">
-          <span class="s-count" id="ing-search-count"></span>
-          <button type="button" class="s-clear" id="ing-search-clear" aria-label="Xóa tìm kiếm">✕</button>
-        </div>
+      <div class="ing-head">
+        <h2>📦 Quản Lý Tồn Kho &amp; Giá Vốn Nguyên Liệu</h2>
+        <button class="btn success owner-only" id="btn-save-all-ingredients">💾 LƯU GIÁ VỐN KHO</button>
+      </div>
+      <div class="ing-searchbar">
+        <span class="s-ico">🔍</span>
+        <input type="text" id="ing-search" placeholder="Tìm nguyên liệu theo tên…" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="search" enterkeyhint="search">
+        <span class="s-count" id="ing-search-count"></span>
+        <button type="button" class="s-clear" id="ing-search-clear" aria-label="Xóa tìm kiếm">✕</button>
       </div>
       <table><thead><tr id="ing-thead-tr"></tr></thead><tbody id="ing-tbody"></tbody></table>
       <div class="ing-empty" id="ing-empty" style="display:none;">😿 Không tìm thấy nguyên liệu nào khớp.</div>
+      <div class="row-add owner-only" style="margin-top:14px;"><button class="btn ghost small" id="btn-add-ing">+ Thêm nguyên liệu mới</button></div>
     </div>
     <div class="finance-grid">
       <div class="card" style="margin-bottom:0;"><h3 style="font-size:14px; margin-top:0; text-align:center;">📊 Chi Phí Nguyên Liệu (Tốn nhiều nhất)</h3><div style="position: relative; height: 360px; width: 100%;"><canvas id="ingCostChart"></canvas></div></div>
@@ -3656,7 +3661,7 @@ function renderRecipeLines(sizeData, isOwner){
     return `
       <div class="recipe-row" id="recipe-row-${idx}">
         ${isOwner ? `
-          <button type="button" class="ing-pick-btn" onclick="openIngPickerModal(${idx})"><span>${ing?escapeHtml(ing.name):'-- Chọn nguyên liệu --'}</span><span style="opacity:.55; flex:none;">▾</span></button>
+          <select onchange="updateLineIng(${idx}, this.value)">${(DATA.ingredients||[]).map(i=>`<option value="${i.id}" ${i.id===line.ing?'selected':''}>${escapeHtml(i.name)}</option>`).join('')}</select>
           <input type="number" step="any" value="${line.qty}" oninput="updateLineQty(${idx}, this.value)">
           <button class="icon-btn danger" onclick="delRecipeLine(${idx})">✕</button>
         ` : `
@@ -3688,28 +3693,6 @@ function updateRecipeLiveCalc(){
   });
 }
 function updateLineIng(idx, val){ draftProductSizes[activeSize].recipe[idx].ing = val; hasUnsavedRecipeChanges = true; renderRecipeDetail(); }
-let ingPickerTargetIdx = null;
-function openIngPickerModal(idx){
-  ingPickerTargetIdx = idx;
-  document.getElementById('ing-picker-search').value = '';
-  renderIngPickerList();
-  document.getElementById('ing-picker-modal').style.display = 'flex';
-}
-function renderIngPickerList(){
-  const q = (document.getElementById('ing-picker-search').value||'').trim().toLowerCase();
-  const list = (DATA.ingredients||[])
-    .filter(i => !q || (i.name||'').toLowerCase().includes(q))
-    .sort((a,b)=> (a.name||'').localeCompare((b.name||''), 'vi'));
-  const wrap = document.getElementById('ing-picker-list');
-  if(list.length === 0){ wrap.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted); font-weight:700;">😿 Không tìm thấy nguyên liệu nào.</div>`; return; }
-  wrap.innerHTML = list.map(i=>`<div class="chip" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:10px 12px; border-radius:10px;" onclick="selectIngForLine('${i.id}')"><span>${escapeHtml(i.name)}</span><span style="font-size:11px; color:var(--muted); font-weight:600;">${escapeHtml(i.unit||'')}</span></div>`).join('');
-}
-function selectIngForLine(id){
-  if(ingPickerTargetIdx === null) return;
-  updateLineIng(ingPickerTargetIdx, id);
-  document.getElementById('ing-picker-modal').style.display = 'none';
-}
-document.getElementById('btn-cancel-ing-picker').addEventListener('click', ()=>{ document.getElementById('ing-picker-modal').style.display = 'none'; });
 function updateLineQty(idx, val){ if(!draftProductSizes[activeSize] || !draftProductSizes[activeSize].recipe[idx]) return; draftProductSizes[activeSize].recipe[idx].qty = parseFloat(val)||0; hasUnsavedRecipeChanges = true; updateRecipeLiveCalc(); }
 function delRecipeLine(idx){ draftProductSizes[activeSize].recipe.splice(idx, 1); hasUnsavedRecipeChanges = true; renderRecipeDetail(); }
 function addRecipeLine(){ if(!draftProductSizes[activeSize]) draftProductSizes[activeSize] = { price: 0, recipe: [] }; if(!draftProductSizes[activeSize].recipe) draftProductSizes[activeSize].recipe = []; const first = (DATA.ingredients||[])[0]; draftProductSizes[activeSize].recipe.push({ing: first?first.id:'', qty:0}); hasUnsavedRecipeChanges = true; renderRecipeDetail(); }
@@ -4010,6 +3993,8 @@ function finalizeClockIn(extra){
   const rec = { id: uid('att'), staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Vào ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: toVNDateStr(nowVN) };
   Object.assign(rec, extra || {});
   DATA.attendance.unshift(rec);
+  if(!DATA.notifications) DATA.notifications = [];
+  DATA.notifications.unshift({ id: uid('noti'), message: `🟢 ${CURRENT_USER.name} đã vào ca lúc ${timeStr}`, time: timeStr, read: false });
   saveDataDirect();
   document.getElementById('shift-clock-status').textContent = '🟢 Đã vào ca lúc ' + String(nowVN.getHours()).padStart(2,'0') + ':' + String(nowVN.getMinutes()).padStart(2,'0');
   document.getElementById('btn-clock-in').style.display = 'none';
@@ -4349,6 +4334,11 @@ document.getElementById('btn-confirm-checkout').addEventListener('click', ()=>{
   }
 
   DATA.attendance.unshift({ id: checkoutId, staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Ra ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, shiftDay, countedCash, expectedCash, transferTotal, zMoney: z, y2, y2Auto, denoms, formula: { left: formula.left, right: formula.right } });
+
+  if(!DATA.notifications) DATA.notifications = [];
+  let kcMsg = `🔴 ${CURRENT_USER.name} đã kết ca (ra ca) lúc ${timeStr}`;
+  if(Math.abs(diff) > 0){ kcMsg += ` — ⚠️ Lệch quỹ ${diff > 0 ? '+' : ''}${fmt(diff)}đ`; }
+  DATA.notifications.unshift({ id: uid('noti'), message: kcMsg, time: timeStr, read: false });
 
   if(z !== (DATA.shiftCashFund.zMoney || 0)){
     setShiftZ(z, ' — lúc ra ca');
@@ -5616,6 +5606,64 @@ function printViaDialog(cv, c){
   const img = d.getElementById('r');
   const go = () => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch(e) { alert('Không mở được hộp thoại in: ' + e.message); } };
   if(img.complete) setTimeout(go, 60); else img.onload = () => setTimeout(go, 60);
+}
+function buildMenuPrintHTML(){
+  const cats = [...new Set((DATA.products||[]).filter(p=>p.category!=='Topping').map(p=>p.category))];
+  let body = '';
+  cats.forEach(cat=>{
+    const prods = DATA.products.filter(p=>p.category===cat && p.category!=='Topping').sort((a,b)=>a.name.localeCompare(b.name,'vi'));
+    if(prods.length===0) return;
+    body += `<h2>${escapeHtml(cat)}</h2><table><tbody>`;
+    prods.forEach(p=>{
+      const sizes = Object.keys(p.sizes||{});
+      const priceStr = sizes.length<=1
+        ? `${fmt((p.sizes[sizes[0]]||{}).price||0)}đ`
+        : sizes.map(s=>`${s}: ${fmt(p.sizes[s].price||0)}đ`).join(' / ');
+      body += `<tr><td class="mname">${escapeHtml(p.name)}</td><td class="mprice">${priceStr}</td></tr>`;
+    });
+    body += `</tbody></table>`;
+  });
+  return body;
+}
+function openMenuPrintOptions(){
+  if(!DATA || !DATA.products || DATA.products.length===0){ alert('⚠️ Chưa có dữ liệu món để in.'); return; }
+  document.getElementById('print-menu-options-modal').style.display = 'flex';
+}
+document.getElementById('btn-print-menu').addEventListener('click', openMenuPrintOptions);
+document.getElementById('btn-cancel-print-menu').addEventListener('click', ()=>{ document.getElementById('print-menu-options-modal').style.display = 'none'; });
+document.getElementById('btn-confirm-print-menu').addEventListener('click', ()=>{
+  document.getElementById('print-menu-options-modal').style.display = 'none';
+  const copies = parseInt(document.getElementById('print-menu-copies').value, 10) || 1;
+  const paper = document.getElementById('print-menu-paper').value || 'A4';
+  openMenuPrintView(copies, paper);
+});
+function openMenuPrintView(copies, paper){
+  const menuHTML = buildMenuPrintHTML();
+  const old = document.getElementById('prn-menu-frame'); if(old) old.remove();
+  const f = document.createElement('iframe'); f.id = 'prn-menu-frame';
+  f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+  document.body.appendChild(f);
+  const d = f.contentWindow.document; d.open();
+  const copyWidth = copies > 1 ? (Math.floor(100 / copies) - 1) + '%' : '100%';
+  let copiesHtml = '';
+  for(let i = 0; i < copies; i++){
+    copiesHtml += `<div class="menu-copy"><h1>🐱 TIỆM TRÀ MÈO XÁM</h1>${menuHTML}</div>`;
+  }
+  d.write(`<!doctype html><html><head><meta charset="utf-8"><title>Menu</title><style>
+    @page{ size:${paper}; margin:12mm; }
+    body{ font-family:'Segoe UI',Arial,sans-serif; color:#222; margin:0; }
+    .menu-copy{ width:${copyWidth}; display:inline-block; vertical-align:top; box-sizing:border-box; padding:0 10px; }
+    .menu-copy:not(:last-child){ border-right:1px dashed #999; }
+    h1{ text-align:center; font-size:17px; margin:0 0 10px; }
+    h2{ font-size:12.5px; text-transform:uppercase; letter-spacing:.5px; background:#f2f2f2; padding:4px 6px; margin:12px 0 4px; }
+    table{ width:100%; border-collapse:collapse; font-size:12px; }
+    td{ padding:3px 2px; border-bottom:1px dotted #ccc; }
+    .mname{ font-weight:600; }
+    .mprice{ text-align:right; white-space:nowrap; font-weight:700; color:#c0392b; }
+  </style></head><body>${copiesHtml}</body></html>`);
+  d.close();
+  const go = () => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch(e) { alert('Không mở được hộp thoại in: ' + e.message); } };
+  setTimeout(go, 150);
 }
 function printOrder(order){
   const c = prnCfg();
