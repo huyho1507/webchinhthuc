@@ -402,7 +402,28 @@
     display:none; flex:none; border:none; background:#e8f7f0; color:#047857; width:34px; height:34px;
     border-radius:50%; font-weight:900; font-size:14px; cursor:pointer;
   }
+  .ing-searchbar .s-add{
+    flex:none; border:none; background:#10b981; color:#fff; padding:0 14px; height:34px;
+    border-radius:999px; font-weight:800; font-size:12.5px; cursor:pointer; white-space:nowrap;
+  }
+  .ing-searchbar .s-save{
+    flex:none; border:none; background:#047857; color:#fff; padding:0 14px; height:34px;
+    border-radius:999px; font-weight:800; font-size:12.5px; cursor:pointer; white-space:nowrap;
+  }
   .ing-empty{ text-align:center; padding:26px 10px; color:var(--muted); font-weight:700; font-size:14px; }
+  /* ===================== TÌM NGUYÊN LIỆU DẠNG NHẬP (Tab Công Thức) ===================== */
+  .ing-combo{ position:relative; flex:2.2; min-width:0; }
+  .ing-combo-input{
+    width:100%; border:1.5px solid var(--line); border-radius:8px; padding:7px 9px;
+    font-size:13px; font-weight:700; background:#fff;
+  }
+  .ing-combo-list{
+    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:80; max-height:220px; overflow-y:auto;
+    background:#fff; border:1.5px solid var(--line); border-radius:10px; box-shadow:0 10px 26px rgba(0,0,0,.16);
+  }
+  .ing-combo-item{ padding:9px 12px; font-size:13px; font-weight:600; cursor:pointer; }
+  .ing-combo-item:hover, .ing-combo-item.active{ background:#e8f7f0; }
+  .ing-combo-empty{ padding:9px 12px; font-size:12.5px; color:var(--muted); font-style:italic; }
   #tab-ing td.c-cost{ font-weight:800; text-align:right; color:#047857; white-space:nowrap; }
   #tab-ing tbody tr:hover{ background:#f6fcf9; }
   #tab-ing td.c-name input{ font-weight:800; }
@@ -1325,10 +1346,15 @@
         <input type="text" id="ing-search" placeholder="Tìm nguyên liệu theo tên…" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="search" enterkeyhint="search">
         <span class="s-count" id="ing-search-count"></span>
         <button type="button" class="s-clear" id="ing-search-clear" aria-label="Xóa tìm kiếm">✕</button>
+        <button type="button" class="s-add owner-only" id="ing-search-add-btn" title="Thêm nguyên liệu mới" onclick="document.getElementById('btn-add-ing').click()">+ Thêm</button>
+        <button type="button" class="s-save owner-only" id="ing-search-save-btn" title="Lưu giá vốn kho" onclick="document.getElementById('btn-save-all-ingredients').click()">💾 Lưu</button>
       </div>
       <table><thead><tr id="ing-thead-tr"></tr></thead><tbody id="ing-tbody"></tbody></table>
       <div class="ing-empty" id="ing-empty" style="display:none;">😿 Không tìm thấy nguyên liệu nào khớp.</div>
-      <div class="row-add owner-only" style="margin-top:14px;"><button class="btn ghost small" id="btn-add-ing">+ Thêm nguyên liệu mới</button></div>
+      <div class="row-add owner-only" style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn ghost small" id="btn-add-ing">+ Thêm nguyên liệu mới</button>
+        <button class="btn success small" id="btn-add-ing-save-bottom" onclick="document.getElementById('btn-save-all-ingredients').click()">💾 Lưu Giá Vốn Kho</button>
+      </div>
     </div>
     <div class="finance-grid">
       <div class="card" style="margin-bottom:0;"><h3 style="font-size:14px; margin-top:0; text-align:center;">📊 Chi Phí Nguyên Liệu (Tốn nhiều nhất)</h3><div style="position: relative; height: 360px; width: 100%;"><canvas id="ingCostChart"></canvas></div></div>
@@ -3716,12 +3742,21 @@ function renderRecipeDetail(){
   html += `<h3 style="font-size:13px; text-transform:uppercase; border-bottom:1.5px solid var(--line); padding-bottom:4px;">🧪 Thành phần</h3>`;
   html += `<div id="recipe-lines"></div>`;
   if(isOwner){
+    const otherProds = (DATA.products || []).filter(p => p.id !== activeProductId);
     html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; flex-wrap:wrap; gap:8px;">
-        <div style="display:flex; gap:6px;">
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
           <button class="btn ghost small" onclick="addRecipeLine()">+ Thêm thành phần</button>
           <button class="btn ghost small" onclick="openAddSizeModal()">+ Thêm Size Mới</button>
         </div>
         <button class="btn success" onclick="saveRecipeChanges()">💾 LƯU CÔNG THỨC</button>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center; margin-top:8px; flex-wrap:wrap;">
+        <label style="font-size:11.5px; font-weight:700; color:var(--muted); white-space:nowrap;">📋 Sao chép công thức từ món khác:</label>
+        <select id="recipe-copy-source-select" style="flex:1; min-width:140px; max-width:220px;">
+          <option value="">-- Chọn món --</option>
+          ${otherProds.map(p => `<option value="${p.id}">${escapeHtml(p.category)} — ${escapeHtml(p.name)}</option>`).join('')}
+        </select>
+        <button class="btn ghost small" onclick="copyRecipeFromProduct()">Sao chép vào Size ${escapeHtml(activeSize)}</button>
       </div>`;
   }
   wrap.innerHTML = html;
@@ -3748,7 +3783,13 @@ function renderRecipeLines(sizeData, isOwner){
     return `
       <div class="recipe-row" id="recipe-row-${idx}">
         ${isOwner ? `
-          <select onchange="updateLineIng(${idx}, this.value)">${(DATA.ingredients||[]).map(i=>`<option value="${i.id}" ${i.id===line.ing?'selected':''}>${escapeHtml(i.name)}</option>`).join('')}</select>
+          <div class="ing-combo" id="ing-combo-${idx}">
+            <input type="text" class="ing-combo-input" id="ing-combo-input-${idx}" value="${ing?escapeHtml(ing.name):''}" placeholder="Gõ để tìm nguyên liệu…" autocomplete="off" autocorrect="off" spellcheck="false"
+              oninput="filterIngCombo(${idx}, this.value)"
+              onfocus="filterIngCombo(${idx}, this.value)"
+              onblur="setTimeout(()=>closeIngCombo(${idx}), 150)">
+            <div class="ing-combo-list" id="ing-combo-list-${idx}" style="display:none;"></div>
+          </div>
           <input type="number" step="any" value="${line.qty}" oninput="updateLineQty(${idx}, this.value)">
           <button class="icon-btn danger" onclick="delRecipeLine(${idx})">✕</button>
         ` : `
@@ -3780,9 +3821,47 @@ function updateRecipeLiveCalc(){
   });
 }
 function updateLineIng(idx, val){ draftProductSizes[activeSize].recipe[idx].ing = val; hasUnsavedRecipeChanges = true; renderRecipeDetail(); }
+/* ============ Ô GÕ TÌM NGUYÊN LIỆU CHO TỪNG DÒNG CÔNG THỨC (thay cho kéo select dài) ============ */
+function filterIngCombo(idx, query){
+  const list = document.getElementById(`ing-combo-list-${idx}`);
+  if(!list) return;
+  const q = normVN(query);
+  const matches = (DATA.ingredients || []).filter(i => !q || normVN(i.name).includes(q)).slice(0, 40);
+  list.innerHTML = matches.length
+    ? matches.map(i => `<div class="ing-combo-item" onmousedown="selectIngCombo(${idx}, '${i.id}')">${escapeHtml(i.name)}</div>`).join('')
+    : `<div class="ing-combo-empty">😿 Không tìm thấy nguyên liệu nào</div>`;
+  list.style.display = 'block';
+}
+function selectIngCombo(idx, ingId){
+  closeIngCombo(idx);
+  updateLineIng(idx, ingId);
+}
+function closeIngCombo(idx){
+  const list = document.getElementById(`ing-combo-list-${idx}`);
+  if(list) list.style.display = 'none';
+}
 function updateLineQty(idx, val){ if(!draftProductSizes[activeSize] || !draftProductSizes[activeSize].recipe[idx]) return; draftProductSizes[activeSize].recipe[idx].qty = parseFloat(val)||0; hasUnsavedRecipeChanges = true; updateRecipeLiveCalc(); }
 function delRecipeLine(idx){ draftProductSizes[activeSize].recipe.splice(idx, 1); hasUnsavedRecipeChanges = true; renderRecipeDetail(); }
 function addRecipeLine(){ if(!draftProductSizes[activeSize]) draftProductSizes[activeSize] = { price: 0, recipe: [] }; if(!draftProductSizes[activeSize].recipe) draftProductSizes[activeSize].recipe = []; const first = (DATA.ingredients||[])[0]; draftProductSizes[activeSize].recipe.push({ing: first?first.id:'', qty:0}); hasUnsavedRecipeChanges = true; renderRecipeDetail(); }
+/* ============ SAO CHÉP CÔNG THỨC TỪ MÓN KHÁC (cho món đã tồn tại, không chỉ lúc tạo mới) ============ */
+function copyRecipeFromProduct(){
+  const sel = document.getElementById('recipe-copy-source-select');
+  const sourceId = sel ? sel.value : '';
+  if(!sourceId){ alert('⚠️ Hãy chọn món muốn sao chép công thức!'); return; }
+  const source = DATA.products.find(p => p.id === sourceId);
+  if(!source || !source.sizes || Object.keys(source.sizes).length === 0){ alert('⚠️ Món này chưa có công thức để sao chép!'); return; }
+  // Ưu tiên lấy đúng size cùng tên (vd: M sang M), nếu không có thì lấy size đầu tiên của món nguồn.
+  const sourceSizeKey = source.sizes[activeSize] ? activeSize : Object.keys(source.sizes)[0];
+  const sourceSize = source.sizes[sourceSizeKey];
+  if(!sourceSize){ alert('⚠️ Không tìm thấy công thức để sao chép!'); return; }
+  const curRecipe = (draftProductSizes[activeSize] && draftProductSizes[activeSize].recipe) || [];
+  if(curRecipe.length > 0 && !confirm(`⚠️ Size ${activeSize} hiện có ${curRecipe.length} thành phần.\nSao chép sẽ THAY THẾ toàn bộ bằng công thức "${source.name}" (Size ${sourceSizeKey}).\nBạn có chắc chắn?`)) return;
+  if(!draftProductSizes[activeSize]) draftProductSizes[activeSize] = { price: 0, recipe: [] };
+  draftProductSizes[activeSize].recipe = JSON.parse(JSON.stringify(sourceSize.recipe || []));
+  hasUnsavedRecipeChanges = true;
+  renderRecipeDetail();
+  alert(`✅ Đã sao chép công thức từ "${source.name}" (Size ${sourceSizeKey}) vào Size ${activeSize}!\nBấm 💾 LƯU CÔNG THỨC để lưu lại.`);
+}
 function openAddSizeModal(){
   if(!activeProductId || !draftProductSizes){ alert('⚠️ Chưa chọn món!'); return; }
   const sizes = Object.keys(draftProductSizes);
