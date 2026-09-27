@@ -1970,7 +1970,22 @@ function loadData(){
             // --- BẮT ĐẦU ĐOẠN CHỐT CHẶN (ĐÃ SỬA LỖI ĐĂNG NHẬP) ---
             const activeTag = document.activeElement ? document.activeElement.tagName : '';
             if ((activeTag === 'INPUT' || activeTag === 'TEXTAREA') && isInitialLoad === false) {
-                DATA = val;
+                // 🛡️ LỚP BẢO VỆ 4: KHÔNG bỏ qua kiểm tra hợp lệ chỉ vì đang gõ dở ô input.
+                // Trước đây đoạn này gán thẳng DATA = val (kể cả khi val là null/rác),
+                // bỏ qua mọi lớp khóa an toàn bên dưới → có thể tự "reset" mất dữ liệu
+                // nếu Firebase trả về null/dữ liệu lỗi đúng lúc đang gõ.
+                const isValidRemoteDataQuick = val && Array.isArray(val.products) && Array.isArray(val.ingredients) && Array.isArray(val.users) && val.products.length > 0;
+                if(isValidRemoteDataQuick){
+                    window.DATA_IS_STALE = false;
+                    const preservedCustomers = (DATA && DATA.customers && DATA.customers.length) ? DATA.customers : [];
+                    DATA = val;
+                    DATA.customers = preservedCustomers;
+                    if(!DATA.productImages) DATA.productImages = {};
+                } else {
+                    // val null hoặc không hợp lệ → GIỮ NGUYÊN DATA hiện có, khóa ghi Firebase
+                    window.DATA_IS_STALE = true;
+                    console.warn('[meoxam] 🛡️ Bỏ qua Firebase update (null/không hợp lệ) trong lúc đang gõ — KHÔNG ghi đè DATA.');
+                }
                 return; 
             }
       const isValidRemoteData = val && Array.isArray(val.products) && Array.isArray(val.ingredients) && Array.isArray(val.users) && val.products.length > 0;
