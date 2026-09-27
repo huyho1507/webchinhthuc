@@ -2074,16 +2074,16 @@ function loadCustomersFromFirebase() {
       const lastSeen = Math.max(c.lastSeen || 0, c.lastLoginTime || 0);
       return {
         phone: phone,
-        realName: c.name || '',
+        realName: c.realName || c.name || '',                    // ← FIX: đọc cả 2 field
         address: c.address || '',
-        deliveryPhone: c.deliveryPhone || phone,
+        deliveryPhone: c.deliveryPhone || c.phone || phone,       // ← FIX: thêm fallback
         pin: c.pin || '',
-        ticketCount: ledger.filter(t => t.status === 'unused').length,
+        ticketCount: (c.ticketCount !== undefined) ? c.ticketCount : ledger.filter(t => t.status === 'unused').length,  // ← FIX: ưu tiên Firebase
         ticketLedger: ledger,
         voucherCount: vouchers.filter(v => !v.used && !v.revoked).length,
         vouchers: vouchers,
-        totalSpent: 0,
-        createdAt: c.lastLoginTime || 0,
+        totalSpent: c.totalSpent || 0,                            // ← FIX: đọc từ Firebase
+        createdAt: c.createdAt || c.lastLoginTime || 0,           // ← FIX: đọc `createdAt` trước
         lastSeen: lastSeen,
         nextFreeTicketTime: c.nextFreeTicketTime || 0,
         spinHistory: c.spinHistory || [],
