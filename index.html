@@ -1733,6 +1733,7 @@ if (useFirebase && db) { db.ref('.info/serverTimeOffset').on('value', function(s
 let CURRENT_USER = null;
 const STORAGE_KEY = 'meoxam-cost-data-v62';
 let DATA = null;
+window.DATA_IS_STALE = false;
 let userBillsMap = {};
 let currentCalendarDate = new Date();
 let selectedModalDateStr = null;
@@ -1842,11 +1843,47 @@ function startLiveClock() {
 
 /* ============ FIX #5: SAVE DATA ============ */
 function saveDataDirect(){
+    // ═══════════════════════════════════════════════════════════
+    // 🛡️ LỚP BẢO VỆ 1: KHÓA GHI KHI DATA LÀ BACKUP CŨ
+    // Nếu cờ DATA_IS_STALE bật (do Firebase trả null hoặc data invalid),
+    // TUYỆT ĐỐI không ghi lên Firebase — chỉ lưu local. Tránh việc
+    // backup cũ đè mất dữ liệu thật trên server.
+    // ═══════════════════════════════════════════════════════════
+    if(window.DATA_IS_STALE){
+        console.warn('[meoxam] 🛡️ DATA_IS_STALE=true → KHÔNG ghi Firebase, chỉ lưu local.');
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); }catch(e){}
+        return;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🛡️ LỚP BẢO VỆ 2: SAFETY NET — CHẶN GHI KHI SỐ ĐƠN RỚT MẠNH
+    // Nếu số đơn hàng giảm hơn 50% so với lần lưu trước (và trước đó
+    // đã có ít nhất 20 đơn), hỏi xác nhận trước khi ghi. Đây là dấu
+    // hiệu điển hình của việc bị ghi đè bởi dữ liệu cũ.
+    // ═══════════════════════════════════════════════════════════
+    const _prevCount = parseInt(localStorage.getItem(STORAGE_KEY + '_lastOrderCount') || '0', 10);
+    const _curCount = (DATA && DATA.orders) ? DATA.orders.length : 0;
+    if(_prevCount >= 20 && _curCount < _prevCount * 0.5){
+        const _ok = confirm(
+            '⚠️ CẢNH BÁO AN TOÀN DỮ LIỆU\n\n' +
+            'Số đơn hàng: ' + _prevCount + ' → ' + _curCount + '\n' +
+            'Giảm hơn 50% — có thể đang bị ghi đè mất dữ liệu!\n\n' +
+            '• OK = VẪN LƯU (sẽ mất ' + (_prevCount - _curCount) + ' đơn)\n' +
+            '• Hủy = DỪNG LẠI để kiểm tra trước'
+        );
+        if(!_ok){
+            console.warn('[meoxam] 🛡️ User CHẶN ghi — số đơn giảm bất thường.');
+            return;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // TỪ ĐÂY LÀ CODE GỐC — GIỮ NGUYÊN KHÔNG ĐỔI
+    // ═══════════════════════════════════════════════════════════
     if(!DATA) DATA = seedData();
     recalculateShiftFundFromOrders();
     let dataToSave;
     if(isLiteMode()){
-        // Chế độ nhẹ: không sao chép phần dữ liệu nặng (sẽ bị xóa ngay bên dưới) → nhanh hơn, kết quả y hệt
         const _skip = { customers:1, chats:1, productImages:1, checkinImages:1 };
         const _slim = {};
         Object.keys(DATA).forEach(function(k){ if(!_skip[k]) _slim[k] = DATA[k]; });
@@ -1855,24 +1892,28 @@ function saveDataDirect(){
         dataToSave = JSON.parse(JSON.stringify(DATA));
     }
     
-    // Xóa các dữ liệu không cần thiết hoặc quá nặng
     delete dataToSave.customers;
     delete dataToSave.chats;
-    delete dataToSave.productImages; // Chống tràn bộ nhớ do ảnh
-    delete dataToSave.checkinImages; // Chống tràn bộ nhớ do ảnh
+    delete dataToSave.productImages;
+    delete dataToSave.checkinImages;
 
     if (useFirebase && db) {
         db.ref('meoxam_data').update(dataToSave).catch(err => {
             console.error('Lỗi lưu Firebase:', err);
-            // Sửa chữ DATA thành dataToSave ở đây
             try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave)); }catch(e){}
         });
     } else {
-        // Sửa chữ DATA thành dataToSave ở đây
         try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave)); }catch(e){}
     }
-    // Sửa chữ DATA thành dataToSave ở đây
     writeBackupLS(dataToSave);
+
+    // ═══════════════════════════════════════════════════════════
+    // 🛡️ LỚP BẢO VỆ 3: GHI NHỚ SỐ ĐƠN VỪA LƯU
+    // Để lần gọi sau, safety net ở trên có số liệu so sánh.
+    // ═══════════════════════════════════════════════════════════
+    try{
+        localStorage.setItem(STORAGE_KEY + '_lastOrderCount', String((DATA.orders || []).length));
+    }catch(e){}
 }
 function saveWithSecurity(){
   const secPin = (DATA && DATA.config && DATA.config.securityPin) ? DATA.config.securityPin : '9999';
@@ -1934,7 +1975,8 @@ function loadData(){
             }
       const isValidRemoteData = val && Array.isArray(val.products) && Array.isArray(val.ingredients) && Array.isArray(val.users) && val.products.length > 0;
       if(isValidRemoteData) {
-        if(previousAttendanceCount !== -1 && val.attendance && val.attendance.length > previousAttendanceCount) {
+    window.DATA_IS_STALE = false;   // ← MỞ KHÓA — data thật, cho phép ghi
+    if(previousAttendanceCount !== -1 && val.attendance && val.attendance.length > previousAttendanceCount) {
           const newAtt = val.attendance[0];
           if(CURRENT_USER && CURRENT_USER.role === 'owner') {
              showToast(`🛎️ Nhân viên <b>${escapeHtml(newAtt.staffName)}</b> vừa <b>${newAtt.type}</b>${newAtt.farFromShop ? ` — <b>⚠️ cách quán ${newAtt.distance}m</b>` : ''}${newAtt.photoId ? ' 📷' : ''}`);
@@ -1946,14 +1988,44 @@ function loadData(){
         DATA.customers = preservedCustomers;
         if(!DATA.productImages) DATA.productImages = {};
         writeBackupLS(DATA);
-      } else if (val === null) {
-        DATA = seedData();
-        saveDataDirect();
-      } else {
-        if(!DATA){ try{ const backup = localStorage.getItem(STORAGE_KEY + '_backup') || localStorage.getItem(STORAGE_KEY); DATA = backup ? JSON.parse(backup) : null; }catch(e){ DATA = null; } }
-        if(!DATA){ DATA = seedData(); }
-      }
+     } else if (val === null) {
+    // 🛡️ FIREBASE NULL — khóa ghi, dùng backup local
+    window.DATA_IS_STALE = true;
+    try{
+      const backup = localStorage.getItem(STORAGE_KEY + '_backup') || localStorage.getItem(STORAGE_KEY);
+      DATA = backup ? JSON.parse(backup) : null;
+    }catch(e){ DATA = null; }
+    if(!DATA){ DATA = seedData(); }
+    console.warn('[meoxam] Firebase null → DATA_IS_STALE=true, KHÓA ghi Firebase.');
+    renderLoginDropdown();
+    checkSessionTimeout();
+    renderHeaderMoneyBadge();
+    renderNotifications();
+    if(isInitialLoad) {
+      isInitialLoad = false;
+      if(CURRENT_USER) applyRolePermissions();
+      loadCustomersFromFirebase();
+    }
+    return;   // ← THOÁT SỚM — KHÔNG chạy ensureFundStructure/saveDataDirect
+} else {
+    // 🛡️ DATA INVALID (thiếu products/ingredients/users) — khóa ghi
+    window.DATA_IS_STALE = true;
+    if(!DATA){ try{ const backup = localStorage.getItem(STORAGE_KEY + '_backup') || localStorage.getItem(STORAGE_KEY); DATA = backup ? JSON.parse(backup) : null; }catch(e){ DATA = null; } }
+    if(!DATA){ DATA = seedData(); }
+    console.warn('[meoxam] Firebase trả về data không hợp lệ → DATA_IS_STALE=true, KHÓA ghi Firebase.');
+    renderLoginDropdown();
+    checkSessionTimeout();
+    renderHeaderMoneyBadge();
+    renderNotifications();
+    if(isInitialLoad) {
+      isInitialLoad = false;
+      if(CURRENT_USER) applyRolePermissions();
+      loadCustomersFromFirebase();
+    }
+    return;   // ← THOÁT SỚM
+}
       ensureFundStructure();
+      checkShiftDayRollover();
       recalculateShiftFundFromOrders();
       renderLoginDropdown();
       checkSessionTimeout();
@@ -2114,7 +2186,6 @@ function ensureFundStructure(){
     if(i.statusMsg === undefined) i.statusMsg = '';
   });
   if(!DATA.settledShiftDays) DATA.settledShiftDays = {};
-  checkShiftDayRollover();
 }
 
 /* ============ CA / NGÀY: một quy tắc duy nhất (0h-6h sáng tính vào ca hôm trước) ============ */
@@ -2185,6 +2256,7 @@ const FUND_LABELS = {
 var _settlingShift = false;
 function checkShiftDayRollover(){
   if(_settlingShift || !DATA || !DATA.shiftCashFund) return false;
+  if(window.DATA_IS_STALE) return false;
   const cur = getShiftDayStr();
   const last = DATA.shiftCashFund.lastSettledDate;
   if(!last){ DATA.shiftCashFund.lastSettledDate = cur; return false; }
