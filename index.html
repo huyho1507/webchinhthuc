@@ -1303,7 +1303,17 @@
         </div>
       </div>
       <div id="staff-hourly-rates-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px;"></div>
+      <div id="kpi-config-box" style="margin-top:12px; background:#fff8e6; border:1.5px dashed #e6c46b; border-radius:10px; padding:10px;">
+        <label style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:13px; cursor:pointer;"><input type="checkbox" id="kpi-enabled" onchange="markDirty('shift')" style="width:18px; height:18px;"> 🎯 Bật KPI theo số ly bán mỗi ngày</label>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <span style="font-size:12.5px; font-weight:700;">Mục tiêu:</span>
+          <input type="number" id="kpi-target-cups" class="num" min="0" step="1" value="30" style="width:110px; font-weight:800; text-align:right;" oninput="markDirty('shift')">
+          <span style="font-size:12.5px; font-weight:700;">ly / ngày</span>
+        </div>
+        <div style="font-size:11.5px; color:var(--muted); margin-top:6px;">Nhân viên bán đủ số ly trong ngày thì cả ngày đó được tính theo mức "Lương/giờ khi đạt KPI" ở trên; chưa đủ thì tính lương/giờ thường. Mỗi ngày tự tính lại từ đầu. Nhớ bấm 💾 LƯU LƯƠNG.</div>
+      </div>
     </div>
+    <div class="card" id="kpi-today-card" style="display:none; border:2px solid #e6c46b; background:#fffdf4;"></div>
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
         <h2 style="margin:0;">📊 Tổng Kết Giờ Làm &amp; Lương Tháng</h2>
@@ -2213,10 +2223,13 @@ function ensureFundStructure(){
   if(!DATA.config.ticketSpinRate) DATA.config.ticketSpinRate = 10;
   if(!DATA.config.ticketRewardAmount) DATA.config.ticketRewardAmount = 1;
   if(!DATA.config.voucherDiscountRate) DATA.config.voucherDiscountRate = 5;
+  if(DATA.config.kpiEnabled === undefined) DATA.config.kpiEnabled = false;
+  if(DATA.config.kpiTargetCups === undefined) DATA.config.kpiTargetCups = 30;
   if(!DATA.customers) DATA.customers = [];
   if(!DATA.productImages) DATA.productImages = {};
   (DATA.users || []).forEach(u => {
     if(u.hourlyRate === undefined) u.hourlyRate = 25000;
+    if(u.kpiRate === undefined) u.kpiRate = 25000;
     if(!u.alias) u.alias = u.name;
     if(!u.realName) u.realName = u.name;
     if(!u.emoji) u.emoji = '👤';
@@ -3343,6 +3356,9 @@ function renderHistoryOrders(){
     if (isWebOrder) { bgStyle = 'linear-gradient(180deg, #fff5cc, #fffdf8)'; }
     let borderStyle = '1.5px solid var(--line)';
     if (isCancelRequest) { borderStyle = '3px solid #000000'; payColor = '#000000'; }
+    const isOwnerNow = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
+    const staffCanFix = !!(CURRENT_USER && !isOwnerNow && !isCancelledOrder(o) && getOrderShiftDay(o) === getShiftDayStr());
+    const lastPayChange = (o.paymentChanges && o.paymentChanges.length) ? o.paymentChanges[o.paymentChanges.length - 1] : null;
     return `
     <div style="background:${bgStyle}; border:${borderStyle}; border-left:6px solid ${payColor}; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
       ${isCancelRequest ? '<div style="position:absolute; top:-8px; right:12px; background:#000; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">YÊU CẦU HỦY</div>' : ''}
@@ -3352,15 +3368,17 @@ function renderHistoryOrders(){
       </div>
       <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
         👤 NV: <b>${escapeHtml(o.staffName)}</b> | 🕒 ${o.time} | 🥤 ${o.totalQty} ly
+        ${lastPayChange ? `<br>💱 <b>Đã đổi hình thức TT:</b> ${escapeHtml(lastPayChange.from)} → ${escapeHtml(lastPayChange.to)} (${escapeHtml(lastPayChange.by)})` : ''}
         ${o.generalNote ? `<br>📝 <b>Ghi chú:</b> ${escapeHtml(o.generalNote)}` : ''}
         ${o.appliedVoucher && o.appliedVoucher !== 'none' ? `<br>✨ <b>Voucher:</b> ${escapeHtml(o.appliedVoucher)}` : ''}
       </div>
       <div style="font-size:12px; background:#fffaf0; border:1px dashed #e6d9bd; padding:8px 10px; border-radius:8px;">
         ${(o.items || []).map(i=>`• <b>${escapeHtml(i.name)}</b> (${i.size}) x ${i.qty} —${fmt(i.unitPrice * i.qty)}đ`).join('<br>')}
       </div>
-      ${(printerEnabled() || (CURRENT_USER && CURRENT_USER.role==='owner')) ? `
+      ${(printerEnabled() || isOwnerNow || staffCanFix) ? `
       <div class="order-actions">
         ${printerEnabled() ? `<button class="btn small ghost" onclick="printOrderById('${o.id}')">🖨️ In lại bill</button>` : ''}
+        ${staffCanFix ? `<button class="btn small ghost" onclick="staffChangePayment('${o.id}')">💱 Đổi sang ${isBank ? 'Tiền mặt' : 'Chuyển khoản'}</button>` : ''}
         ${CURRENT_USER && CURRENT_USER.role==='owner' ? `<button class="btn small ghost" onclick="openEditOrderModal('${o.id}')">✏️ Chỉnh đơn</button>
         <button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="deleteOrder('${o.id}')">🗑️ Xóa đơn</button>` : ''}
       </div>` : ''}
@@ -3434,6 +3452,35 @@ function deleteOrder(id){
   saveDataDirect();
   renderHistoryOrders();
   alert('✅ Đã xóa hóa đơn!');
+}
+
+/* ============ NHÂN VIÊN ĐỔI HÌNH THỨC THANH TOÁN (tiền mặt <-> chuyển khoản) + BÁO CHỦ QUÁN QUA CHUÔNG ============ */
+function staffChangePayment(id){
+  if(!CURRENT_USER || CURRENT_USER.role === 'owner') return;
+  const order = (DATA.orders || []).find(o => o.id === id);
+  if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
+  if(isCancelledOrder(order)){ alert('⚠️ Đơn đã hủy / đang yêu cầu hủy nên không đổi được.'); return; }
+  checkShiftDayRollover();
+  if(getOrderShiftDay(order) !== getShiftDayStr()){ alert('⚠️ Chỉ đổi được đơn của ngày làm việc hôm nay. Đơn cũ vui lòng báo chủ quán.'); return; }
+  const oldIsBank = isBankOrder(order);
+  const oldLbl = oldIsBank ? 'Chuyển khoản' : 'Tiền mặt';
+  const newLbl = oldIsBank ? 'Tiền mặt' : 'Chuyển khoản';
+  if(!confirm(`Đổi hình thức thanh toán đơn "${order.table}" (${fmt(order.totalPrice || 0)}đ)\ntừ ${oldLbl} → ${newLbl}?\n\nChủ quán sẽ nhận được thông báo.`)) return;
+  const total = order.totalPrice || 0;
+  logCashFundOnly('order-edit', oldIsBank ? 'shiftBank' : 'shiftCash', -total, `NV đổi hình thức TT (Bàn ${order.table}): hoàn ${oldLbl}`, order.id);
+  order.paymentMethod = newLbl;
+  logCashFundOnly('order-edit', oldIsBank ? 'shiftCash' : 'shiftBank', total, `NV đổi hình thức TT (Bàn ${order.table}): ghi nhận ${newLbl}`, order.id);
+  const nowVN = getVietnamTimeNow();
+  const timeStr = `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')}:${String(nowVN.getSeconds()).padStart(2,'0')} — ${String(nowVN.getDate()).padStart(2,'0')}/${String(nowVN.getMonth()+1).padStart(2,'0')}/${nowVN.getFullYear()}`;
+  order.editedAt = new Date().toISOString();
+  if(!order.paymentChanges) order.paymentChanges = [];
+  order.paymentChanges.push({ by: CURRENT_USER.name, from: oldLbl, to: newLbl, at: timeStr });
+  if(!DATA.notifications) DATA.notifications = [];
+  DATA.notifications.unshift({ id: uid('noti'), type: 'pay-change', orderId: order.id, orderDate: order.dateIso, message: `💱 ${CURRENT_USER.name} đổi hình thức thanh toán đơn ${order.table} (${fmt(total)}đ): ${oldLbl} → ${newLbl}`, time: timeStr, read: false });
+  refreshDiscrepanciesForOrder(order);
+  saveDataDirect();
+  renderHistoryOrders();
+  showToast(`✅ Đã đổi đơn ${escapeHtml(order.table)} sang ${newLbl}. Chủ quán đã được báo.`);
 }
 
 let editingOrderId = null, editOrderDraftItems = null;
@@ -4520,7 +4567,7 @@ document.getElementById('btn-confirm-checkout').addEventListener('click', ()=>{
 });
 
 function changeMonth(delta){ currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta); renderShiftTab(); }
-document.getElementById('btn-save-staff-rates').addEventListener('click', ()=>{ (DATA.users || []).forEach((u, idx)=>{ u.hourlyRate = getRawNum(`staff-rate-inp-${idx}`); }); if(saveWithSecurity()){ dirtyTabs['shift'] = false; renderShiftTab(); } });
+document.getElementById('btn-save-staff-rates').addEventListener('click', ()=>{ (DATA.users || []).forEach((u, idx)=>{ u.hourlyRate = getRawNum(`staff-rate-inp-${idx}`); u.kpiRate = getRawNum(`staff-kpi-rate-inp-${idx}`); }); if(!DATA.config) DATA.config = {}; DATA.config.kpiEnabled = !!(document.getElementById('kpi-enabled') && document.getElementById('kpi-enabled').checked); DATA.config.kpiTargetCups = Math.max(0, Math.round(getRawNum('kpi-target-cups'))); if(saveWithSecurity()){ dirtyTabs['shift'] = false; renderShiftTab(); } });
 document.getElementById('btn-close-month-payroll').addEventListener('click', ()=>{
   const year = currentCalendarDate.getFullYear(), month = currentCalendarDate.getMonth() + 1;
   const monthKey = `${year}-${String(month).padStart(2, '0')}`;
@@ -4534,7 +4581,7 @@ document.getElementById('btn-close-month-payroll').addEventListener('click', ()=
     const net = (actual.actualPay) - (actual.totalDeduction || 0);
     const netPay = net > 0 ? net : 0;
     totalMonthPayroll += netPay;
-    payrollSummary.push({ staffId: u.id, staffName: getFormattedUserDisplayName(u), hourlyRate: u.hourlyRate, actualHours: actual.actualHours, grossPay: actual.actualPay, totalDeduction: actual.totalDeduction, netPay: netPay });
+    payrollSummary.push({ staffId: u.id, staffName: getFormattedUserDisplayName(u), hourlyRate: u.hourlyRate, kpiDays: actual.kpiDays || 0, kpiBonus: Math.round(actual.kpiBonus || 0), actualHours: actual.actualHours, grossPay: actual.actualPay, totalDeduction: actual.totalDeduction, netPay: netPay });
   });
   const nowVN = getVietnamTimeNow();
   const closedRecord = { id: uid('payroll'), monthKey, title: `Tháng ${month} / ${year}`, closedAt: `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')} — ${String(nowVN.getDate()).padStart(2,'0')}/${String(nowVN.getMonth()+1).padStart(2,'0')}/${nowVN.getFullYear()}`, totalPayroll: totalMonthPayroll, details: payrollSummary };
@@ -4599,10 +4646,34 @@ document.getElementById('btn-confirm-deduction').addEventListener('click', ()=>{
   alert(`✅ Đã ghi nhận phạt ${fmt(amount)}đ!`);
   renderShiftTab();
 });
+/* ============ KPI THEO SỐ LY MỖI NGÀY (tự reset mỗi ngày vì chỉ đếm ly của đúng ngày đó) ============ */
+function getKpiConfig(){
+  const c = (DATA && DATA.config) || {};
+  return { enabled: !!c.kpiEnabled, target: parseInt(c.kpiTargetCups, 10) || 0 };
+}
+function getStaffCupsForShiftDay(userObj, shiftDay){
+  let cups = 0;
+  (DATA.orders || []).forEach(o => {
+    if(isCancelledOrder(o)) return;
+    if(o.staffName !== userObj.name) return;
+    if(getOrderShiftDay(o) !== shiftDay) return;
+    cups += (o.totalQty || 0);
+  });
+  return cups;
+}
+function getStaffDayRate(userObj, dateStr){
+  const base = userObj.hourlyRate !== undefined ? userObj.hourlyRate : 25000;
+  const kr = parseFloat(userObj.kpiRate) || 0;
+  const k = getKpiConfig();
+  if(!k.enabled || k.target <= 0 || kr <= 0) return { rate: base, base, kpiRate: kr, cups: 0, target: k.target, achieved: false };
+  const cups = getStaffCupsForShiftDay(userObj, dateStr);
+  const achieved = cups >= k.target;
+  return { rate: achieved ? kr : base, base, kpiRate: kr, cups, target: k.target, achieved };
+}
 function calculateActualWorkedHoursAndPay(userObj, monthStrPrefix){
   const displayName = getFormattedUserDisplayName(userObj);
   const atts = (DATA.attendance || []).filter(a => a.staffId === userObj.id || a.staffName === displayName || a.staffName.includes(userObj.alias));
-  let totalActualHours = 0, totalDeduction = 0;
+  let totalActualHours = 0, totalDeduction = 0, totalPay = 0, kpiDays = 0, kpiBonus = 0;
   const attsByDate = {};
   atts.forEach(a => { if(!a.dateStr) return; if(!attsByDate[a.dateStr]) attsByDate[a.dateStr] = []; attsByDate[a.dateStr].push(a); });
   Object.keys(attsByDate).forEach(dateStr => {
@@ -4621,9 +4692,9 @@ function calculateActualWorkedHoursAndPay(userObj, monthStrPrefix){
         if(shiftEndMs < shiftStartMs) shiftEndMs += 24 * 3600 * 1000;
       }
     }
-    let lastClockIn = null;
+    let lastClockIn = null, dayHours = 0;
     dayAtts.sort((a, b) => a.timestamp - b.timestamp).forEach(a => {
-      if(a.manualHours){ totalActualHours += a.manualHours; }
+      if(a.manualHours){ dayHours += a.manualHours; }
       else if(a.deductionAmount){ totalDeduction += a.deductionAmount; }
       else if(a.type === 'Vào ca làm'){ lastClockIn = a.timestamp; }
       else if(a.type === 'Ra ca làm' && lastClockIn){
@@ -4635,13 +4706,46 @@ function calculateActualWorkedHoursAndPay(userObj, monthStrPrefix){
           if(clockOutTime < shiftStartMs) clockOutTime = shiftStartMs;
         }
         const diffMs = clockOutTime - clockInTime;
-        if(diffMs > 0) totalActualHours += diffMs / (1000 * 60 * 60);
+        if(diffMs > 0) dayHours += diffMs / (1000 * 60 * 60);
         lastClockIn = null;
       }
     });
+    totalActualHours += dayHours;
+    const dr = getStaffDayRate(userObj, dateStr);
+    totalPay += dayHours * dr.rate;
+    if(dr.achieved && dayHours > 0){ kpiDays++; kpiBonus += dayHours * (dr.rate - dr.base); }
   });
-  const rate = userObj.hourlyRate !== undefined ? userObj.hourlyRate : 25000;
-  return { actualHours: Math.round(totalActualHours * 10) / 10, actualPay: totalActualHours * rate, totalDeduction };
+  return { actualHours: Math.round(totalActualHours * 10) / 10, actualPay: totalPay, totalDeduction, kpiDays, kpiBonus };
+}
+function renderKpiUi(){
+  if(!DATA) return;
+  const cfg = DATA.config || {};
+  const isOwner = CURRENT_USER && CURRENT_USER.role === 'owner';
+  const en = document.getElementById('kpi-enabled'); if(en) en.checked = !!cfg.kpiEnabled;
+  const tg = document.getElementById('kpi-target-cups'); if(tg) setRawNum(tg, cfg.kpiTargetCups !== undefined ? cfg.kpiTargetCups : 30);
+  const card = document.getElementById('kpi-today-card'); if(!card) return;
+  const k = getKpiConfig();
+  if(!k.enabled || k.target <= 0 || !CURRENT_USER){ card.style.display = 'none'; return; }
+  const day = getShiftDayStr();
+  const users = isOwner ? (DATA.users || []) : (DATA.users || []).filter(u => u.id === CURRENT_USER.id);
+  const rows = users.map(u => {
+    const r = getStaffDayRate(u, day);
+    const cups = getStaffCupsForShiftDay(u, day);
+    const pct = Math.min(100, Math.round(cups / k.target * 100));
+    let status;
+    if(r.kpiRate <= 0) status = `<span style="color:var(--muted);">Chưa cài lương KPI cho bạn này</span>`;
+    else if(cups >= k.target) status = `<span style="color:var(--good); font-weight:800;">✅ Đạt KPI! Hôm nay tính ${fmt(r.kpiRate)}đ/h (thay vì ${fmt(r.base)}đ/h)</span>`;
+    else status = `<span style="color:var(--accent); font-weight:700;">Còn ${k.target - cups} ly nữa để đạt KPI (${fmt(r.kpiRate)}đ/h)</span>`;
+    return `<div style="background:#fff; border:1.5px solid var(--line); border-radius:10px; padding:10px;">
+      <div style="display:flex; justify-content:space-between; gap:8px; font-weight:800; font-size:13px;"><span>${u.emoji || '👤'} ${escapeHtml(getFormattedUserDisplayName(u))}</span><span>${cups} / ${k.target} ly</span></div>
+      <div style="height:10px; background:#eee6d3; border-radius:99px; overflow:hidden; margin:6px 0;"><div style="height:100%; width:${pct}%; background:${cups >= k.target ? 'var(--good)' : '#e6a23c'};"></div></div>
+      <div style="font-size:12px;">${status}</div>
+    </div>`;
+  }).join('');
+  card.style.display = 'block';
+  card.innerHTML = `<h2 style="margin:0 0 4px;">🎯 KPI Hôm Nay</h2>
+    <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Bán đủ <b>${k.target} ly</b> trong ngày thì cả ngày đó được tính lương KPI. Mỗi ngày tính lại từ đầu (ngày ${day}).</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px;">${rows || '<div style="font-size:12px; color:var(--muted);">Chưa có nhân viên.</div>'}</div>`;
 }
 function renderShiftTab(){
   const isOwner = CURRENT_USER && CURRENT_USER.role === 'owner';
@@ -4654,9 +4758,12 @@ function renderShiftTab(){
       <div style="background:#fff; border:1.5px solid var(--line); border-radius:10px; padding:10px;">
         <div style="font-weight:800; font-size:13px; margin-bottom:6px;">${u.emoji || '👤'} ${escapeHtml(getFormattedUserDisplayName(u))}</div>
         <div style="display:flex; align-items:center; gap:6px;"><input type="number" id="staff-rate-inp-${idx}" class="num" min="0" step="1000" value="${u.hourlyRate}" style="font-weight:700; text-align:right;" oninput="markDirty('shift')"><span style="font-size:12px; font-weight:700; color:var(--muted);">đ/h</span></div>
+        <div style="margin-top:8px; font-size:11px; font-weight:700; color:#b7791f;">🎯 Lương/giờ khi đạt KPI:</div>
+        <div style="display:flex; align-items:center; gap:6px; margin-top:3px;"><input type="number" id="staff-kpi-rate-inp-${idx}" class="num" min="0" step="1000" value="${u.kpiRate || 0}" style="font-weight:700; text-align:right;" oninput="markDirty('shift')"><span style="font-size:12px; font-weight:700; color:var(--muted);">đ/h</span></div>
       </div>`;
   });
   ratesContainer.innerHTML = ratesHtml;
+  try{ renderKpiUi(); }catch(e){ console.error('KPI UI', e); }
   const summaryWrap = document.getElementById('staff-salary-summary-cards');
   const staffSummaryMap = {};
   (DATA.users || []).forEach(u => { staffSummaryMap[u.id] = { scheduledHours: 0, userObj: u }; });
@@ -4681,12 +4788,14 @@ function renderShiftTab(){
     const actual = calculateActualWorkedHoursAndPay(u, monthStrPrefix);
     const netPay = (actual.actualPay - (actual.totalDeduction || 0)) > 0 ? (actual.actualPay - (actual.totalDeduction || 0)) : 0;
     const nameStr = getFormattedUserDisplayName(u);
+    const kpiLine = (actual.kpiDays > 0) ? `<div style="font-size:12px; color:#b7791f; margin-bottom:4px;">🎯 KPI: đạt <b>${actual.kpiDays} ngày</b> (+${fmt(Math.round(actual.kpiBonus))}đ)</div>` : '';
     if (isOwner) {
       summaryHtml += `
         <div style="background:#fffdf8; border:1.5px solid var(--line); border-radius:12px; padding:12px;">
           <div style="font-weight:800; font-size:13.5px; margin-bottom:6px;">${u.emoji || '👤'} ${escapeHtml(nameStr)} <span style="font-size:11px; color:var(--muted); font-weight:normal;">(${fmt(rate)}đ/h)</span></div>
           <div style="font-size:12px; color:var(--muted); margin-bottom:2px;">📅 Phân công: <b>${item.scheduledHours}h</b> (${fmt(item.scheduledHours * rate)}đ)</div>
           <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">⏱️ Thực tế: <b style="color:var(--accent);">${actual.actualHours} giờ</b></div>
+          ${kpiLine}
           ${actual.totalDeduction > 0 ? `<div style="font-size:12px; color:var(--bad); margin-bottom:4px;">➖ Phạt: <b>-${fmt(actual.totalDeduction)}đ</b></div>` : ''}
           <div style="font-size:13px; color:var(--good); font-weight:800; border-top:1px dashed #dcd5c2; margin-top:4px; padding-top:4px;">💎 Thực lãnh: ${fmt(netPay)}đ</div>
         </div>`;
@@ -4695,6 +4804,7 @@ function renderShiftTab(){
         <div style="background:#fffdf8; border:1.5px solid var(--line); border-radius:12px; padding:12px;">
           <div style="font-weight:800; font-size:13.5px; margin-bottom:8px;">${u.emoji || '👤'} ${escapeHtml(nameStr)}</div>
           <div style="font-size:13px; color:var(--muted); margin-bottom:6px;">⏱️ Thời gian làm: <b style="color:var(--accent); font-size:14px;">${actual.actualHours} giờ</b></div>
+          ${kpiLine}
           <div style="font-size:14px; color:var(--good); font-weight:800; border-top:1px dashed #dcd5c2; margin-top:6px; padding-top:6px;">💎 Thực lãnh: ${fmt(netPay)}đ</div>
         </div>`;
     }
@@ -5031,6 +5141,12 @@ function clickNotificationItem(notiId, ingName) {
   saveDataDirect();
   renderNotifications();
   document.getElementById('noti-dropdown-menu').style.display = 'none';
+  if (noti && noti.orderId) {
+    const hd = document.getElementById('history-date');
+    if (hd && noti.orderDate) { hd.value = noti.orderDate; ['history-week','history-month','history-date-from','history-date-to'].forEach(i => { const e = document.getElementById(i); if (e) e.value = ''; }); }
+    switchTab('history'); renderHistoryOrders();
+    return;
+  }
   const _sn = document.getElementById('ing-search'); if (_sn) _sn.value = '';
   switchTab('ing');
   setTimeout(() => {
