@@ -1058,7 +1058,7 @@
     <h3 style="margin-top:0; font-size:18px;">✏️ Điều Chỉnh Hóa Đơn</h3>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
       <div><label style="font-size:11px; font-weight:700; color:var(--muted);">📍 Bàn / Khách:</label><input type="text" id="edit-order-table" style="margin-top:3px; font-weight:700;"></div>
-      <div><label style="font-size:11px; font-weight:700; color:var(--muted);">💳 Thanh Toán:</label><select id="edit-order-payment" style="margin-top:3px; font-weight:700;"><option value="Tiền mặt">💵 Tiền mặt</option><option value="Chuyển khoản">📱 Chuyển khoản</option></select></div>
+      <div><label style="font-size:11px; font-weight:700; color:var(--muted);">💳 Thanh Toán:</label><select id="edit-order-payment" style="margin-top:3px; font-weight:700;" onchange="onEditOrderPaymentChange(this.value)"><option value="Tiền mặt">💵 Tất cả tiền mặt</option><option value="Chuyển khoản">📱 Tất cả chuyển khoản</option><option value="MIXED">💵+📱 Chia theo từng ly</option></select></div>
     </div>
     <label style="font-size:11px; font-weight:700; color:var(--muted);">📝 Ghi chú chung:</label>
     <input type="text" id="edit-order-note" style="margin-top:3px; margin-bottom:14px;">
@@ -1068,7 +1068,8 @@
       <button class="btn small" id="btn-edit-order-add-item">THÊM</button>
     </div>
     <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:700; margin-bottom:4px;"><span>Tổng số ly:</span><span id="edit-order-total-qty">0 ly</span></div>
-    <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:800; margin-bottom:16px;"><span>Tổng tiền:</span><span id="edit-order-total-price" style="color:var(--good);">0đ</span></div>
+    <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:800; margin-bottom:6px;"><span>Tổng tiền:</span><span id="edit-order-total-price" style="color:var(--good);">0đ</span></div>
+    <div id="edit-order-pay-summary" style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:12.5px; font-weight:700; margin-bottom:16px; background:#f6f1e4; border:1.5px dashed #d9cba6; border-radius:10px; padding:8px 10px;"></div>
     <div style="display:flex; gap:10px;"><button class="btn ghost" style="flex:1;" id="btn-cancel-edit-order">Hủy</button><button class="btn success" style="flex:1.5;" id="btn-save-edit-order">💾 LƯU THAY ĐỔI</button></div>
   </div>
 </div>
@@ -2285,7 +2286,24 @@ function getOrderShiftDay(o){
   if(day && m && parseInt(m[1],10) < 6) day = addDaysToDateStr(day, -1);
   return day;
 }
+const PAY_MIXED = 'Tiền mặt + CK';
+function isMixedOrder(o){ return !!o && o.paymentMethod === PAY_MIXED; }
 function isBankOrder(o){ return !!o && o.paymentMethod === 'Chuyển khoản'; }
+/* Số tiền chuyển khoản / tiền mặt của 1 đơn (đơn chia theo từng ly: tính theo bankQty của từng món) */
+function orderBankAmt(o){
+  if(!o) return 0;
+  const total = o.totalPrice || 0;
+  if(isMixedOrder(o)){
+    const b = (o.items || []).reduce((s, i) => s + (Math.min(Math.max(i.bankQty || 0, 0), i.qty || 0) * (i.unitPrice || 0)), 0);
+    return Math.min(Math.max(b, 0), total);
+  }
+  return o.paymentMethod === 'Chuyển khoản' ? total : 0;
+}
+function orderCashAmt(o){ return o ? (o.totalPrice || 0) - orderBankAmt(o) : 0; }
+function orderPayLabel(o){
+  if(isMixedOrder(o)) return `Tiền mặt ${fmt(orderCashAmt(o))}đ + CK ${fmt(orderBankAmt(o))}đ`;
+  return (o && o.paymentMethod) || 'Tiền mặt';
+}
 function isCancelledOrder(o){ return !!o && (o.status === 'Đã hủy' || o.status === 'Yêu cầu hủy'); }
 function isOrderSettled(o){ const d = getOrderShiftDay(o); return !!d && d < getShiftDayStr(); }
 function getStaffOrderTotals(staffName, opts){
@@ -2294,7 +2312,7 @@ function getStaffOrderTotals(staffName, opts){
     if(o.staffName !== staffName || isCancelledOrder(o)) return;
     const match = opts.shiftDay ? (getOrderShiftDay(o) === opts.shiftDay) : (o.dateIso === opts.dateStr);
     if(!match) return;
-    if(isBankOrder(o)) bank += (o.totalPrice || 0); else cash += (o.totalPrice || 0);
+    bank += orderBankAmt(o); cash += orderCashAmt(o);
   });
   return { cash, bank };
 }
@@ -2318,8 +2336,8 @@ function recalculateShiftFundFromOrders(){
     let orderCashTotal = 0, orderBankTotal = 0;
     (DATA.orders || []).forEach(o => {
         if(isCancelledOrder(o) || getOrderShiftDay(o) !== todayStr) return;
-        if(isBankOrder(o)) orderBankTotal += (o.totalPrice || 0);
-        else orderCashTotal += (o.totalPrice || 0);
+        orderBankTotal += orderBankAmt(o);
+        orderCashTotal += orderCashAmt(o);
     });
     const z = DATA.shiftCashFund.zMoney || 0;
     DATA.shiftCashFund.cash = z + orderCashTotal + (DATA.shiftCashFund.manualAdjustCash || 0);
@@ -2360,7 +2378,7 @@ function processMidnightShiftSettlement(startDay){
         let cash = 0, bank = 0;
         (DATA.orders || []).forEach(o => {
           if(isCancelledOrder(o) || getOrderShiftDay(o) !== day) return;
-          if(isBankOrder(o)) bank += (o.totalPrice || 0); else cash += (o.totalPrice || 0);
+          bank += orderBankAmt(o); cash += orderCashAmt(o);
         });
         if(day === firstDay){
           cash += (DATA.shiftCashFund.manualAdjustCash || 0);
@@ -2701,7 +2719,7 @@ function openFundAudit(){
     if(isCancelledOrder(o)) return;
     const k = getOrderShiftDay(o); if(!k) return;
     const r = get(k);
-    if(isBankOrder(o)) r.ob += (o.totalPrice || 0); else r.oc += (o.totalPrice || 0);
+    r.ob += orderBankAmt(o); r.oc += orderCashAmt(o);
   });
   (DATA.cashFundLogs || []).forEach(l => {
     if(l.source !== 'midnight-settle') return;
@@ -3362,10 +3380,10 @@ function renderHistoryOrders(){
   document.getElementById('stat-orders-count').textContent = filtered.length;
   document.getElementById('stat-cups-count').textContent = filtered.reduce((s, o) => s + (o.totalQty||0), 0) + ' ly';
   document.getElementById('stat-revenue').textContent = fmt(filtered.reduce((s, o) => s + (o.totalPrice||0), 0)) + 'đ';
-  const bankOrders = filtered.filter(o => o.paymentMethod === 'Chuyển khoản');
-  const cashOrders = filtered.filter(o => o.paymentMethod !== 'Chuyển khoản');
-  const cashRev = cashOrders.reduce((s, o) => s + (o.totalPrice||0), 0);
-  const bankRev = bankOrders.reduce((s, o) => s + (o.totalPrice||0), 0);
+  const bankOrders = filtered.filter(o => orderBankAmt(o) > 0);
+  const cashOrders = filtered.filter(o => orderCashAmt(o) > 0 || (o.totalPrice || 0) === 0);
+  const cashRev = filtered.reduce((s, o) => s + orderCashAmt(o), 0);
+  const bankRev = filtered.reduce((s, o) => s + orderBankAmt(o), 0);
   document.getElementById('stat-revenue-cash').textContent = fmt(cashRev) + 'đ';
   document.getElementById('stat-revenue-bank').textContent = fmt(bankRev) + 'đ';
   document.getElementById('stat-revenue-cash-sub').textContent = cashOrders.length + ' đơn';
@@ -3373,33 +3391,39 @@ function renderHistoryOrders(){
   const wrap = document.getElementById('history-order-list');
   if(filtered.length === 0){ wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted); text-align:center; padding:16px 0;">Không có đơn order nào.</p>'; return; }
   wrap.innerHTML = filtered.map(o=>{
+    const isMixed = isMixedOrder(o);
     const isBank = (o.paymentMethod === 'Chuyển khoản');
-    let payColor = isBank ? '#2f5fa6' : 'var(--good)';
-    const payBg = isBank ? '#e7effb' : '#e6f4ea';
+    let payColor = isMixed ? '#8a5a1f' : (isBank ? '#2f5fa6' : 'var(--good)');
+    const payBg = isMixed ? '#fdf1dc' : (isBank ? '#e7effb' : '#e6f4ea');
     const isWebOrder = (o.source === 'web' || (o.table && o.table.includes('App:')));
     const isCancelRequest = (o.status === 'Yêu cầu hủy');
-    let bgStyle = isBank ? 'linear-gradient(180deg,#f4f8ff,#fffdf8)' : 'linear-gradient(180deg,#f1fbf5,#fffdf8)';
+    let bgStyle = isMixed ? 'linear-gradient(180deg,#fff6e6,#fffdf8)' : (isBank ? 'linear-gradient(180deg,#f4f8ff,#fffdf8)' : 'linear-gradient(180deg,#f1fbf5,#fffdf8)');
     if (isWebOrder) { bgStyle = 'linear-gradient(180deg, #fff5cc, #fffdf8)'; }
     let borderStyle = '1.5px solid var(--line)';
     if (isCancelRequest) { borderStyle = '3px solid #000000'; payColor = '#000000'; }
     const isOwnerNow = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
-    const staffCanFix = !!(CURRENT_USER && !isOwnerNow && !isCancelledOrder(o) && getOrderShiftDay(o) === getShiftDayStr());
+    const staffCanFix = !!(CURRENT_USER && !isOwnerNow && !isCancelledOrder(o) && !isMixedOrder(o) && getOrderShiftDay(o) === getShiftDayStr());
     const lastPayChange = (o.paymentChanges && o.paymentChanges.length) ? o.paymentChanges[o.paymentChanges.length - 1] : null;
     return `
     <div style="background:${bgStyle}; border:${borderStyle}; border-left:6px solid ${payColor}; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
       ${isCancelRequest ? '<div style="position:absolute; top:-8px; right:12px; background:#000; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">YÊU CẦU HỦY</div>' : ''}
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; font-weight:800; font-size:14px; margin-bottom:4px;">
-        <span>📍 ${escapeHtml(o.table)} <span style="font-size:11px; background:${payBg}; color:${payColor}; border:1px solid ${payColor}; padding:2px 6px; border-radius:6px; margin-left:6px;">${isBank ? '📱' : '💵'} ${escapeHtml(o.paymentMethod || 'Tiền mặt')}</span></span>
-        <span style="color:${payColor}; white-space:nowrap;">${isBank ? 'DT Chuyển khoản' : 'DT Tiền mặt'}: ${fmt(o.totalPrice)}đ</span>
+        <span>📍 ${escapeHtml(o.table)} <span style="font-size:11px; background:${payBg}; color:${payColor}; border:1px solid ${payColor}; padding:2px 6px; border-radius:6px; margin-left:6px;">${isMixed ? '💵+📱' : (isBank ? '📱' : '💵')} ${isMixed ? 'Chia từng ly' : escapeHtml(o.paymentMethod || 'Tiền mặt')}</span></span>
+        <span style="color:${payColor}; white-space:nowrap;">${isMixed ? 'Tổng' : (isBank ? 'DT Chuyển khoản' : 'DT Tiền mặt')}: ${fmt(o.totalPrice)}đ</span>
       </div>
       <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
         👤 NV: <b>${escapeHtml(o.staffName)}</b> | 🕒 ${o.time} | 🥤 ${o.totalQty} ly
+        ${isMixed ? `<br>💵 <b>Tiền mặt:</b> ${fmt(orderCashAmt(o))}đ &nbsp;|&nbsp; 📱 <b>Chuyển khoản:</b> ${fmt(orderBankAmt(o))}đ` : ''}
         ${lastPayChange ? `<br>💱 <b>Đã đổi hình thức TT:</b> ${escapeHtml(lastPayChange.from)} → ${escapeHtml(lastPayChange.to)} (${escapeHtml(lastPayChange.by)})` : ''}
         ${o.generalNote ? `<br>📝 <b>Ghi chú:</b> ${escapeHtml(o.generalNote)}` : ''}
         ${o.appliedVoucher && o.appliedVoucher !== 'none' ? `<br>✨ <b>Voucher:</b> ${escapeHtml(o.appliedVoucher)}` : ''}
       </div>
       <div style="font-size:12px; background:#fffaf0; border:1px dashed #e6d9bd; padding:8px 10px; border-radius:8px;">
-        ${(o.items || []).map(i=>`• <b>${escapeHtml(i.name)}</b> (${i.size}) x ${i.qty} —${fmt(i.unitPrice * i.qty)}đ`).join('<br>')}
+        ${(o.items || []).map(i=>{
+          let tag = '';
+          if(isMixed){ const bq = Math.min(Math.max(i.bankQty || 0, 0), i.qty || 0), cq = (i.qty || 0) - bq; tag = ` <span style="font-size:11px; color:#8a5a1f;">[${cq > 0 ? '💵 ' + cq + ' ly' : ''}${cq > 0 && bq > 0 ? ' · ' : ''}${bq > 0 ? '📱 ' + bq + ' ly' : ''}]</span>`; }
+          return `• <b>${escapeHtml(i.name)}</b> (${i.size}) x ${i.qty} —${fmt(i.unitPrice * i.qty)}đ${tag}`;
+        }).join('<br>')}
       </div>
       ${(printerEnabled() || isOwnerNow || staffCanFix) ? `
       <div class="order-actions">
@@ -3421,14 +3445,14 @@ function deleteOrder(id){
   if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
   checkShiftDayRollover();
   if(!isCancelledOrder(order)){
-    const isBank = isBankOrder(order);
+    const dCash = orderCashAmt(order), dBank = orderBankAmt(order);
     if(isOrderSettled(order)){
       // Ngày của đơn đã chốt vào Quỹ Tổng → trừ thẳng khỏi Quỹ Tổng
-      logSettledOrderAdjust('order-delete', isBank ? 'bank' : 'cash', -(order.totalPrice || 0),
-        `Xóa hóa đơn bàn ${order.table} (ngày ${order.dateIso})`, order);
+      if(dCash) logSettledOrderAdjust('order-delete', 'cash', -dCash, `Xóa hóa đơn bàn ${order.table} (ngày ${order.dateIso})`, order);
+      if(dBank) logSettledOrderAdjust('order-delete', 'bank', -dBank, `Xóa hóa đơn bàn ${order.table} (ngày ${order.dateIso})`, order);
     } else {
-      logCashFundOnly('order-delete', isBank ? 'shiftBank' : 'shiftCash', -order.totalPrice,
-        `Xóa hóa đơn bàn ${order.table}`, order.id);
+      if(dCash) logCashFundOnly('order-delete', 'shiftCash', -dCash, `Xóa hóa đơn bàn ${order.table}`, order.id);
+      if(dBank) logCashFundOnly('order-delete', 'shiftBank', -dBank, `Xóa hóa đơn bàn ${order.table}`, order.id);
     }
   }
   const customerPhone = order.customerPhone;
@@ -3486,6 +3510,7 @@ function staffChangePayment(id){
   const order = (DATA.orders || []).find(o => o.id === id);
   if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
   if(isCancelledOrder(order)){ alert('⚠️ Đơn đã hủy / đang yêu cầu hủy nên không đổi được.'); return; }
+  if(isMixedOrder(order)){ alert('⚠️ Đơn này đã chia thanh toán theo từng ly, vui lòng báo chủ quán chỉnh.'); return; }
   checkShiftDayRollover();
   if(getOrderShiftDay(order) !== getShiftDayStr()){ alert('⚠️ Chỉ đổi được đơn của ngày làm việc hôm nay. Đơn cũ vui lòng báo chủ quán.'); return; }
   const oldIsBank = isBankOrder(order);
@@ -3539,8 +3564,13 @@ function openEditOrderModal(id){
   if(code !== secPin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
   editingOrderId = id;
   editOrderDraftItems = JSON.parse(JSON.stringify(order.items || []));
+  const _mixed = isMixedOrder(order), _bank = isBankOrder(order);
+  editOrderDraftItems.forEach(it => {
+    if(_mixed) it.bankQty = Math.min(Math.max(it.bankQty || 0, 0), it.qty || 0);
+    else it.bankQty = _bank ? (it.qty || 0) : 0;
+  });
   document.getElementById('edit-order-table').value = order.table || '';
-  document.getElementById('edit-order-payment').value = order.paymentMethod || 'Tiền mặt';
+  document.getElementById('edit-order-payment').value = _mixed ? 'MIXED' : (_bank ? 'Chuyển khoản' : 'Tiền mặt');
   document.getElementById('edit-order-note').value = order.generalNote || '';
   const addSelWrap = document.getElementById('edit-order-add-product-select');
   const addableProducts = (DATA.products || []).filter(p => p.category !== 'Topping');
@@ -3579,6 +3609,15 @@ function renderEditOrderItems(){
           <div class="eo-topping-list">${toppingListHtml}</div>
           <label style="font-size:11px; font-weight:700; color:var(--muted);">Ghi chú món:</label>
           <input type="text" value="${escapeHtml(item.note||'')}" style="margin-top:3px;" oninput="updateEditItemNote(${idx}, this.value)">
+          <div style="margin-top:8px; background:#f3f7fd; border:1.5px solid #cfdcf2; border-radius:10px; padding:8px 10px;">
+            <label style="font-size:11px; font-weight:700; color:#2f5fa6; display:block; margin-bottom:4px;">💳 Thanh toán ${item.qty > 1 ? 'các ly này' : 'ly này'}:</label>
+            ${item.qty === 1
+              ? `<select style="font-weight:700;" onchange="setEditItemBankQty(${idx}, this.value === 'bank' ? 1 : 0)"><option value="cash" ${(item.bankQty||0) === 0 ? 'selected' : ''}>💵 Tiền mặt</option><option value="bank" ${(item.bankQty||0) >= 1 ? 'selected' : ''}>📱 Chuyển khoản</option></select>`
+              : `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:12.5px; font-weight:700;">
+                  <span>💵 Tiền mặt: <b>${item.qty - (item.bankQty||0)}</b> ly</span>
+                  <span style="display:flex; align-items:center; gap:6px;">📱 CK: <button class="icon-btn" onclick="setEditItemBankQty(${idx}, ${(item.bankQty||0) - 1})">-</button><b>${item.bankQty||0}</b><button class="icon-btn" onclick="setEditItemBankQty(${idx}, ${(item.bankQty||0) + 1})">+</button> ly</span>
+                </div>`}
+          </div>
           <div style="text-align:right; font-size:12.5px; font-weight:800; color:var(--good); margin-top:6px;">${fmt(item.unitPrice)}đ / ly × ${item.qty} = ${fmt(item.unitPrice*item.qty)}đ</div>
         </div>
       `;
@@ -3588,8 +3627,45 @@ function renderEditOrderItems(){
   const totalPrice = (editOrderDraftItems||[]).reduce((s,i)=>s+(i.unitPrice*i.qty), 0);
   document.getElementById('edit-order-total-qty').textContent = totalQty + ' ly';
   document.getElementById('edit-order-total-price').textContent = fmt(totalPrice) + 'đ';
+  const sp = editOrderPaySplit();
+  const sumEl = document.getElementById('edit-order-pay-summary');
+  if(sumEl) sumEl.innerHTML = `<span style="color:var(--good);">💵 Tiền mặt: ${sp.cupsCash} ly — ${fmt(sp.cash)}đ</span><span style="color:#2f5fa6;">📱 Chuyển khoản: ${sp.cupsBank} ly — ${fmt(sp.bank)}đ</span>`;
+  const selEl = document.getElementById('edit-order-payment');
+  if(selEl && editOrderDraftItems && editOrderDraftItems.length) selEl.value = sp.method === PAY_MIXED ? 'MIXED' : sp.method;
 }
-function changeEditItemQty(idx, delta){ const item = editOrderDraftItems[idx]; if(!item) return; item.qty += delta; if(item.qty <= 0){ editOrderDraftItems.splice(idx, 1); } renderEditOrderItems(); }
+function editOrderPaySplit(){
+  const items = editOrderDraftItems || [];
+  let cash = 0, bank = 0, cupsCash = 0, cupsBank = 0;
+  items.forEach(i => {
+    const q = i.qty || 0, bq = Math.min(Math.max(i.bankQty || 0, 0), q);
+    bank += bq * (i.unitPrice || 0); cash += (q - bq) * (i.unitPrice || 0);
+    cupsBank += bq; cupsCash += (q - bq);
+  });
+  const method = (cupsBank === 0) ? 'Tiền mặt' : (cupsCash === 0 ? 'Chuyển khoản' : PAY_MIXED);
+  return { cash, bank, cupsCash, cupsBank, method };
+}
+function setEditItemBankQty(idx, n){
+  const item = editOrderDraftItems[idx]; if(!item) return;
+  item.bankQty = Math.min(Math.max(parseInt(n, 10) || 0, 0), item.qty || 0);
+  renderEditOrderItems();
+}
+function onEditOrderPaymentChange(v){
+  if(v === 'MIXED') return; // giữ nguyên lựa chọn từng ly đang có
+  (editOrderDraftItems || []).forEach(it => { it.bankQty = (v === 'Chuyển khoản') ? (it.qty || 0) : 0; });
+  renderEditOrderItems();
+}
+function changeEditItemQty(idx, delta){
+  const item = editOrderDraftItems[idx]; if(!item) return;
+  const oldQty = item.qty, oldBank = item.bankQty || 0;
+  item.qty += delta;
+  if(item.qty <= 0){ editOrderDraftItems.splice(idx, 1); }
+  else {
+    // món đang trả CK hết thì ly thêm cũng CK; còn lại ly thêm là tiền mặt
+    if(delta > 0 && oldBank > 0 && oldBank === oldQty) item.bankQty = item.qty;
+    else item.bankQty = Math.min(oldBank, item.qty);
+  }
+  renderEditOrderItems();
+}
 function changeEditItemSize(idx, newSize){ const item = editOrderDraftItems[idx]; if(!item) return; item.size = newSize; recalcEditItem(item); renderEditOrderItems(); }
 function toggleEditItemTopping(idx, toppingName, price, isChecked){
   const item = editOrderDraftItems[idx];
@@ -3611,7 +3687,7 @@ document.getElementById('btn-edit-order-add-item').addEventListener('click', ()=
   const basePrice = sizeObj ? sizeObj.price : 0;
   const recipe = sizeObj ? (sizeObj.recipe || []) : [];
   const baseUnitCost = recipe.reduce((sum, line)=>{ const ing = getIng(line.ing); return sum + (ing ? unitCost(ing) * (line.qty||0) : 0); }, 0);
-  editOrderDraftItems.push({ itemKey: uid('item'), prodId: prod.id, name: prod.name, size: firstSize, basePrice, toppings: [], toppingPrice: 0, unitPrice: basePrice, unitCost: baseUnitCost, note: '', qty: 1 });
+  editOrderDraftItems.push({ itemKey: uid('item'), prodId: prod.id, name: prod.name, size: firstSize, basePrice, toppings: [], toppingPrice: 0, unitPrice: basePrice, unitCost: baseUnitCost, note: '', qty: 1, bankQty: (document.getElementById('edit-order-payment').value === 'Chuyển khoản') ? 1 : 0 });
   renderEditOrderItems();
 });
 document.getElementById('btn-save-edit-order').addEventListener('click', ()=>{
@@ -3620,44 +3696,37 @@ document.getElementById('btn-save-edit-order').addEventListener('click', ()=>{
   if(!order) return;
   if(!editOrderDraftItems || editOrderDraftItems.length === 0){ alert('⚠️ Hóa đơn phải có ít nhất 1 món!'); return; }
   const newTable = document.getElementById('edit-order-table').value.trim() || 'Mang đi / Khách lẻ';
-  const newPayment = document.getElementById('edit-order-payment').value;
+  const _split = editOrderPaySplit();
+  const newPayment = _split.method;
   const newNote = document.getElementById('edit-order-note').value.trim();
   const totalQty = editOrderDraftItems.reduce((s,i)=>s+i.qty, 0);
   const totalPrice = editOrderDraftItems.reduce((s,i)=>s+(i.unitPrice*i.qty), 0);
   const totalCost = editOrderDraftItems.reduce((s,i)=>s+(i.unitCost*i.qty), 0);
   checkShiftDayRollover();
-  const oldIsBank = isBankOrder(order);
+  const oldCashAmt = orderCashAmt(order), oldBankAmt = orderBankAmt(order);
   const oldTotal = order.totalPrice || 0;
   const wasCancelled = isCancelledOrder(order);
   const settledOrder = isOrderSettled(order);
   if(!settledOrder){
-    logCashFundOnly('order-edit', oldIsBank ? 'shiftBank' : 'shiftCash', -oldTotal, `Hoàn tác hóa đơn cũ (Bàn ${order.table})`, order.id);
+    if(oldCashAmt) logCashFundOnly('order-edit', 'shiftCash', -oldCashAmt, `Hoàn tác hóa đơn cũ (Bàn ${order.table}) - tiền mặt`, order.id);
+    if(oldBankAmt) logCashFundOnly('order-edit', 'shiftBank', -oldBankAmt, `Hoàn tác hóa đơn cũ (Bàn ${order.table}) - chuyển khoản`, order.id);
   }
   order.table = newTable; order.paymentMethod = newPayment; order.generalNote = newNote;
   order.items = JSON.parse(JSON.stringify(editOrderDraftItems));
+  order.items.forEach(it => { if(newPayment === PAY_MIXED) it.bankQty = Math.min(Math.max(it.bankQty || 0, 0), it.qty || 0); else delete it.bankQty; });
   order.totalQty = totalQty; order.totalPrice = totalPrice; order.totalCost = totalCost;
   order.editedAt = new Date().toISOString();
-  const newIsBank = (newPayment === 'Chuyển khoản');
+  const newCashAmt = orderCashAmt(order), newBankAmt = orderBankAmt(order);
   let fundMsg = '';
   if(!settledOrder){
-    logCashFundOnly('order-edit', newIsBank ? 'shiftBank' : 'shiftCash', totalPrice, `Cập nhật hóa đơn (Bàn ${order.table})`, order.id);
+    if(newCashAmt) logCashFundOnly('order-edit', 'shiftCash', newCashAmt, `Cập nhật hóa đơn (Bàn ${order.table}) - tiền mặt`, order.id);
+    if(newBankAmt) logCashFundOnly('order-edit', 'shiftBank', newBankAmt, `Cập nhật hóa đơn (Bàn ${order.table}) - chuyển khoản`, order.id);
   } else if(!wasCancelled){
-    // Đơn của ngày đã chốt: chuyển tiền giữa các quỹ TỔNG cho khớp
-    const oldLbl = oldIsBank ? 'Chuyển khoản' : 'Tiền mặt', newLbl = newIsBank ? 'Chuyển khoản' : 'Tiền mặt';
-    if(oldIsBank === newIsBank){
-      const delta = totalPrice - oldTotal;
-      if(delta !== 0){
-        logSettledOrderAdjust('order-edit', newIsBank ? 'bank' : 'cash', delta,
-          `Sửa hóa đơn bàn ${order.table} (${order.dateIso}): ${fmt(oldTotal)}đ → ${fmt(totalPrice)}đ`, order);
-        fundMsg = `\n💰 Quỹ Tổng (${newLbl}) đã ${delta > 0 ? 'cộng' : 'trừ'} ${fmt(Math.abs(delta))}đ.`;
-      }
-    } else {
-      logSettledOrderAdjust('order-edit', oldIsBank ? 'bank' : 'cash', -oldTotal,
-        `Sửa hóa đơn bàn ${order.table} (${order.dateIso}): đổi ${oldLbl} → ${newLbl}, trừ ${fmt(oldTotal)}đ khỏi quỹ ${oldLbl}`, order);
-      logSettledOrderAdjust('order-edit', newIsBank ? 'bank' : 'cash', totalPrice,
-        `Sửa hóa đơn bàn ${order.table} (${order.dateIso}): đổi ${oldLbl} → ${newLbl}, cộng ${fmt(totalPrice)}đ vào quỹ ${newLbl}`, order);
-      fundMsg = `\n💰 Quỹ Tổng: trừ ${fmt(oldTotal)}đ (${oldLbl}), cộng ${fmt(totalPrice)}đ (${newLbl}).`;
-    }
+    // Đơn của ngày đã chốt: điều chỉnh từng Quỹ TỔNG theo phần chênh
+    const dCash = newCashAmt - oldCashAmt, dBank = newBankAmt - oldBankAmt;
+    const why = `Sửa hóa đơn bàn ${order.table} (${order.dateIso}): tiền mặt ${fmt(oldCashAmt)}đ → ${fmt(newCashAmt)}đ, CK ${fmt(oldBankAmt)}đ → ${fmt(newBankAmt)}đ`;
+    if(dCash !== 0){ logSettledOrderAdjust('order-edit', 'cash', dCash, why, order); fundMsg += `\n💰 Quỹ Tiền Mặt Tổng ${dCash > 0 ? 'cộng' : 'trừ'} ${fmt(Math.abs(dCash))}đ.`; }
+    if(dBank !== 0){ logSettledOrderAdjust('order-edit', 'bank', dBank, why, order); fundMsg += `\n💰 Quỹ Tài Khoản ${dBank > 0 ? 'cộng' : 'trừ'} ${fmt(Math.abs(dBank))}đ.`; }
   }
   refreshDiscrepanciesForOrder(order);
   saveDataDirect();
@@ -5007,7 +5076,8 @@ function wkFundLabel(k){
 function wkItemsText(o){
   return (o.items || []).map(i => {
     const tp = (i.toppings || []).map(t => t.name).join(', ');
-    return `${i.name} (${i.size}) x${i.qty}${tp ? ' + ' + tp : ''}${i.note ? ' [' + i.note + ']' : ''}`;
+    const pay = (isMixedOrder(o) && (i.bankQty || 0) > 0) ? ` {CK ${i.bankQty}/${i.qty} ly}` : '';
+    return `${i.name} (${i.size}) x${i.qty}${tp ? ' + ' + tp : ''}${i.note ? ' [' + i.note + ']' : ''}${pay}`;
   }).join('; ');
 }
 function exportWeekExcel(){
@@ -5040,12 +5110,12 @@ function exportWeekExcel(){
   const dayRows = [['Ngày','Thứ','Số đơn','Số ly','DT Tiền mặt','DT Chuyển khoản','Tổng doanh thu','Giá vốn (ước tính)','Lãi gộp (ước tính)','Đơn hủy']];
   days.forEach(d => {
     const od = okOrders.filter(o => getOrderShiftDay(o) === d);
-    const cash = sum(od.filter(o => !isBankOrder(o)), o => o.totalPrice), bank = sum(od.filter(isBankOrder), o => o.totalPrice);
+    const cash = sum(od, o => orderCashAmt(o)), bank = sum(od, o => orderBankAmt(o));
     const cost = sum(od, o => o.totalCost);
     const dow = VN_WEEKDAYS[new Date(d + 'T00:00:00Z').getUTCDay()];
     dayRows.push([wkDmy(d), dow, od.length, sum(od, o => o.totalQty), cash, bank, cash + bank, Math.round(cost), Math.round(cash + bank - cost), orders.filter(o => isCancelledOrder(o) && getOrderShiftDay(o) === d).length]);
   });
-  const tCash = sum(okOrders.filter(o => !isBankOrder(o)), o => o.totalPrice), tBank = sum(okOrders.filter(isBankOrder), o => o.totalPrice);
+  const tCash = sum(okOrders, o => orderCashAmt(o)), tBank = sum(okOrders, o => orderBankAmt(o));
   const tCost = sum(okOrders, o => o.totalCost);
   dayRows.push(['TỔNG CỘNG','', okOrders.length, sum(okOrders, o => o.totalQty), tCash, tBank, tCash + tBank, Math.round(tCost), Math.round(tCash + tBank - tCost), orders.filter(isCancelledOrder).length]);
 
@@ -5129,10 +5199,10 @@ function exportWeekExcel(){
   addSheet('Doanh thu theo ngày', dayRows, [14, 12, 9, 9, 15, 17, 16, 18, 18, 9]);
 
   /* --- Đơn hàng --- */
-  const orderRows = [['Ngày ca','Giờ','Bàn / Khách','Nhân viên','Thanh toán','Món','Số ly','Tổng tiền','Giá vốn','Ghi chú','Voucher','Trạng thái','Lịch sử đổi thanh toán']];
-  orders.forEach(o => orderRows.push([wkDmy(getOrderShiftDay(o)), o.time || '', o.table || '', o.staffName || '', o.paymentMethod || 'Tiền mặt', wkItemsText(o), o.totalQty || 0, o.totalPrice || 0, Math.round(o.totalCost || 0), o.generalNote || '', (o.appliedVoucher && o.appliedVoucher !== 'none') ? o.appliedVoucher : '', o.status || 'Hoàn tất', (o.paymentChanges || []).map(c => `${c.at}: ${c.from}→${c.to} (${c.by})`).join(' | ')]));
+  const orderRows = [['Ngày ca','Giờ','Bàn / Khách','Nhân viên','Thanh toán','Món','Số ly','Tổng tiền','Tiền mặt','Chuyển khoản','Giá vốn','Ghi chú','Voucher','Trạng thái','Lịch sử đổi thanh toán']];
+  orders.forEach(o => orderRows.push([wkDmy(getOrderShiftDay(o)), o.time || '', o.table || '', o.staffName || '', isMixedOrder(o) ? 'Chia từng ly' : (o.paymentMethod || 'Tiền mặt'), wkItemsText(o), o.totalQty || 0, o.totalPrice || 0, orderCashAmt(o), orderBankAmt(o), Math.round(o.totalCost || 0), o.generalNote || '', (o.appliedVoucher && o.appliedVoucher !== 'none') ? o.appliedVoucher : '', o.status || 'Hoàn tất', (o.paymentChanges || []).map(c => `${c.at}: ${c.from}→${c.to} (${c.by})`).join(' | ')]));
   if(orders.length === 0) orderRows.push(['(Kỳ này không có đơn)']);
-  addSheet('Đơn hàng', orderRows, [12, 22, 18, 20, 14, 60, 8, 12, 12, 22, 16, 14, 40]);
+  addSheet('Đơn hàng', orderRows, [12, 22, 18, 20, 14, 60, 8, 12, 12, 14, 12, 22, 16, 14, 40]);
 
   /* --- Mua nguyên liệu --- */
   const buyRows = [['Ngày','Giờ','Nguyên liệu','Số bịch/gói','Tổng tiền','Nguồn tiền','Người mua']];
@@ -6107,7 +6177,8 @@ function renderReceiptCanvas(order, c){
   });
   dash();
   row('TỔNG (' + order.totalQty + ' ly)', fmt(order.totalPrice) + 'đ', fs + 4, true);
-  left('Thanh toán: ' + (order.paymentMethod || 'Tiền mặt'), fs - 2, false);
+  left('Thanh toán: ' + (isMixedOrder(order) ? 'Tiền mặt + CK' : (order.paymentMethod || 'Tiền mặt')), fs - 2, false);
+  if(isMixedOrder(order)){ left('  Tiền mặt: ' + fmt(orderCashAmt(order)) + 'đ', fs - 3, false); left('  Chuyển khoản: ' + fmt(orderBankAmt(order)) + 'đ', fs - 3, false); }
   if(order.generalNote) left('Ghi chú: ' + order.generalNote, fs - 2, false);
   dash();
   center(c.footer || 'Cảm ơn quý khách!', fs - 2, false);
