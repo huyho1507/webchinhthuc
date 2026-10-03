@@ -1407,6 +1407,32 @@
         </ol>
       </details>
     </div>
+    <div class="card owner-only" id="weekly-export-card" style="border:2px solid #2f8f5b; background:#f3fbf6;">
+      <h2 style="margin:0 0 4px;">📥 Xuất Báo Cáo Ra Excel</h2>
+      <p style="font-size:12.5px; color:var(--muted); margin:0 0 10px;">Chọn khoảng thời gian muốn xuất (theo tuần, theo tháng hoặc tự chọn từ ngày nào đến ngày nào), app tải về 1 file Excel để bạn lưu trên máy tính: doanh thu, đơn hàng, mua nguyên liệu, chấm công, giờ làm &amp; lương, kết ca &amp; lệch quỹ, nhật ký quỹ.</p>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <select id="wk-mode" style="max-width:190px; font-weight:700;">
+          <option value="week">📅 Theo tuần (T2 → CN)</option>
+          <option value="month">🗓️ Theo tháng</option>
+          <option value="custom">✏️ Tự chọn từ ngày → đến ngày</option>
+        </select>
+        <button class="btn small ghost" type="button" id="wk-prev">◀ Trước</button>
+        <span id="wk-pick-wrap" style="display:inline-flex; align-items:center; gap:6px;"><input type="date" id="wk-export-date" style="max-width:170px; font-weight:700;"></span>
+        <span id="wk-custom-wrap" style="display:none; align-items:center; gap:6px; flex-wrap:wrap;"><span style="font-size:12.5px; font-weight:700;">Từ</span><input type="date" id="wk-from" style="max-width:160px; font-weight:700;"><span style="font-size:12.5px; font-weight:700;">đến</span><input type="date" id="wk-to" style="max-width:160px; font-weight:700;"></span>
+        <button class="btn small ghost" type="button" id="wk-next">Sau ▶</button>
+      </div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+        <button class="btn small ghost" type="button" data-wkq="today">Hôm nay</button>
+        <button class="btn small ghost" type="button" data-wkq="7d">7 ngày gần nhất</button>
+        <button class="btn small ghost" type="button" data-wkq="30d">30 ngày gần nhất</button>
+        <button class="btn small ghost" type="button" data-wkq="thisweek">Tuần này</button>
+        <button class="btn small ghost" type="button" data-wkq="thismonth">Tháng này</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button class="btn success" type="button" id="btn-export-week">📥 XUẤT EXCEL</button>
+        <span id="wk-export-label" style="font-size:12.5px; font-weight:700; color:#2f8f5b;"></span>
+      </div>
+    </div>
     <div id="owner-settings-view" class="owner-only">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;" class="card">
         <h2 style="margin:0;">⚙️ Thiết Lập Hệ Thống &amp; Tài Khoản</h2>
@@ -4900,6 +4926,248 @@ document.getElementById('btn-save-calendar-shift').addEventListener('click', ()=
   renderShiftTab();
 });
 function deleteCalendarShift(id){ if(confirm('Xóa ca?')){ DATA.monthlySchedules = DATA.monthlySchedules.filter(s => s.id !== id); saveDataDirect(); renderShiftTab(); } }
+
+/* ============ XUẤT BÁO CÁO TUẦN RA EXCEL ============ */
+function wkRange(dateStr){
+  const p = dateStr.split('-').map(Number);
+  const dow = new Date(Date.UTC(p[0], p[1]-1, p[2])).getUTCDay();
+  const from = addDaysToDateStr(dateStr, -((dow + 6) % 7));
+  return { from, to: addDaysToDateStr(from, 6) };
+}
+function wkDmy(s){ const p = String(s).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : s; }
+function wkMonthRange(dateStr){
+  const p = dateStr.split('-').map(Number);
+  const last = new Date(Date.UTC(p[0], p[1], 0)).getUTCDate();
+  const mm = String(p[1]).padStart(2, '0');
+  return { from: `${p[0]}-${mm}-01`, to: `${p[0]}-${mm}-${String(last).padStart(2, '0')}` };
+}
+function wkDaysBetween(from, to){ return Math.round((Date.UTC(...to.split('-').map((v,i)=>i===1?v-1:+v)) - Date.UTC(...from.split('-').map((v,i)=>i===1?v-1:+v))) / 86400000) + 1; }
+function wkGetRange(){
+  const mode = document.getElementById('wk-mode').value;
+  const inp = document.getElementById('wk-export-date');
+  if(!inp.value) inp.value = getShiftDayStr();
+  if(mode === 'month'){ const r = wkMonthRange(inp.value); return { mode, from: r.from, to: r.to, tag: 'Thang_' + r.from.slice(0,7) }; }
+  if(mode === 'custom'){
+    let f = document.getElementById('wk-from').value || getShiftDayStr();
+    let t = document.getElementById('wk-to').value || f;
+    if(f > t){ const x = f; f = t; t = x; }
+    return { mode, from: f, to: t, tag: `${f}_den_${t}` };
+  }
+  const r = wkRange(inp.value);
+  return { mode: 'week', from: r.from, to: r.to, tag: `Tuan_${r.from}_den_${r.to}` };
+}
+function wkUpdateLabel(){
+  const lb = document.getElementById('wk-export-label'); if(!lb) return;
+  const mode = document.getElementById('wk-mode').value;
+  document.getElementById('wk-pick-wrap').style.display = (mode === 'custom') ? 'none' : 'inline-flex';
+  document.getElementById('wk-custom-wrap').style.display = (mode === 'custom') ? 'inline-flex' : 'none';
+  const r = wkGetRange();
+  const n = wkDaysBetween(r.from, r.to);
+  lb.textContent = `Sẽ xuất: ${wkDmy(r.from)} → ${wkDmy(r.to)} (${n} ngày)`;
+}
+function wkShift(dir){
+  const mode = document.getElementById('wk-mode').value;
+  const inp = document.getElementById('wk-export-date'); if(!inp.value) inp.value = getShiftDayStr();
+  if(mode === 'month'){
+    const p = inp.value.split('-').map(Number);
+    const d = new Date(Date.UTC(p[0], p[1] - 1 + dir, 1));
+    inp.value = d.toISOString().slice(0, 10);
+  } else if(mode === 'custom'){
+    const r = wkGetRange(); const n = wkDaysBetween(r.from, r.to);
+    document.getElementById('wk-from').value = addDaysToDateStr(r.from, dir * n);
+    document.getElementById('wk-to').value = addDaysToDateStr(r.to, dir * n);
+  } else { inp.value = addDaysToDateStr(inp.value, dir * 7); }
+  wkUpdateLabel();
+}
+function wkQuick(q){
+  const today = getShiftDayStr();
+  const mode = document.getElementById('wk-mode');
+  if(q === 'thisweek'){ mode.value = 'week'; document.getElementById('wk-export-date').value = today; }
+  else if(q === 'thismonth'){ mode.value = 'month'; document.getElementById('wk-export-date').value = today; }
+  else {
+    mode.value = 'custom';
+    document.getElementById('wk-to').value = today;
+    document.getElementById('wk-from').value = q === 'today' ? today : addDaysToDateStr(today, q === '7d' ? -6 : -29);
+  }
+  wkUpdateLabel();
+}
+document.getElementById('wk-prev').addEventListener('click', () => wkShift(-1));
+document.getElementById('wk-next').addEventListener('click', () => wkShift(1));
+['wk-mode','wk-export-date','wk-from','wk-to'].forEach(id => document.getElementById(id).addEventListener('change', wkUpdateLabel));
+document.querySelectorAll('[data-wkq]').forEach(b => b.addEventListener('click', () => wkQuick(b.getAttribute('data-wkq'))));
+(function(){ const t = getShiftDayStr(); document.getElementById('wk-export-date').value = t; document.getElementById('wk-from').value = addDaysToDateStr(t, -6); document.getElementById('wk-to').value = t; wkUpdateLabel(); })();
+
+function wkTsShiftDay(ts){
+  const v = new Date(ts); const d = toVNDateStr(v);
+  return v.getHours() < 6 ? addDaysToDateStr(d, -1) : d;
+}
+function wkFundLabel(k){
+  return ({ cash:'Quỹ Tiền Mặt Tổng', bank:'Quỹ Tài Khoản', float:'Tiền Lưu Động', shiftCash:'Tiền mặt trong ca', shiftBank:'Chuyển khoản trong ca' })[k] || (k || '');
+}
+function wkItemsText(o){
+  return (o.items || []).map(i => {
+    const tp = (i.toppings || []).map(t => t.name).join(', ');
+    return `${i.name} (${i.size}) x${i.qty}${tp ? ' + ' + tp : ''}${i.note ? ' [' + i.note + ']' : ''}`;
+  }).join('; ');
+}
+function exportWeekExcel(){
+  if(!DATA){ alert('⚠️ Chưa có dữ liệu!'); return; }
+  if(typeof XLSX === 'undefined'){ alert('⚠️ Thư viện Excel chưa tải xong (cần mạng). Thử lại sau vài giây nhé!'); return; }
+  const rg = wkGetRange();
+  const { from, to } = rg;
+  const nDays = wkDaysBetween(from, to);
+  if(nDays > 366){ alert('⚠️ Khoảng thời gian tối đa 366 ngày. Bạn chọn ngắn lại giúp mình nhé!'); return; }
+  const days = []; for(let i = 0; i < nDays; i++) days.push(addDaysToDateStr(from, i));
+  const inWeek = d => !!d && d >= from && d <= to;
+  const wb = XLSX.utils.book_new();
+  const addSheet = (name, aoa, widths) => {
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    if(widths) ws['!cols'] = widths.map(w => ({ wch: w }));
+    XLSX.utils.book_append_sheet(wb, ws, name);
+  };
+
+  /* --- dữ liệu nền --- */
+  const orders = (DATA.orders || []).filter(o => inWeek(getOrderShiftDay(o)))
+    .sort((a, b) => (getOrderShiftDay(a) + (a.time||'')).localeCompare(getOrderShiftDay(b) + (b.time||'')));
+  const okOrders = orders.filter(o => !isCancelledOrder(o));
+  const buys = (DATA.inventoryLogs || []).filter(l => l.type === 'mua thành công' && l.timestamp && inWeek(wkTsShiftDay(l.timestamp))).sort((a,b)=>a.timestamp-b.timestamp);
+  const outs = (DATA.inventoryLogs || []).filter(l => l.type === 'báo hết' && l.timestamp && inWeek(wkTsShiftDay(l.timestamp))).sort((a,b)=>a.timestamp-b.timestamp);
+  const atts = (DATA.attendance || []).filter(a => inWeek(a.shiftDay || a.dateStr)).sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
+  const fundLogs = (DATA.cashFundLogs || []).filter(l => l.timestamp && inWeek(wkTsShiftDay(l.timestamp))).sort((a,b)=>a.timestamp-b.timestamp);
+  const sum = (arr, f) => arr.reduce((s, x) => s + (f(x) || 0), 0);
+
+  /* --- Sheet: Doanh thu theo ngày --- */
+  const dayRows = [['Ngày','Thứ','Số đơn','Số ly','DT Tiền mặt','DT Chuyển khoản','Tổng doanh thu','Giá vốn (ước tính)','Lãi gộp (ước tính)','Đơn hủy']];
+  days.forEach(d => {
+    const od = okOrders.filter(o => getOrderShiftDay(o) === d);
+    const cash = sum(od.filter(o => !isBankOrder(o)), o => o.totalPrice), bank = sum(od.filter(isBankOrder), o => o.totalPrice);
+    const cost = sum(od, o => o.totalCost);
+    const dow = VN_WEEKDAYS[new Date(d + 'T00:00:00Z').getUTCDay()];
+    dayRows.push([wkDmy(d), dow, od.length, sum(od, o => o.totalQty), cash, bank, cash + bank, Math.round(cost), Math.round(cash + bank - cost), orders.filter(o => isCancelledOrder(o) && getOrderShiftDay(o) === d).length]);
+  });
+  const tCash = sum(okOrders.filter(o => !isBankOrder(o)), o => o.totalPrice), tBank = sum(okOrders.filter(isBankOrder), o => o.totalPrice);
+  const tCost = sum(okOrders, o => o.totalCost);
+  dayRows.push(['TỔNG CỘNG','', okOrders.length, sum(okOrders, o => o.totalQty), tCash, tBank, tCash + tBank, Math.round(tCost), Math.round(tCash + tBank - tCost), orders.filter(isCancelledOrder).length]);
+
+  /* --- Giờ làm & lương theo ngày --- */
+  const users = DATA.users || [];
+  const payRows = [['Ngày','Nhân viên','Giờ làm','Số ly bán','Lương/giờ áp dụng','Đạt KPI?','Tiền công','Phạt','Thực lãnh trong ngày']];
+  const staffTotals = {};
+  users.forEach(u => {
+    staffTotals[u.id] = { name: getFormattedUserDisplayName(u), hours: 0, pay: 0, ded: 0, kpiDays: 0, cups: 0 };
+    days.forEach(d => {
+      const a = calculateActualWorkedHoursAndPay(u, d);
+      const dr = getStaffDayRate(u, d);
+      const cups = getStaffCupsForShiftDay(u, d);
+      if(a.actualHours === 0 && !a.totalDeduction && cups === 0) return;
+      const net = Math.max(0, a.actualPay - (a.totalDeduction || 0));
+      payRows.push([wkDmy(d), getFormattedUserDisplayName(u), a.actualHours, cups, Math.round(dr.rate), (dr.achieved ? 'Đạt' : (getKpiConfig().enabled ? 'Chưa đạt' : 'Không bật KPI')), Math.round(a.actualPay), a.totalDeduction || 0, Math.round(net)]);
+      const t = staffTotals[u.id]; t.hours += a.actualHours; t.pay += a.actualPay; t.ded += (a.totalDeduction || 0); t.cups += cups; if(dr.achieved && a.actualHours > 0) t.kpiDays++;
+    });
+  });
+  payRows.push([]);
+  payRows.push(['TỔNG CỘNG','Nhân viên','Tổng giờ','Tổng ly','','Số ngày đạt KPI','Tiền công','Phạt','Thực lãnh']);
+  users.forEach(u => { const t = staffTotals[u.id]; payRows.push(['', t.name, Math.round(t.hours * 10) / 10, t.cups, '', t.kpiDays, Math.round(t.pay), t.ded, Math.max(0, Math.round(t.pay - t.ded))]); });
+
+  /* --- Kết ca & lệch quỹ --- */
+  const closeRows = [['Ngày ca','Nhân viên','Giờ kết ca','Quỹ đầu ngày (Z)','Tiền mặt thu theo đơn (X1)','Tiền mặt đếm thực tế (X2)','Lệch tiền mặt','CK thu theo đơn (Y1)','CK thực tế (Y2)','Lệch CK','Lệch quỹ (theo công thức)','Kết luận']];
+  let totalDiff = 0, diffCount = 0;
+  atts.filter(a => a.type === 'Ra ca làm' && a.countedCash !== undefined).forEach(rec => {
+    let d = null; try{ d = computeCheckoutDiscrepancy(rec); }catch(e){}
+    if(!d) return;
+    const diff = Math.round(d.diff || 0);
+    if(Math.abs(diff) >= 1){ totalDiff += diff; diffCount++; }
+    closeRows.push([wkDmy(rec.shiftDay || rec.dateStr), rec.staffName, rec.time, d.Z, d.X1, d.X2, d.cashDiff, d.Y1, d.Y2, d.bankDiff, diff, Math.abs(diff) < 1 ? 'Khớp ✅' : (diff > 0 ? 'THỪA ' + fmt(diff) : 'THIẾU ' + fmt(Math.abs(diff)))]);
+  });
+  if(closeRows.length === 1) closeRows.push(['(Kỳ này chưa có ca nào kết ca)']);
+
+  /* --- Tổng quan --- */
+  const buyTotal = sum(buys, l => l.totalPrice);
+  const buyByFund = {}; buys.forEach(l => { const k = wkFundLabel(l.fund); buyByFund[k] = (buyByFund[k] || 0) + (l.totalPrice || 0); });
+  const cf = DATA.cashFund || {}, sf = DATA.shiftCashFund || {};
+  const overview = [
+    [`BÁO CÁO ${rg.mode === 'week' ? 'TUẦN' : (rg.mode === 'month' ? 'THÁNG' : 'THEO KHOẢNG NGÀY')} — Tiệm Trà Mèo Xám`],
+    ['Khoảng thời gian', `${wkDmy(from)} → ${wkDmy(to)} (${nDays} ngày)`],
+    ['Xuất lúc', `${toVNDateStr(getVietnamTimeNow())} ${String(getVietnamTimeNow().getHours()).padStart(2,'0')}:${String(getVietnamTimeNow().getMinutes()).padStart(2,'0')}`],
+    ['Người xuất', CURRENT_USER ? getFormattedUserDisplayName(CURRENT_USER) : ''],
+    [],
+    ['DOANH THU'],
+    ['Số đơn (không tính đơn hủy)', okOrders.length],
+    ['Số ly bán', sum(okOrders, o => o.totalQty)],
+    ['Doanh thu tiền mặt', tCash],
+    ['Doanh thu chuyển khoản', tBank],
+    ['Tổng doanh thu', tCash + tBank],
+    ['Giá vốn ước tính', Math.round(tCost)],
+    ['Lãi gộp ước tính', Math.round(tCash + tBank - tCost)],
+    ['Số đơn hủy / yêu cầu hủy', orders.filter(isCancelledOrder).length],
+    ['Số đơn đã đổi hình thức thanh toán', orders.filter(o => (o.paymentChanges || []).length).length],
+    [],
+    ['MUA NGUYÊN LIỆU'],
+    ['Số lần mua', buys.length],
+    ['Tổng tiền mua', buyTotal],
+    ...Object.keys(buyByFund).map(k => ['  • Trả bằng ' + k, buyByFund[k]]),
+    ['Số lần báo hết nguyên liệu', outs.length],
+    [],
+    ['NHÂN SỰ'],
+    ['Tổng giờ làm cả kỳ', Math.round(sum(Object.values(staffTotals), t => t.hours) * 10) / 10],
+    ['Tổng tiền công (đã tính KPI nếu có)', Math.round(sum(Object.values(staffTotals), t => t.pay))],
+    ['Tổng tiền phạt', sum(Object.values(staffTotals), t => t.ded)],
+    ['Số lần vào ca cách quán xa', atts.filter(a => a.farFromShop).length],
+    [],
+    ['LỆCH QUỸ'],
+    ['Số ca bị lệch', diffCount],
+    ['Tổng lệch (dương = thừa, âm = thiếu)', totalDiff],
+    [],
+    ['SỐ DƯ CÁC QUỸ TẠI THỜI ĐIỂM XUẤT'],
+    ['Quỹ Tiền Mặt Tổng', cf.cash || 0],
+    ['Quỹ Tài Khoản', cf.bank || 0],
+    ['Tiền Lưu Động', cf.float || 0],
+    ['Tiền mặt trong ca hiện tại', sf.cash || 0],
+    ['Chuyển khoản trong ca hiện tại', sf.bank || 0]
+  ];
+  addSheet('Tổng quan', overview, [40, 30]);
+  addSheet('Doanh thu theo ngày', dayRows, [14, 12, 9, 9, 15, 17, 16, 18, 18, 9]);
+
+  /* --- Đơn hàng --- */
+  const orderRows = [['Ngày ca','Giờ','Bàn / Khách','Nhân viên','Thanh toán','Món','Số ly','Tổng tiền','Giá vốn','Ghi chú','Voucher','Trạng thái','Lịch sử đổi thanh toán']];
+  orders.forEach(o => orderRows.push([wkDmy(getOrderShiftDay(o)), o.time || '', o.table || '', o.staffName || '', o.paymentMethod || 'Tiền mặt', wkItemsText(o), o.totalQty || 0, o.totalPrice || 0, Math.round(o.totalCost || 0), o.generalNote || '', (o.appliedVoucher && o.appliedVoucher !== 'none') ? o.appliedVoucher : '', o.status || 'Hoàn tất', (o.paymentChanges || []).map(c => `${c.at}: ${c.from}→${c.to} (${c.by})`).join(' | ')]));
+  if(orders.length === 0) orderRows.push(['(Kỳ này không có đơn)']);
+  addSheet('Đơn hàng', orderRows, [12, 22, 18, 20, 14, 60, 8, 12, 12, 22, 16, 14, 40]);
+
+  /* --- Mua nguyên liệu --- */
+  const buyRows = [['Ngày','Giờ','Nguyên liệu','Số bịch/gói','Tổng tiền','Nguồn tiền','Người mua']];
+  buys.forEach(l => { const v = new Date(l.timestamp); buyRows.push([wkDmy(toVNDateStr(v)), `${String(v.getHours()).padStart(2,'0')}:${String(v.getMinutes()).padStart(2,'0')}`, l.ingName || '', l.packs || 0, l.totalPrice || 0, wkFundLabel(l.fund), l.staffName || '']); });
+  if(buys.length === 0) buyRows.push(['(Kỳ này không có lần mua nào)']); else buyRows.push(['TỔNG','','', sum(buys, l => l.packs), buyTotal, '', '']);
+  buyRows.push([]); buyRows.push(['BÁO HẾT NGUYÊN LIỆU']); buyRows.push(['Ngày','Giờ','Nguyên liệu','Người báo']);
+  outs.forEach(l => { const v = new Date(l.timestamp); buyRows.push([wkDmy(toVNDateStr(v)), `${String(v.getHours()).padStart(2,'0')}:${String(v.getMinutes()).padStart(2,'0')}`, l.ingName || '', l.staffName || '']); });
+  addSheet('Mua nguyên liệu', buyRows, [12, 8, 32, 12, 14, 24, 24]);
+
+  /* --- Chấm công --- */
+  const attRows = [['Ngày ca','Nhân viên','Loại','Thời gian','Cách quán (m)','Cảnh báo','Ghi chú']];
+  atts.forEach(a => {
+    let note = '';
+    if(a.type === 'Ra ca làm' && a.countedCash !== undefined) note = `Đếm tiền mặt ${fmt(a.countedCash)}đ`;
+    if(a.deductionAmount) note = `Phạt ${fmt(a.deductionAmount)}đ — ${a.reason || ''}`;
+    if(a.manualHours) note = `Bù công ${a.manualHours}h (${a.timeframe || ''})`;
+    attRows.push([wkDmy(a.shiftDay || a.dateStr), a.staffName || '', a.isDiscrepancy ? discLabel(a) : a.type, a.time || '', (a.distance !== undefined && a.distance !== null) ? a.distance : '', a.farFromShop ? 'Cách quán xa' : '', note]);
+  });
+  if(atts.length === 0) attRows.push(['(Kỳ này không có dữ liệu chấm công)']);
+  addSheet('Chấm công', attRows, [12, 26, 34, 28, 14, 16, 36]);
+  addSheet('Giờ làm & Lương', payRows, [14, 26, 10, 10, 16, 14, 14, 12, 18]);
+  addSheet('Kết ca & Lệch quỹ', closeRows, [12, 24, 26, 14, 20, 20, 14, 18, 16, 12, 18, 18]);
+
+  /* --- Nhật ký quỹ --- */
+  const fRows = [['Ngày ca','Thời gian','Loại','Quỹ','Số tiền (+/-)','Lý do','Người thực hiện']];
+  fundLogs.forEach(l => fRows.push([wkDmy(wkTsShiftDay(l.timestamp)), l.time || '', l.source || '', wkFundLabel(l.fund), l.amount || 0, l.reason || '', l.staffName || '']));
+  if(fundLogs.length === 0) fRows.push(['(Kỳ này không có biến động quỹ)']);
+  addSheet('Nhật ký quỹ', fRows, [12, 22, 14, 24, 14, 60, 26]);
+
+  try{
+    XLSX.writeFile(wb, `BaoCao_${rg.tag}.xlsx`);
+    showToast(`✅ Đã xuất báo cáo ${wkDmy(from)} → ${wkDmy(to)}`);
+  }catch(e){ console.error(e); alert('❌ Xuất file lỗi: ' + e.message); }
+}
+document.getElementById('btn-export-week').addEventListener('click', exportWeekExcel);
 
 function syncAnalyticsFromInputs() {
   const rent = getRawNum('exp-rent'), elec = getRawNum('exp-electricity'), water = getRawNum('exp-water'), haohut = getRawNum('exp-haohut'), other = getRawNum('exp-other');
