@@ -822,7 +822,7 @@
 
     <!-- Ô nhập Z -->
     <div style="background:#fff8e1; border:2px dashed var(--accent); border-radius:12px; padding:12px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-      <label style="font-weight:800; color:var(--accent); font-size:14px;">💰 Tiền mặt nhập quỹ đầu ngày (Z):</label>
+      <label id="co-z-label" style="font-weight:800; color:var(--accent); font-size:14px;">💰 Tiền mặt nhập quỹ đầu ngày (Z):</label>
       <input type="number" id="co-z-money" min="0" step="1000" value="0" oninput="calculateDenomTotal()"
              style="max-width:200px; font-size:20px; font-weight:900; text-align:right; padding:10px 14px; border:2px solid var(--accent); border-radius:10px; background:#fff; color:var(--ink);">
     </div>
@@ -1264,6 +1264,7 @@
         <div class="stat-card" style="background:#f4fbf5; border:1.5px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">💵 DT Tiền mặt</div><div class="num" id="stat-revenue-cash" style="font-weight:800; font-size:18px; color:var(--good);">0đ</div><div id="stat-revenue-cash-sub" style="font-size:10.5px; color:var(--muted); margin-top:2px;">0 đơn</div></div>
         <div class="stat-card" style="background:#f3f7fd; border:1.5px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">📱 DT Chuyển khoản</div><div class="num" id="stat-revenue-bank" style="font-weight:800; font-size:18px; color:#2f5fa6;">0đ</div><div id="stat-revenue-bank-sub" style="font-size:10.5px; color:var(--muted); margin-top:2px;">0 đơn</div></div>
       </div>
+      <div id="history-staff-cups" style="margin-top:12px;"></div>
     </div>
     <div class="card">
       <h2>📜 Chi Tiết Hóa Đơn</h2>
@@ -1292,6 +1293,7 @@
         <div><span>Nhân viên: <b id="shift-current-staff">---</b></span><span style="margin-left:14px; font-size:12.5px; color:var(--muted);" id="shift-clock-status">Chưa vào ca</span></div>
         <div><button class="btn small" id="btn-clock-in">🟢 Vào Ca Làm</button><button class="btn small danger" id="btn-clock-out" style="display:none;">🔴 Ra Ca Làm</button></div>
       </div>
+      <div id="handover-info" style="margin-top:10px; font-size:13px; background:#fff8e1; border:1.5px dashed var(--accent); border-radius:10px; padding:8px 12px;"></div>
     </div>
     <div class="card owner-only" style="border: 2.5px solid var(--ink); background: #fffdf9;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
@@ -2266,6 +2268,8 @@ function ensureFundStructure(){
     if(i.restockCount === undefined) i.restockCount = 1;
     if(i.statusMsg === undefined) i.statusMsg = '';
   });
+  // Đơn đã Hoàn thành thì khách không thể chuyển sang "Yêu cầu hủy" nữa
+  (DATA.orders || []).forEach(o => { if(o && o.completedAt && o.status === 'Yêu cầu hủy') o.status = 'Hoàn thành'; });
   if(!DATA.settledShiftDays) DATA.settledShiftDays = {};
 }
 
@@ -2304,14 +2308,23 @@ function orderPayLabel(o){
   if(isMixedOrder(o)) return `Tiền mặt ${fmt(orderCashAmt(o))}đ + CK ${fmt(orderBankAmt(o))}đ`;
   return (o && o.paymentMethod) || 'Tiền mặt';
 }
+function isCompletedOrder(o){ return !!o && o.status === 'Hoàn thành'; }
 function isCancelledOrder(o){ return !!o && (o.status === 'Đã hủy' || o.status === 'Yêu cầu hủy'); }
 function isOrderSettled(o){ const d = getOrderShiftDay(o); return !!d && d < getShiftDayStr(); }
+/* Mốc thời gian (cùng hệ với nowVN.getTime()) của 1 đơn, đọc từ chuỗi giờ "HH:MM:SS — DD/MM/YYYY". Không đọc được → null */
+function getOrderTs(o){
+  if(!o) return null;
+  const m = /(\d{1,2}):(\d{2})(?::(\d{2}))?\s*[—–-]\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(o.time || '');
+  if(m) return new Date(+m[6], +m[5]-1, +m[4], +m[1], +m[2], +(m[3]||0)).getTime();
+  return null;
+}
 function getStaffOrderTotals(staffName, opts){
   let cash = 0, bank = 0;
   (DATA.orders || []).forEach(o => {
     if(o.staffName !== staffName || isCancelledOrder(o)) return;
     const match = opts.shiftDay ? (getOrderShiftDay(o) === opts.shiftDay) : (o.dateIso === opts.dateStr);
     if(!match) return;
+    if(opts.sinceTs){ const ts = getOrderTs(o); if(ts !== null && ts <= opts.sinceTs) return; } // chỉ tính đơn SAU lúc ca trước kết ca
     bank += orderBankAmt(o); cash += orderCashAmt(o);
   });
   return { cash, bank };
@@ -2410,7 +2423,45 @@ function processMidnightShiftSettlement(startDay){
   return did;
 }
 
+/* ============ BÀN GIAO CA: tiền kết ca này = quỹ đầu ca của ca kế tiếp (trong cùng 1 ngày làm việc) ============ */
+function getActiveHandover(){
+  const h = DATA && DATA.shiftCashFund && DATA.shiftCashFund.handover;
+  if(!h || typeof h.amount !== 'number' || typeof h.ts !== 'number') return null;
+  if(h.shiftDay !== getShiftDayStr()) return null;
+  return h;
+}
+function renderHandoverInfo(){
+  const el = document.getElementById('handover-info');
+  if(!el || !DATA || !DATA.shiftCashFund) return;
+  const h = getActiveHandover();
+  const isOwner = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
+  if(h){
+    el.innerHTML = `💰 <b>Quỹ đầu ca hiện tại: ${fmt(h.amount)}đ</b> <span style="color:var(--muted);">(nhận từ ca của ${escapeHtml(h.fromStaff || '')}, kết ca lúc ${escapeHtml(h.time || '')})</span>`
+      + (isOwner ? ` <button class="btn small ghost" onclick="editHandoverAmount()">✏️ Sửa</button>` : '');
+  } else {
+    el.innerHTML = `💰 Quỹ đầu ngày (Z): <b>${fmt(DATA.shiftCashFund.zMoney || 0)}đ</b> <span style="color:var(--muted);">(chưa có ca nào kết trong ngày làm việc này)</span>`;
+  }
+}
+function editHandoverAmount(){
+  if(!CURRENT_USER || CURRENT_USER.role !== 'owner'){ alert('🔒 Chỉ Chủ Quán mới có quyền này!'); return; }
+  const h = getActiveHandover(); if(!h) return;
+  const secPin = (DATA && DATA.config && DATA.config.securityPin) ? DATA.config.securityPin : '9999';
+  const code = prompt('🔒 Nhập Mã PIN Cấp Hai để sửa quỹ đầu ca:');
+  if(code === null) return;
+  if(code !== secPin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
+  const v = prompt('Nhập quỹ đầu ca mới (đồng):', String(h.amount));
+  if(v === null) return;
+  const n = parseInt(String(v).replace(/[^\d]/g, ''), 10);
+  if(isNaN(n) || n < 0){ alert('⚠️ Số tiền không hợp lệ!'); return; }
+  const old = h.amount;
+  h.amount = n; h.editedBy = CURRENT_USER.name;
+  logCashFundOnly('manual', 'shiftCash', 0, `Chủ quán sửa quỹ đầu ca: ${fmt(old)}đ → ${fmt(n)}đ`, 'handover-' + Date.now());
+  saveDataDirect();
+  renderHandoverInfo();
+}
+
 function renderHeaderMoneyBadge(){
+  try{ renderHandoverInfo(); }catch(e){}
   if(!DATA) return;
   const cashEl = document.getElementById('hdr-cash-amount');
   const bankEl = document.getElementById('hdr-bank-amount');
@@ -2605,7 +2656,9 @@ function findCheckoutRecForDiff(a){
   return list.find(x => x.type === 'Ra ca làm' && x.staffId === a.staffId && x.time === a.time && x.countedCash !== undefined) || null;
 }
 function computeCheckoutDiscrepancy(rec){
-  const t = getStaffOrderTotals(rec.staffName, rec.shiftDay ? { shiftDay: rec.shiftDay } : { dateStr: rec.dateStr });
+  const _o = rec.shiftDay ? { shiftDay: rec.shiftDay } : { dateStr: rec.dateStr };
+  if(rec.sinceTs) _o.sinceTs = rec.sinceTs;
+  const t = getStaffOrderTotals(rec.staffName, _o);
   const X1 = t.cash, Y1 = t.bank, Z = rec.zMoney || 0, X2 = rec.countedCash || 0;
   const y2Auto = (rec.y2Auto !== undefined) ? rec.y2Auto : (rec.y2 === rec.transferTotal);
   const Y2 = y2Auto ? Y1 : (rec.y2 || 0);
@@ -2686,7 +2739,7 @@ function openDiscrepancyDetail(attId){
       <span style="color:var(--muted); font-size:12px;">Ca ngày: ${escapeHtml(day)}</span>
     </div>
     <div style="font-weight:800; color:var(--accent); margin-bottom:4px;">📊 Số liệu kiểm kê (tính lại theo đơn hiện tại)</div>
-    ${row('💵 Tiền nộp đầu ngày (Z)', fmt(d.Z) + 'đ')}
+    ${row(rec.fromHandover ? '💵 Quỹ đầu ca (nhận từ ca trước) (Z)' : '💵 Tiền nộp đầu ngày (Z)', fmt(d.Z) + 'đ')}
     ${row('🧾 Tiền mặt thu trong ca (X1)', fmt(d.X1) + 'đ', (rec.expectedCash !== undefined && rec.expectedCash !== d.X1) ? `lúc ra ca: ${fmt(rec.expectedCash)}đ — đã đổi do chỉnh đơn` : '')}
     ${row('📱 Chuyển khoản thu trong ca (Y1)', fmt(d.Y1) + 'đ', (rec.transferTotal !== undefined && rec.transferTotal !== d.Y1) ? `lúc ra ca: ${fmt(rec.transferTotal)}đ — đã đổi do chỉnh đơn` : '')}
     ${row('🧮 Tiền mặt nhân viên đếm (X2)', fmt(d.X2) + 'đ', denomHtml)}
@@ -3388,6 +3441,7 @@ function renderHistoryOrders(){
   document.getElementById('stat-revenue-bank').textContent = fmt(bankRev) + 'đ';
   document.getElementById('stat-revenue-cash-sub').textContent = cashOrders.length + ' đơn';
   document.getElementById('stat-revenue-bank-sub').textContent = bankOrders.length + ' đơn';
+  try{ renderStaffCupsPanel(filtered); }catch(e){ console.error(e); }
   const wrap = document.getElementById('history-order-list');
   if(filtered.length === 0){ wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted); text-align:center; padding:16px 0;">Không có đơn order nào.</p>'; return; }
   wrap.innerHTML = filtered.map(o=>{
@@ -3404,8 +3458,11 @@ function renderHistoryOrders(){
     const isOwnerNow = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
     const staffCanFix = !!(CURRENT_USER && !isOwnerNow && !isCancelledOrder(o) && !isMixedOrder(o) && getOrderShiftDay(o) === getShiftDayStr());
     const lastPayChange = (o.paymentChanges && o.paymentChanges.length) ? o.paymentChanges[o.paymentChanges.length - 1] : null;
+    const isCompleted = isCompletedOrder(o);
+    const canComplete = !!CURRENT_USER && isWebOrder && !isCancelRequest && !isCancelledOrder(o) && !isCompleted;
     return `
     <div style="background:${bgStyle}; border:${borderStyle}; border-left:6px solid ${payColor}; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
+      ${isCompleted ? '<div style="position:absolute; top:-8px; right:12px; background:#2e9e5b; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">✅ ĐÃ HOÀN THÀNH</div>' : ''}
       ${isCancelRequest ? '<div style="position:absolute; top:-8px; right:12px; background:#000; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">YÊU CẦU HỦY</div>' : ''}
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; font-weight:800; font-size:14px; margin-bottom:4px;">
         <span>📍 ${escapeHtml(o.table)} <span style="font-size:11px; background:${payBg}; color:${payColor}; border:1px solid ${payColor}; padding:2px 6px; border-radius:6px; margin-left:6px;">${isMixed ? '💵+📱' : (isBank ? '📱' : '💵')} ${isMixed ? 'Chia từng ly' : escapeHtml(o.paymentMethod || 'Tiền mặt')}</span></span>
@@ -3414,6 +3471,7 @@ function renderHistoryOrders(){
       <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
         👤 NV: <b>${escapeHtml(o.staffName)}</b> | 🕒 ${o.time} | 🥤 ${o.totalQty} ly
         ${isMixed ? `<br>💵 <b>Tiền mặt:</b> ${fmt(orderCashAmt(o))}đ &nbsp;|&nbsp; 📱 <b>Chuyển khoản:</b> ${fmt(orderBankAmt(o))}đ` : ''}
+        ${isCompleted ? `<br>✅ <b>Hoàn thành:</b> ${escapeHtml(o.completedTime || '')} (${escapeHtml(o.completedBy || '')})` : ''}
         ${lastPayChange ? `<br>💱 <b>Đã đổi hình thức TT:</b> ${escapeHtml(lastPayChange.from)} → ${escapeHtml(lastPayChange.to)} (${escapeHtml(lastPayChange.by)})` : ''}
         ${o.generalNote ? `<br>📝 <b>Ghi chú:</b> ${escapeHtml(o.generalNote)}` : ''}
         ${o.appliedVoucher && o.appliedVoucher !== 'none' ? `<br>✨ <b>Voucher:</b> ${escapeHtml(o.appliedVoucher)}` : ''}
@@ -3425,8 +3483,9 @@ function renderHistoryOrders(){
           return `• <b>${escapeHtml(i.name)}</b> (${i.size}) x ${i.qty} —${fmt(i.unitPrice * i.qty)}đ${tag}`;
         }).join('<br>')}
       </div>
-      ${(printerEnabled() || isOwnerNow || staffCanFix) ? `
+      ${(printerEnabled() || isOwnerNow || staffCanFix || canComplete) ? `
       <div class="order-actions">
+        ${canComplete ? `<button class="btn small" style="background:#2e9e5b; color:#fff; border-color:#2e9e5b;" onclick="completeOrder('${o.id}')">✅ Hoàn thành</button>` : ''}
         ${printerEnabled() ? `<button class="btn small ghost" onclick="printOrderById('${o.id}')">🖨️ In lại bill</button>` : ''}
         ${staffCanFix ? `<button class="btn small ghost" onclick="staffChangePayment('${o.id}')">💱 Đổi sang ${isBank ? 'Tiền mặt' : 'Chuyển khoản'}</button>` : ''}
         ${CURRENT_USER && CURRENT_USER.role==='owner' ? `<button class="btn small ghost" onclick="openEditOrderModal('${o.id}')">✏️ Chỉnh đơn</button>
@@ -3437,6 +3496,50 @@ function renderHistoryOrders(){
 }
 
 /* ============ FIX #6: XÓA ĐƠN ============ */
+function completeOrder(id){
+  if(!CURRENT_USER){ alert('⚠️ Vui lòng đăng nhập!'); return; }
+  const order = (DATA.orders || []).find(o => o.id === id);
+  if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
+  if(isCompletedOrder(order)) return;
+  if(isCancelledOrder(order)){ alert('⚠️ Đơn đang yêu cầu hủy / đã hủy nên không hoàn thành được. Xử lý hủy trước nhé.'); return; }
+  if(!confirm(`Xác nhận ĐÃ GIAO XONG đơn "${order.table}" (${fmt(order.totalPrice || 0)}đ)?\n\nSau khi hoàn thành, khách sẽ không xóa/hủy được đơn này nữa.`)) return;
+  const n = getVietnamTimeNow();
+  order.status = 'Hoàn thành';
+  order.completedAt = Date.now();
+  order.completedBy = getFormattedUserDisplayName(CURRENT_USER);
+  order.completedTime = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')} — ${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`;
+  saveDataDirect();
+  renderHistoryOrders();
+}
+
+/* ============ SỐ LY THEO TỪNG NGƯỜI BÁN (theo bộ lọc đang chọn ở Tab 2) ============ */
+function renderStaffCupsPanel(list){
+  const box = document.getElementById('history-staff-cups'); if(!box) return;
+  const live = (list || []).filter(o => !isCancelledOrder(o));
+  if(!live.length){ box.innerHTML = ''; return; }
+  const by = {};
+  live.forEach(o => {
+    const k = o.staffName || '(không rõ)';
+    const g = by[k] || (by[k] = { cups:0, orders:0, revenue:0, items:{}, days:{} });
+    g.cups += (o.totalQty || 0); g.orders++; g.revenue += (o.totalPrice || 0);
+    const d = o.dateIso || '';
+    g.days[d] = (g.days[d] || 0) + (o.totalQty || 0);
+    (o.items || []).forEach(i => { const key = `${i.name} (${i.size})`; g.items[key] = (g.items[key] || 0) + (i.qty || 0); });
+  });
+  const names = Object.keys(by).sort((a, b) => by[b].cups - by[a].cups);
+  const total = names.reduce((s, n) => s + by[n].cups, 0);
+  const multiDay = new Set(live.map(o => o.dateIso)).size > 1;
+  box.innerHTML = `<div style="font-weight:800; font-size:13px; color:var(--accent); margin-bottom:6px;">🥤 Số ly bán theo từng người bán — tổng ${total} ly</div>` + names.map(n => {
+    const g = by[n];
+    const itemsHtml = Object.keys(g.items).sort((a, b) => g.items[b] - g.items[a]).map(k => `<div style="display:flex; justify-content:space-between; gap:10px;"><span>• ${escapeHtml(k)}</span><b>${g.items[k]} ly</b></div>`).join('');
+    const daysHtml = multiDay ? `<div style="margin-top:6px; padding-top:6px; border-top:1px dashed #e6d9bd;"><div style="font-weight:700; margin-bottom:2px;">Theo ngày:</div>` + Object.keys(g.days).sort().map(d => `<div style="display:flex; justify-content:space-between; gap:10px;"><span>${escapeHtml(d)}</span><b>${g.days[d]} ly</b></div>`).join('') + `</div>` : '';
+    return `<details style="background:#fffdf8; border:1.5px solid var(--line); border-radius:10px; padding:8px 10px; margin-bottom:6px;">
+      <summary style="cursor:pointer; font-weight:800; font-size:13px;">👤 ${escapeHtml(n)} — <span style="color:var(--good);">${g.cups} ly</span> <span style="font-weight:600; color:var(--muted); font-size:12px;">· ${g.orders} đơn · ${fmt(g.revenue)}đ</span></summary>
+      <div style="font-size:12px; margin-top:8px;">${itemsHtml}${daysHtml}</div>
+    </details>`;
+  }).join('');
+}
+
 function deleteOrder(id){
   const secPin = (DATA && DATA.config && DATA.config.securityPin) ? DATA.config.securityPin : '9999';
   const code = prompt('🔒 Nhập Mã PIN Cấp Hai để xóa hóa đơn:');
@@ -4409,9 +4512,12 @@ document.getElementById('btn-clock-out').addEventListener('click', ()=>{
   const todayStr = toVNDateStr(getVietnamTimeNow());
   const staffName = CURRENT_USER.name;
   const shiftDay = getShiftDayStr();
-  const _totals = getStaffOrderTotals(staffName, { shiftDay });
+  const _ho = getActiveHandover();
+  const _totals = getStaffOrderTotals(staffName, _ho ? { shiftDay, sinceTs: _ho.ts } : { shiftDay });
   let expectedCash = _totals.cash, transferTotal = _totals.bank;
-  const z = getTodayZMoney();
+  const z = _ho ? _ho.amount : getTodayZMoney();
+  const _zl = document.getElementById('co-z-label');
+  if(_zl) _zl.textContent = _ho ? `💰 Quỹ đầu ca (nhận từ ca ${_ho.fromStaff || 'trước'}) (Z):` : '💰 Tiền mặt nhập quỹ đầu ngày (Z):';
 
   window.__CHECKOUT_X1 = expectedCash;
   window.__CHECKOUT_Y1 = transferTotal;
@@ -4616,7 +4722,8 @@ document.getElementById('btn-confirm-checkout').addEventListener('click', ()=>{
   const todayStr = toVNDateStr(getVietnamTimeNow());
   const staffName = CURRENT_USER.name;
   const shiftDay = getShiftDayStr();
-  const _totals = getStaffOrderTotals(staffName, { shiftDay });
+  const _ho = getActiveHandover();
+  const _totals = getStaffOrderTotals(staffName, _ho ? { shiftDay, sinceTs: _ho.ts } : { shiftDay });
   let expectedCash = _totals.cash, transferTotal = _totals.bank;
 
   const z  = parseFloat(document.getElementById('co-z-money').value) || 0;
@@ -4635,25 +4742,29 @@ document.getElementById('btn-confirm-checkout').addEventListener('click', ()=>{
   document.querySelectorAll('.denom-inp').forEach(inp => { const q = parseFloat(inp.value) || 0; if(q > 0) denoms[inp.getAttribute('data-val')] = q; });
   const y2Auto = (y2 === transferTotal);
   if(Math.abs(diff) > 0){
-    alert(`⚠️ CẢNH BÁO LỆCH QUỸ!\n- Tiền trong ca: ${fmt(vt)}đ\n- Tiền thực nhận: ${fmt(vp)}đ\n- Chênh lệch: ${diff > 0 ? '+' : ''}${fmt(diff)}đ`);
+    alert(`⚠️ CẢNH BÁO LỆCH QUỸ!\n- Tiền trong ca: ${fmt(vt)}đ\n- Tiền thực nhận: ${fmt(vp)}đ\n- Chênh lệch: ${diff > 0 ? '+' : ''}${fmt(diff)}đ\n\n💰 Quỹ đầu ca kế tiếp (tiền thực đếm): ${fmt(countedCash)}đ`);
     DATA.attendance.unshift({ id: uid('att_diff'), staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: `Lệch quỹ (${diff > 0 ? 'Thừa ' + fmt(diff) : 'Thiếu ' + fmt(Math.abs(diff))})`, time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, shiftDay, checkoutId, isDiscrepancy: true, discrepancyAmount: diff });
   } else {
-    alert(`✅ Kiểm kê tiền mặt khớp hoàn toàn! Ra ca thành công.`);
+    alert(`✅ Kiểm kê tiền mặt khớp hoàn toàn! Ra ca thành công.\n\n💰 Quỹ đầu ca kế tiếp: ${fmt(countedCash)}đ`);
   }
 
-  DATA.attendance.unshift({ id: checkoutId, staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Ra ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, shiftDay, countedCash, expectedCash, transferTotal, zMoney: z, y2, y2Auto, denoms, formula: { left: formula.left, right: formula.right } });
+  DATA.attendance.unshift({ id: checkoutId, staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Ra ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, shiftDay, countedCash, expectedCash, transferTotal, zMoney: z, y2, y2Auto, denoms, formula: { left: formula.left, right: formula.right }, sinceTs: _ho ? _ho.ts : 0, fromHandover: !!_ho });
 
   if(!DATA.notifications) DATA.notifications = [];
   let kcMsg = `🔴 ${CURRENT_USER.name} đã kết ca (ra ca) lúc ${timeStr}`;
   if(Math.abs(diff) > 0){ kcMsg += ` — ⚠️ Lệch quỹ ${diff > 0 ? '+' : ''}${fmt(diff)}đ`; }
+  kcMsg += ` — 💰 Quỹ đầu ca kế tiếp: ${fmt(countedCash)}đ`;
   DATA.notifications.unshift({ id: uid('noti'), message: kcMsg, time: timeStr, read: false });
 
-  if(z !== (DATA.shiftCashFund.zMoney || 0)){
+  if(!_ho && z !== (DATA.shiftCashFund.zMoney || 0)){ // ca đầu ngày: giữ nguyên cách cũ; ca nối tiếp thì Z chỉ là số bàn giao, KHÔNG đụng Quỹ Tổng
     setShiftZ(z, ' — lúc ra ca');
     logCashFundOnly('manual', 'shiftCash', 0, `Cập nhật Quỹ Đầu Ngày (Z) lúc ra ca: ${fmt(z)}đ`, 'z-' + Date.now());
   }
 
+  // Bàn giao: tiền kết ca này = quỹ đầu ca của ca kế tiếp
+  DATA.shiftCashFund.handover = { shiftDay, amount: countedCash, fromStaff: getFormattedUserDisplayName(CURRENT_USER), ts: nowVN.getTime(), time: timeStr, checkoutId };
   saveDataDirect();
+  renderHandoverInfo();
   document.getElementById('checkout-cash-modal').style.display = 'none';
   document.getElementById('shift-clock-status').textContent = '🔴 Đã ra ca';
   document.getElementById('btn-clock-in').style.display = 'inline-block';
