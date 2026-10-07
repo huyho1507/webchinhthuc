@@ -58,6 +58,22 @@
   #hdr-float-amount{ color:var(--accent); }
   .shift-money-badge{ background:#fdfbf7; border:1.5px dashed var(--accent); border-radius:12px; padding:6px 14px; display:none; }
   .shift-money-badge .money-row{ display:flex; justify-content:space-between; align-items:center; gap:14px; font-size:11.5px; font-weight:700; padding:1px 0; }
+  .header-stats{ display:flex; align-items:stretch; gap:10px; flex:1 1 auto; flex-wrap:wrap; justify-content:flex-start; margin-left:4px; }
+  .header-stats > .owner-money-badge, .header-stats > .shift-money-badge, .header-stats > .views-badge{ min-width:150px; }
+  .views-badge{ background:#fffdf8; border:1.5px solid #cfe6da; border-radius:16px; padding:6px 14px; display:none; cursor:pointer; transition:transform .1s; }
+  .views-badge:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(20,80,50,.16); }
+  .views-badge .vb-title{ font-size:11px; font-weight:800; color:#2f7d5b; margin-bottom:2px; border-bottom:1px dashed #dcd5c2; padding-bottom:2px; }
+  .views-badge .money-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:11.5px; font-weight:700; padding:1px 0; }
+  .views-badge .money-row span{ color:var(--muted); }
+  .views-badge .money-row b{ font-variant-numeric:tabular-nums; color:#2f5fa6; }
+  .views-badge .vb-date{ font-family:inherit; font-size:11px; font-weight:700; border:1px solid #cfe6da; border-radius:8px; padding:1px 4px; background:#fff; color:var(--ink); max-width:112px; }
+  #views-modal{ position:fixed; inset:0; z-index:5000; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; padding:16px; }
+  #views-modal .vm-box{ background:#fff; border:2.5px solid var(--line); border-radius:20px; width:100%; max-width:380px; max-height:80vh; display:flex; flex-direction:column; overflow:hidden; }
+  #views-modal .vm-head{ display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--soft); border-bottom:1.5px solid var(--line); font-weight:800; font-size:14px; }
+  #views-modal .vm-body{ overflow-y:auto; padding:6px 16px 12px; }
+  #views-modal .vm-row{ display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px dashed #dcd5c2; font-size:13px; font-weight:700; }
+  #views-modal .vm-row b{ color:#2f5fa6; font-variant-numeric:tabular-nums; }
+  @media (max-width:768px){ .header-stats{ flex-basis:100%; margin-left:0; } .header-stats > *{ flex:1 1 140px; } }
   .header-right-area { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position:relative; }
   .live-clock-badge { display:none; align-items:center; gap:6px; background:#fffdf8; padding:6px 12px; border-radius:12px; border:1.5px solid var(--line); font-size:12px; font-weight:800; font-variant-numeric: tabular-nums; color:var(--accent); }
   .user-badge{ display:flex; align-items:center; gap:8px; background:var(--soft); padding:6px 12px; border-radius:12px; border:1.5px solid var(--line); font-size:12px; font-weight:700; }
@@ -601,7 +617,7 @@
   html.priority header.top .cat{ background:#f1e6d0; border-color:#d9b66f; box-shadow:0 3px 10px rgba(0,0,0,.45); }
   html.priority header.top .titles h1 .l1{ color:#d9b66f; }
   html.priority header.top .titles h1 .l2{ color:#f6ecd8; }
-  html.priority .owner-money-badge, html.priority .shift-money-badge, html.priority .live-clock-badge, html.priority .user-badge{ background:#2a2018; border-color:rgba(217,182,111,.38); }
+  html.priority .owner-money-badge, html.priority .shift-money-badge, html.priority .views-badge, html.priority .live-clock-badge, html.priority .user-badge{ background:#2a2018; border-color:rgba(217,182,111,.38); }
   html.priority .owner-money-badge:hover{ box-shadow:0 6px 16px rgba(0,0,0,.5); }
   html.priority #hdr-bank-amount{ color:#8fb4ee; }
   html.priority .bell-btn{ border-color:rgba(217,182,111,.38); }
@@ -1128,6 +1144,13 @@
   </div>
 </div>
 
+<div id="views-modal" onclick="if(event.target===this) closeMenuViewsModal()">
+  <div class="vm-box">
+    <div class="vm-head"><span>👀 Khách xem món theo ngày</span><span style="cursor:pointer;color:var(--bad);font-weight:900;" onclick="closeMenuViewsModal()">✕</span></div>
+    <div class="vm-body" id="views-modal-body"></div>
+  </div>
+</div>
+
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -1138,6 +1161,7 @@
       </div>
     </div>
 
+    <div class="header-stats">
     <div class="shift-money-badge owner-only" id="shift-money-badge">
       <div style="font-size:11px; font-weight:800; color:var(--accent); margin-bottom:2px; border-bottom:1px dashed #dcd5c2; padding-bottom:2px;">⚡ TIỀN TRONG CA (HÔM NAY)</div>
       <div class="money-row"><span>💵 Tiền mặt:</span><b id="hdr-shift-cash" style="color:var(--good);">0đ</b></div>
@@ -1149,6 +1173,13 @@
       <div class="money-row"><span>💵 Tiền mặt</span><b id="hdr-cash-amount">0đ</b></div>
       <div class="money-row"><span>🏦 Tài khoản</span><b id="hdr-bank-amount">0đ</b></div>
       <div class="money-row"><span>🔄 Lưu động</span><b id="hdr-float-amount">0đ</b></div>
+    </div>
+
+      <div class="views-badge owner-only" id="menu-views-badge" onclick="openMenuViewsModal()" title="Bấm để xem lịch sử các ngày">
+        <div class="vb-title">👀 KHÁCH XEM MÓN</div>
+        <div class="money-row"><span>Hôm nay</span><b id="hdr-views-today">0</b></div>
+        <div class="money-row"><input type="date" class="vb-date" id="views-date-input" onclick="event.stopPropagation()" onchange="renderMenuViewsBadge()"><b id="hdr-views-picked">0</b></div>
+      </div>
     </div>
 
     <div class="header-right-area">
@@ -1961,6 +1992,7 @@ function saveDataDirect(){
     delete dataToSave.chats;
     delete dataToSave.productImages;
     delete dataToSave.checkinImages;
+    delete dataToSave.menuViews; // bộ đếm khách do web oder ghi, admin không ghi đè
 
     if (useFirebase && db) {
         db.ref('meoxam_data').update(dataToSave).catch(err => {
@@ -2460,6 +2492,37 @@ function editHandoverAmount(){
   renderHandoverInfo();
 }
 
+/* ============ KHÁCH XEM MÓN TRÊN WEB ODER (đếm theo ngày) ============ */
+let MENU_VIEWS = {};
+function vnDateKey(ts){ return new Date((ts||Date.now()) + 7*3600*1000).toISOString().slice(0,10); }
+function fmtVnDate(k){ const p=k.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function renderMenuViewsBadge(){
+  const todayEl = document.getElementById('hdr-views-today');
+  if(!todayEl) return;
+  todayEl.textContent = fmt(MENU_VIEWS[vnDateKey()] || 0);
+  const inp = document.getElementById('views-date-input');
+  if(inp){
+    if(!inp.value) inp.value = vnDateKey(Date.now() - 86400000);
+    const pickedEl = document.getElementById('hdr-views-picked');
+    if(pickedEl) pickedEl.textContent = fmt(MENU_VIEWS[inp.value] || 0);
+  }
+  const badge = document.getElementById('menu-views-badge');
+  if(badge) badge.style.display = (CURRENT_USER && CURRENT_USER.role === 'owner') ? 'block' : 'none';
+}
+function openMenuViewsModal(){
+  const keys = Object.keys(MENU_VIEWS).sort().reverse().slice(0,60);
+  const body = document.getElementById('views-modal-body');
+  body.innerHTML = keys.length
+    ? keys.map(k => `<div class="vm-row"><span>${fmtVnDate(k)}${k===vnDateKey()?' (hôm nay)':''}</span><b>${fmt(MENU_VIEWS[k])} khách</b></div>`).join('')
+    : '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px;">Chưa có dữ liệu</div>';
+  document.getElementById('views-modal').style.display = 'flex';
+}
+function closeMenuViewsModal(){ document.getElementById('views-modal').style.display = 'none'; }
+function initMenuViewsListener(){
+  if(!(useFirebase && db)) return;
+  db.ref('meoxam_data/menuViews').on('value', s => { MENU_VIEWS = s.val() || {}; renderMenuViewsBadge(); });
+}
+
 function renderHeaderMoneyBadge(){
   try{ renderHandoverInfo(); }catch(e){}
   if(!DATA) return;
@@ -2475,6 +2538,7 @@ function renderHeaderMoneyBadge(){
   if(shiftBankEl) shiftBankEl.textContent = fmt(DATA.shiftCashFund.bank) + 'đ';
   const shiftBadge = document.getElementById('shift-money-badge');
   if(shiftBadge) shiftBadge.style.display = (CURRENT_USER && CURRENT_USER.role === 'owner') ? 'block' : 'none';
+  try{ renderMenuViewsBadge(); }catch(e){}
 }
 
 /* ============ FIX #2: GHI LOG + CẬP NHẬT QUỸ ============ */
@@ -6105,6 +6169,7 @@ window.deleteStaffChat = function(chatId) {
     }
 };
 
+initMenuViewsListener();
 loadData();
 
 setTimeout(() => { if(typeof initStaffChat === 'function') initStaffChat(); }, 1500);
