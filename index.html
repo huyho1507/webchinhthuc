@@ -2971,6 +2971,14 @@ function deleteCashFundLog(logId){
   const code = prompt('🔒 Nhập Mã PIN Cấp Hai để xóa nhật ký:');
   if(code === null) return;
   if(code !== secPin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
+  // Quỹ "trong ca" được TÍNH LẠI từ danh sách đơn → dòng nhật ký đơn hàng chỉ để xem. Xóa dòng đó KHÔNG được cộng/trừ quỹ (trước đây bị lệch tiền).
+  if((l.fund === 'shiftCash' || l.fund === 'shiftBank') && ['order','order-edit','order-delete','debt','debt-paid'].indexOf(l.source) >= 0){
+    DATA.cashFundLogs.splice(logIdx, 1);
+    saveDataDirect();
+    renderCashFundTab();
+    alert('✅ Đã xóa dòng nhật ký. Tiền trong ca được tính trực tiếp từ các đơn nên số quỹ không thay đổi.');
+    return;
+  }
   if (l.source === 'restock' && l.refId) {
     const invLogIdx = (DATA.inventoryLogs || []).findIndex(i => i.id === l.refId);
     if (invLogIdx !== -1) {
