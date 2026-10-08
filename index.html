@@ -186,6 +186,13 @@
   .edit-order-item-row .eo-topping-list{ display:flex; flex-direction:column; gap:4px; margin:6px 0; max-height:120px; overflow-y:auto; border:1.5px solid #e4ded0; padding:6px 8px; border-radius:8px; background:#fff; }
   .edit-order-item-row .eo-topping-check{ display:flex; justify-content:space-between; align-items:center; font-size:12px; cursor:pointer; }
   .edit-order-item-row .eo-topping-check input{ width:auto; cursor:pointer; }
+  .am-topping-list{ display:flex; flex-direction:column; gap:2px; max-height:220px; overflow-y:auto; border:1.5px solid #e4ded0; padding:6px 10px; border-radius:10px; background:#fff; }
+  .am-topping-check{ display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:13.5px; cursor:pointer; padding:7px 0; border-bottom:1px dashed #eee6d2; }
+  .am-topping-check:last-child{ border-bottom:none; }
+  .am-topping-check > span{ display:flex; align-items:center; gap:8px; }
+  .am-topping-check input[type="checkbox"]{ width:18px; height:18px; min-width:18px; margin:0; padding:0; flex:0 0 auto; cursor:pointer; }
+  .am-topping-check b{ white-space:nowrap; }
+  html.priority .am-topping-list{ background:#231a14; border-color:#3d2f21; }
   .calendar-nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:var(--soft); padding:8px 12px; border-radius:12px; border:1.5px solid var(--line); }
   .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
   .calendar-weekday { font-weight: 800; font-size: 11.5px; text-align: center; color: var(--muted); padding: 4px 0; background: #eae4d2; border-radius: 6px; }
@@ -398,6 +405,17 @@
   .denom-card{ border:1.5px solid #d6dccf; border-radius:18px; }
   #staff-chat-panel{ border:1.5px solid #cfe6da !important; border-radius:26px !important; box-shadow:var(--shadow-pop) !important; }
   #staff-chat-btn{ bottom:22px !important; right:18px !important; }
+  /* Chat nhỏ gọn cho màn hình nhỏ */
+  #staff-chat-panel{ width:300px !important; height:min(400px,58vh) !important; right:12px !important; bottom:54px !important; border-radius:16px !important; border-width:2px !important; font-size:12px; }
+  #staff-chat-btn{ padding:7px 12px !important; font-size:12px !important; bottom:12px !important; right:12px !important; gap:5px !important; }
+  #staff-chat-messages{ padding:8px !important; gap:6px !important; }
+  @media (max-width:480px){ #staff-chat-panel{ width:calc(100vw - 24px) !important; height:min(340px,52vh) !important; } }
+  /* Chi tiết đơn + gộp bill */
+  .order-detail-box{ margin-top:6px; font-size:12px; }
+  .order-detail-box summary{ cursor:pointer; font-weight:800; color:var(--accent); padding:2px 0; }
+  .order-detail-box > div{ background:#fffdf8; border:1px dashed #e6d9bd; border-radius:8px; padding:2px 10px; margin-top:4px; }
+  .merge-check{ width:20px !important; height:20px !important; margin:0 8px 0 0 !important; padding:0 !important; vertical-align:middle; accent-color:#e67e22; flex:none; cursor:pointer; }
+  #merge-bar{ position:sticky; top:0; z-index:50; display:none; background:#fff3dc; border:2px solid #e67e22; border-radius:12px; padding:8px 10px; margin-bottom:10px; box-shadow:0 4px 12px rgba(0,0,0,.12); align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:13px; font-weight:700; }
 
   /* ===================== TAB KHO ===================== */
   .ing-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
@@ -1069,9 +1087,54 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="add-more-modal" style="display:none;">
+  <div class="modal-card" style="max-width:560px; max-height:92vh; overflow-y:auto; padding-bottom:0;">
+    <h3 style="margin:0 0 4px; font-size:18px;">➕ Gọi Thêm Món</h3>
+    <div id="add-more-target" style="font-size:12px; color:var(--muted); margin-bottom:8px;"></div>
+    <div id="add-more-cats" style="display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px;"></div>
+    <div id="add-more-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(125px,1fr)); gap:8px; margin-bottom:12px;"></div>
+    <div style="position:sticky; bottom:0; background:#fffdf8; border-top:2px solid var(--line); padding:10px 0 14px; margin-top:6px;">
+      <div id="add-more-summary" style="font-size:12.5px; margin-bottom:8px; max-height:34vh; overflow-y:auto;"></div>
+      <p style="font-size:11px; color:var(--muted); margin:0 0 8px;">Bấm vào món → chọn size, topping (không bắt buộc), ghi chú cho từng ly. Xem lại tổng thể rồi bấm THÊM VÀO ĐƠN. Muốn chia tiền mặt / chuyển khoản từng ly → bấm ✏️ Chỉnh đơn sau khi thêm.</p>
+      <div style="display:flex; gap:10px;"><button class="btn ghost" style="flex:1;" onclick="closeAddMoreModal()">Hủy</button><button class="btn success" style="flex:1.5;" onclick="confirmAddMore()">✅ THÊM VÀO ĐƠN</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="add-more-option-modal" style="display:none;">
+  <div class="modal-card" style="max-width:480px; max-height:92vh; overflow-y:auto;">
+    <h3 id="am-opt-name" style="margin:0 0 8px; font-size:18px;"></h3>
+    <label style="font-size:11.5px; font-weight:800; color:var(--muted);">Size:</label>
+    <div id="am-opt-sizes" style="display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 10px;"></div>
+    <label style="font-size:11.5px; font-weight:800; color:var(--muted);">Topping <span style="font-weight:600;">(không bắt buộc)</span>:</label>
+    <div id="am-opt-toppings" class="am-topping-list" style="margin:4px 0 10px;"></div>
+    <label style="font-size:11.5px; font-weight:800; color:var(--muted);">📝 Ghi chú ly này:</label>
+    <input type="text" id="am-opt-note" placeholder="Ít đá, ít ngọt..." style="margin:4px 0 12px;">
+    <div id="am-opt-price" style="font-weight:800; color:var(--good); margin-bottom:10px;"></div>
+    <div style="display:flex; gap:10px;"><button class="btn ghost" style="flex:1;" onclick="closeAddMoreOption()">Hủy</button><button class="btn success" style="flex:1.5;" id="am-opt-ok" onclick="confirmAddMoreOption()">➕ Thêm ly này</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="merge-bill-modal" style="display:none;">
+  <div class="modal-card" style="max-width:560px; max-height:92vh; overflow-y:auto;">
+    <h3 style="margin-top:0; font-size:18px;">🔗 Gộp Bill</h3>
+    <div id="merge-src-list" style="font-size:12px; background:var(--soft); border:1.5px solid var(--line); border-radius:10px; padding:8px 10px; margin-bottom:10px;"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+      <div><label style="font-size:11px; font-weight:700; color:var(--muted);">📍 Bàn / Khách:</label><input type="text" id="merge-table" style="margin-top:3px; font-weight:700;"></div>
+      <div><label style="font-size:11px; font-weight:700; color:var(--muted);">📝 Ghi chú chung:</label><input type="text" id="merge-note" style="margin-top:3px;"></div>
+    </div>
+    <div style="font-size:12px; font-weight:800; margin-bottom:4px;">🧾 Chi tiết bill sau khi gộp:</div>
+    <div id="merge-items-list" style="font-size:12px; background:#fffdf8; border:1px dashed #e6d9bd; border-radius:8px; padding:2px 10px; margin-bottom:10px;"></div>
+    <div id="merge-totals" style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:12.5px; font-weight:700; margin-bottom:6px; background:#f6f1e4; border:1.5px dashed #d9cba6; border-radius:10px; padding:8px 10px;"></div>
+    <p style="font-size:11.5px; color:var(--muted); margin:0 0 12px;">Tiền mặt / chuyển khoản của từng món được giữ nguyên như lúc khách trả. Muốn đổi thì bấm ✏️ Chỉnh đơn sau khi lưu.</p>
+    <div style="display:flex; gap:10px;"><button class="btn ghost" style="flex:1;" onclick="closeMergeModal()">Hủy</button><button class="btn success" style="flex:1.5;" onclick="saveMergedBill()">💾 LƯU BILL GỘP</button></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="edit-order-modal" style="display:none;">
   <div class="modal-card" style="max-width:560px; max-height:92vh; overflow-y:auto;">
-    <h3 style="margin-top:0; font-size:18px;">✏️ Điều Chỉnh Hóa Đơn</h3>
+    <h3 style="margin-top:0; font-size:18px;" id="edit-order-title">✏️ Điều Chỉnh Hóa Đơn</h3>
+    <div id="edit-order-staff-note" style="display:none; font-size:12px; font-weight:700; background:#fff3dc; border:1.5px dashed #e67e22; border-radius:10px; padding:8px 10px; margin-bottom:10px; color:#8a5a1f;">👤 Quyền nhân viên: được <b>đổi món</b>, <b>thêm topping</b>, <b>đổi thanh toán từng ly</b> và <b>gọi thêm món</b>. <b>Không được xóa ly / bỏ topping đã gọi</b>. Chủ quán sẽ nhận thông báo khi bạn lưu.</div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
       <div><label style="font-size:11px; font-weight:700; color:var(--muted);">📍 Bàn / Khách:</label><input type="text" id="edit-order-table" style="margin-top:3px; font-weight:700;"></div>
       <div><label style="font-size:11px; font-weight:700; color:var(--muted);">💳 Thanh Toán:</label><select id="edit-order-payment" style="margin-top:3px; font-weight:700;" onchange="onEditOrderPaymentChange(this.value)"><option value="Tiền mặt">💵 Tất cả tiền mặt</option><option value="Chuyển khoản">📱 Tất cả chuyển khoản</option><option value="MIXED">💵+📱 Chia theo từng ly</option></select></div>
@@ -1079,7 +1142,7 @@
     <label style="font-size:11px; font-weight:700; color:var(--muted);">📝 Ghi chú chung:</label>
     <input type="text" id="edit-order-note" style="margin-top:3px; margin-bottom:14px;">
     <div id="edit-order-items-list"></div>
-    <div style="display:flex; gap:8px; align-items:flex-end; margin:12px 0; background:var(--soft); padding:10px; border-radius:12px; border:1.5px solid var(--line);">
+    <div id="edit-order-add-row" style="display:flex; gap:8px; align-items:flex-end; margin:12px 0; background:var(--soft); padding:10px; border-radius:12px; border:1.5px solid var(--line);">
       <div style="flex:1;"><label style="font-size:11px; font-weight:700; color:var(--muted);">➕ Thêm món khác:</label><select id="edit-order-add-product-select" style="margin-top:3px;"></select></div>
       <button class="btn small" id="btn-edit-order-add-item">THÊM</button>
     </div>
@@ -1294,12 +1357,19 @@
         <div class="stat-card" style="background:#fffdf8; border:2px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">Tổng doanh thu</div><div class="num" id="stat-revenue" style="font-weight:800; font-size:18px; color:var(--good);">0đ</div></div>
         <div class="stat-card" style="background:#f4fbf5; border:1.5px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">💵 DT Tiền mặt</div><div class="num" id="stat-revenue-cash" style="font-weight:800; font-size:18px; color:var(--good);">0đ</div><div id="stat-revenue-cash-sub" style="font-size:10.5px; color:var(--muted); margin-top:2px;">0 đơn</div></div>
         <div class="stat-card" style="background:#f3f7fd; border:1.5px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">📱 DT Chuyển khoản</div><div class="num" id="stat-revenue-bank" style="font-weight:800; font-size:18px; color:#2f5fa6;">0đ</div><div id="stat-revenue-bank-sub" style="font-size:10.5px; color:var(--muted); margin-top:2px;">0 đơn</div></div>
+        <div class="stat-card" style="background:#fdeceb; border:1.5px solid #e8a6a1; border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:#b3261e">📕 Công nợ (chưa thu)</div><div class="num" id="stat-revenue-debt" style="font-weight:800; font-size:18px; color:#b3261e;">0đ</div><div id="stat-revenue-debt-sub" style="font-size:10.5px; color:#b3261e; margin-top:2px;">0 đơn</div></div>
       </div>
       <div id="history-staff-cups" style="margin-top:12px;"></div>
     </div>
     <div class="card">
       <h2>📜 Chi Tiết Hóa Đơn</h2>
+      <div id="merge-bar"></div>
       <div id="history-order-list"></div>
+    </div>
+    <div class="card" id="cancelled-orders-card">
+      <h2>🚫 Đơn Hủy / Yêu Cầu Hủy / 📕 Công Nợ <span id="cancelled-orders-count" style="font-size:13px; color:var(--muted); font-weight:700;"></span></h2>
+      <p style="font-size:12px; color:var(--muted); margin:-4px 0 10px;">Gồm: đơn khách từ app đang yêu cầu hủy, đơn đã hủy, đơn chủ quán đã xóa và <b>đơn công nợ</b> (khách còn thiếu tiền — không tính vào doanh thu/quỹ) (theo bộ lọc ngày ở trên). Đơn xóa từ nay về sau mới được lưu lại tại đây.</p>
+      <div id="cancelled-order-list"></div>
     </div>
   </section>
 
@@ -2205,7 +2275,7 @@ function loadCustomersFromFirebase() {
     (DATA.customers || []).forEach(cust => {
       const myOrders = (DATA.orders || []).filter(o =>
         o.customerPhone === cust.phone &&
-        o.status !== 'Đã hủy' && o.status !== 'Yêu cầu hủy'
+        o.status !== 'Đã hủy' && o.status !== 'Yêu cầu hủy' && !o.debt
       );
       cust.totalSpent = myOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
     });
@@ -2342,6 +2412,9 @@ function orderPayLabel(o){
 }
 function isCompletedOrder(o){ return !!o && o.status === 'Hoàn thành'; }
 function isCancelledOrder(o){ return !!o && (o.status === 'Đã hủy' || o.status === 'Yêu cầu hủy'); }
+/* ===== CÔNG NỢ: đơn khách còn thiếu tiền → KHÔNG tính vào doanh thu / quỹ ===== */
+function isDebtOrder(o){ return !!o && o.debt === true; }
+function isNonRevenueOrder(o){ return isCancelledOrder(o) || isDebtOrder(o); }
 function isOrderSettled(o){ const d = getOrderShiftDay(o); return !!d && d < getShiftDayStr(); }
 /* Mốc thời gian (cùng hệ với nowVN.getTime()) của 1 đơn, đọc từ chuỗi giờ "HH:MM:SS — DD/MM/YYYY". Không đọc được → null */
 function getOrderTs(o){
@@ -2353,7 +2426,7 @@ function getOrderTs(o){
 function getStaffOrderTotals(staffName, opts){
   let cash = 0, bank = 0;
   (DATA.orders || []).forEach(o => {
-    if(o.staffName !== staffName || isCancelledOrder(o)) return;
+    if(o.staffName !== staffName || isNonRevenueOrder(o)) return;
     const match = opts.shiftDay ? (getOrderShiftDay(o) === opts.shiftDay) : (o.dateIso === opts.dateStr);
     if(!match) return;
     if(opts.sinceTs){ const ts = getOrderTs(o); if(ts !== null && ts <= opts.sinceTs) return; } // chỉ tính đơn SAU lúc ca trước kết ca
@@ -2380,7 +2453,7 @@ function recalculateShiftFundFromOrders(){
     const todayStr = getShiftDayStr();
     let orderCashTotal = 0, orderBankTotal = 0;
     (DATA.orders || []).forEach(o => {
-        if(isCancelledOrder(o) || getOrderShiftDay(o) !== todayStr) return;
+        if(isNonRevenueOrder(o) || getOrderShiftDay(o) !== todayStr) return;
         orderBankTotal += orderBankAmt(o);
         orderCashTotal += orderCashAmt(o);
     });
@@ -2422,7 +2495,7 @@ function processMidnightShiftSettlement(startDay){
         // Quỹ đầu ngày Z KHÔNG được cộng vào quỹ tổng vì đó là tiền có sẵn trong két, không phải doanh thu.
         let cash = 0, bank = 0;
         (DATA.orders || []).forEach(o => {
-          if(isCancelledOrder(o) || getOrderShiftDay(o) !== day) return;
+          if(isNonRevenueOrder(o) || getOrderShiftDay(o) !== day) return;
           bank += orderBankAmt(o); cash += orderCashAmt(o);
         });
         if(day === firstDay){
@@ -2673,8 +2746,8 @@ function renderCashFundTab(){
   const logWrap = document.getElementById('cashfund-log-list');
   const logs = DATA.cashFundLogs || [];
   if(logs.length === 0){ logWrap.innerHTML = '<p style="color:var(--muted); text-align:center; margin:10px 0;">Chưa có lịch sử biến động quỹ.</p>'; return; }
-  const sourceIcon = { order: '🧾', 'order-delete': '🗑️', 'order-edit': '✏️', restock: '📦', 'restock-delete': '🗑️', manual: '✍️', 'midnight-settle': '🌙' };
-  const sourceLabel = { order: 'Order bán hàng', 'order-delete': 'Xóa hóa đơn', 'order-edit': 'Sửa hóa đơn', restock: 'Mua bổ sung kho', 'restock-delete': 'Xóa lịch sử mua kho', manual: 'Điều chỉnh thủ công', 'midnight-settle': 'Chốt dồn cuối ngày' };
+  const sourceIcon = { order: '🧾', 'order-delete': '🗑️', 'order-edit': '✏️', restock: '📦', 'restock-delete': '🗑️', manual: '✍️', 'midnight-settle': '🌙', debt: '📕', 'debt-paid': '💰' };
+  const sourceLabel = { debt: 'Ghi công nợ (không tính doanh thu)', 'debt-paid': 'Khách trả nợ', order: 'Order bán hàng', 'order-delete': 'Xóa hóa đơn', 'order-edit': 'Sửa hóa đơn', restock: 'Mua bổ sung kho', 'restock-delete': 'Xóa lịch sử mua kho', manual: 'Điều chỉnh thủ công', 'midnight-settle': 'Chốt dồn cuối ngày' };
   const rowFn = l => {
     const isPositive = l.amount >= 0;
     const canDelete = CURRENT_USER && CURRENT_USER.role === 'owner' && l.source !== 'midnight-settle';
@@ -2833,7 +2906,7 @@ function openFundAudit(){
   const days = {};
   const get = k => (days[k] = days[k] || { oc: 0, ob: 0, sc: 0, sb: 0, n: 0 });
   (DATA.orders || []).forEach(o => {
-    if(isCancelledOrder(o)) return;
+    if(isNonRevenueOrder(o)) return;
     const k = getOrderShiftDay(o); if(!k) return;
     const r = get(k);
     r.ob += orderBankAmt(o); r.oc += orderCashAmt(o);
@@ -3469,7 +3542,7 @@ function calculateBreakEven(){
   const monthStrPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
   (DATA.users || []).forEach(u => { const actual = calculateActualWorkedHoursAndPay(u, monthStrPrefix); const net = (actual.actualPay) - (actual.totalDeduction || 0); totalStaffNetSalary += net > 0 ? net : 0; });
   const totalAllFixed = totalFixedCost + totalStaffNetSalary;
-  const totalGrossProfit = (DATA.orders||[]).reduce((sum, o)=>{ const cost = o.totalCost !== undefined ? o.totalCost : 0; return sum + (o.totalPrice - cost); }, 0);
+  const totalGrossProfit = (DATA.orders||[]).reduce((sum, o)=>{ if(isDebtOrder(o)) return sum; const cost = o.totalCost !== undefined ? o.totalCost : 0; return sum + (o.totalPrice - cost); }, 0);
   document.getElementById('be-fixed-cost').textContent = fmt(totalFixedCost) + 'đ';
   document.getElementById('be-staff-salary').textContent = fmt(totalStaffNetSalary) + 'đ';
   document.getElementById('be-target-revenue').textContent = fmt(totalAllFixed * 1.6) + 'đ (Gợi ý)';
@@ -3494,6 +3567,9 @@ function renderHistoryOrders(){
   } else if(selMonth){ filtered = filtered.filter(o => o.dateIso && o.dateIso.startsWith(selMonth)); labelText = `Tháng: ${selMonth}`; }
   else if(dateFrom && dateTo){ filtered = filtered.filter(o => o.dateIso && o.dateIso >= dateFrom && o.dateIso <= dateTo); labelText = `Từ ${dateFrom} đến ${dateTo}`; }
   document.getElementById('history-filter-active-label').innerHTML = `Hiển thị: ${labelText} &nbsp; ${liveStampHtml()}`;
+  const _debtList = filtered.filter(isDebtOrder);
+  filtered = filtered.filter(o => !isDebtOrder(o)); // đơn công nợ: không tính doanh thu, nằm ở khung dưới cùng
+  try{ pruneMergeSelection(); renderMergeBar(); renderCancelledOrdersBox(); }catch(e){ console.error(e); }
   document.getElementById('stat-orders-count').textContent = filtered.length;
   document.getElementById('stat-cups-count').textContent = filtered.reduce((s, o) => s + (o.totalQty||0), 0) + ' ly';
   document.getElementById('stat-revenue').textContent = fmt(filtered.reduce((s, o) => s + (o.totalPrice||0), 0)) + 'đ';
@@ -3505,7 +3581,12 @@ function renderHistoryOrders(){
   document.getElementById('stat-revenue-bank').textContent = fmt(bankRev) + 'đ';
   document.getElementById('stat-revenue-cash-sub').textContent = cashOrders.length + ' đơn';
   document.getElementById('stat-revenue-bank-sub').textContent = bankOrders.length + ' đơn';
-  try{ renderStaffCupsPanel(filtered); }catch(e){ console.error(e); }
+  const _debtEl = document.getElementById('stat-revenue-debt');
+  if(_debtEl){
+    _debtEl.textContent = fmt(_debtList.reduce((s, o) => s + (o.totalPrice || 0), 0)) + 'đ';
+    document.getElementById('stat-revenue-debt-sub').textContent = _debtList.length + ' đơn';
+  }
+  try{ renderStaffCupsPanel(filtered.concat(_debtList)); }catch(e){ console.error(e); }
   const wrap = document.getElementById('history-order-list');
   if(filtered.length === 0){ wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted); text-align:center; padding:16px 0;">Không có đơn order nào.</p>'; return; }
   wrap.innerHTML = filtered.map(o=>{
@@ -3521,15 +3602,18 @@ function renderHistoryOrders(){
     if (isCancelRequest) { borderStyle = '3px solid #000000'; payColor = '#000000'; }
     const isOwnerNow = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
     const staffCanFix = !!(CURRENT_USER && !isOwnerNow && !isCancelledOrder(o) && !isMixedOrder(o) && getOrderShiftDay(o) === getShiftDayStr());
+    const staffCanEdit = canStaffEditOrder(o);
     const lastPayChange = (o.paymentChanges && o.paymentChanges.length) ? o.paymentChanges[o.paymentChanges.length - 1] : null;
     const isCompleted = isCompletedOrder(o);
     const canComplete = !!CURRENT_USER && isWebOrder && !isCancelRequest && !isCancelledOrder(o) && !isCompleted;
+    const canDebt = !!CURRENT_USER && !isCancelledOrder(o) && !isDebtOrder(o);
+    const debtBtn = canDebt ? `<button class="btn small" style="background:#b3261e; color:#fff; border-color:#b3261e;" onclick="markOrderDebt('${o.id}')">📕 Công nợ</button>` : '';
     return `
     <div style="background:${bgStyle}; border:${borderStyle}; border-left:6px solid ${payColor}; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
       ${isCompleted ? '<div style="position:absolute; top:-8px; right:12px; background:#2e9e5b; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">✅ ĐÃ HOÀN THÀNH</div>' : ''}
       ${isCancelRequest ? '<div style="position:absolute; top:-8px; right:12px; background:#000; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">YÊU CẦU HỦY</div>' : ''}
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; font-weight:800; font-size:14px; margin-bottom:4px;">
-        <span>📍 ${escapeHtml(o.table)} <span style="font-size:11px; background:${payBg}; color:${payColor}; border:1px solid ${payColor}; padding:2px 6px; border-radius:6px; margin-left:6px;">${isMixed ? '💵+📱' : (isBank ? '📱' : '💵')} ${isMixed ? 'Chia từng ly' : escapeHtml(o.paymentMethod || 'Tiền mặt')}</span></span>
+        <span>${canMergeOrder(o) ? `<input type="checkbox" class="merge-check" title="Chọn để gộp bill" ${mergeSelection.has(o.id) ? 'checked' : ''} onchange="toggleMergeSelect('${o.id}', this.checked)">` : ''}📍 ${escapeHtml(o.table)} <span style="font-size:11px; background:${payBg}; color:${payColor}; border:1px solid ${payColor}; padding:2px 6px; border-radius:6px; margin-left:6px;">${isMixed ? '💵+📱' : (isBank ? '📱' : '💵')} ${isMixed ? 'Chia từng ly' : escapeHtml(o.paymentMethod || 'Tiền mặt')}</span></span>
         <span style="color:${payColor}; white-space:nowrap;">${isMixed ? 'Tổng' : (isBank ? 'DT Chuyển khoản' : 'DT Tiền mặt')}: ${fmt(o.totalPrice)}đ</span>
       </div>
       <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
@@ -3537,6 +3621,7 @@ function renderHistoryOrders(){
         ${isMixed ? `<br>💵 <b>Tiền mặt:</b> ${fmt(orderCashAmt(o))}đ &nbsp;|&nbsp; 📱 <b>Chuyển khoản:</b> ${fmt(orderBankAmt(o))}đ` : ''}
         ${isCompleted ? `<br>✅ <b>Hoàn thành:</b> ${escapeHtml(o.completedTime || '')} (${escapeHtml(o.completedBy || '')})` : ''}
         ${lastPayChange ? `<br>💱 <b>Đã đổi hình thức TT:</b> ${escapeHtml(lastPayChange.from)} → ${escapeHtml(lastPayChange.to)} (${escapeHtml(lastPayChange.by)})` : ''}
+        ${o.mergedFrom && o.mergedFrom.length ? `<br>🔗 <b>Bill gộp từ ${o.mergedFrom.length} đơn</b> (${o.mergedFrom.map(m => escapeHtml(String(m.time || '').split(' — ')[0])).join(', ')})` : ''}
         ${o.generalNote ? `<br>📝 <b>Ghi chú:</b> ${escapeHtml(o.generalNote)}` : ''}
         ${o.appliedVoucher && o.appliedVoucher !== 'none' ? `<br>✨ <b>Voucher:</b> ${escapeHtml(o.appliedVoucher)}` : ''}
       </div>
@@ -3547,16 +3632,458 @@ function renderHistoryOrders(){
           return `• <b>${escapeHtml(i.name)}</b> (${i.size}) x ${i.qty} —${fmt(i.unitPrice * i.qty)}đ${tag}`;
         }).join('<br>')}
       </div>
-      ${(printerEnabled() || isOwnerNow || staffCanFix || canComplete) ? `
+      ${orderDetailsBlock(o)}
+      ${(printerEnabled() || isOwnerNow || staffCanFix || staffCanEdit || canComplete || canDebt) ? `
       <div class="order-actions">
         ${canComplete ? `<button class="btn small" style="background:#2e9e5b; color:#fff; border-color:#2e9e5b;" onclick="completeOrder('${o.id}')">✅ Hoàn thành</button>` : ''}
         ${printerEnabled() ? `<button class="btn small ghost" onclick="printOrderById('${o.id}')">🖨️ In lại bill</button>` : ''}
         ${staffCanFix ? `<button class="btn small ghost" onclick="staffChangePayment('${o.id}')">💱 Đổi sang ${isBank ? 'Tiền mặt' : 'Chuyển khoản'}</button>` : ''}
+        ${staffCanEdit ? `<button class="btn small ghost" onclick="openEditOrderModal('${o.id}')">✏️ Chỉnh đơn</button>
+        <button class="btn small" style="background:#e67e22; color:#fff; border-color:#e67e22;" onclick="addMoreToOrder('${o.id}')">➕ Gọi thêm món</button>${debtBtn}` : (canDebt && !isOwnerNow ? debtBtn : '')}
         ${CURRENT_USER && CURRENT_USER.role==='owner' ? `<button class="btn small ghost" onclick="openEditOrderModal('${o.id}')">✏️ Chỉnh đơn</button>
+        ${!isCancelledOrder(o) ? `<button class="btn small" style="background:#e67e22; color:#fff; border-color:#e67e22;" onclick="addMoreToOrder('${o.id}')">➕ Gọi thêm món</button>` : ''}
+        ${debtBtn}
         <button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="deleteOrder('${o.id}')">🗑️ Xóa đơn</button>` : ''}
       </div>` : ''}
     </div>
   `;}).join('');
+}
+
+/* ============ CHI TIẾT MÓN / GỘP BILL / ĐƠN HỦY / GỌI THÊM MÓN ============ */
+let mergeSelection = new Set();
+let mergeDraftIds = [];
+function isWebLikeOrder(o){ return !!(o && (o.customerPhone || o.isGuest || o.source === 'web' || String(o.table || '').includes('App:'))); }
+/* Nhân viên: chỉnh đơn / gọi thêm món cho đơn CỦA MÌNH trong ca hôm nay (không xóa ly) */
+function canStaffEditOrder(o){
+  return !!(CURRENT_USER && CURRENT_USER.role !== 'owner' && o && !isNonRevenueOrder(o) && o.staffName === CURRENT_USER.name && getOrderShiftDay(o) === getShiftDayStr());
+}
+function canMergeOrder(o){
+  if(!CURRENT_USER || !o || isNonRevenueOrder(o) || isWebLikeOrder(o)) return false;
+  if(CURRENT_USER.role === 'owner') return true;
+  return o.staffName === CURRENT_USER.name && getOrderShiftDay(o) === getShiftDayStr();
+}
+function itemPaySplit(o, i){
+  const q = i.qty || 0;
+  if(isMixedOrder(o)){ const bq = Math.min(Math.max(i.bankQty || 0, 0), q); return { cq: q - bq, bq: bq }; }
+  return isBankOrder(o) ? { cq: 0, bq: q } : { cq: q, bq: 0 };
+}
+function payTagHtml(sp){
+  return `<span style="font-size:11.5px; font-weight:700; color:#8a5a1f;">${sp.cq > 0 ? '💵 Tiền mặt ' + sp.cq + ' ly' : ''}${sp.cq > 0 && sp.bq > 0 ? ' · ' : ''}${sp.bq > 0 ? '📱 Chuyển khoản ' + sp.bq + ' ly' : ''}</span>`;
+}
+function orderDetailHtml(o){
+  return (o.items || []).map(i => {
+    const tops = (i.toppings || []).map(t => typeof t === 'string' ? { name: t, price: 0 } : t);
+    const base = (i.basePrice !== undefined) ? i.basePrice : ((i.unitPrice || 0) - (i.toppingPrice || 0));
+    return `<div style="padding:6px 0; border-bottom:1px dotted #e6d9bd;">
+      <div style="display:flex; justify-content:space-between; gap:8px; font-weight:800;"><span>${escapeHtml(i.name)} (${escapeHtml(i.size)}) × ${i.qty || 0}</span><span>${fmt((i.unitPrice || 0) * (i.qty || 0))}đ</span></div>
+      <div style="color:var(--muted);">Giá gốc ${fmt(base)}đ/ly ${tops.length ? '+ topping: ' + tops.map(t => escapeHtml(t.name) + ' (' + fmt(t.price || 0) + 'đ)').join(', ') : '· không topping'}</div>
+      ${i.note ? `<div style="color:#b36b00;">📝 ${escapeHtml(i.note)}</div>` : ''}
+      <div>${payTagHtml(itemPaySplit(o, i))}</div>
+    </div>`;
+  }).join('');
+}
+function orderDetailsBlock(o){
+  if(!o || !(o.items || []).length) return '';
+  return `<details class="order-detail-box"><summary>🔎 Chi tiết (topping · ghi chú · thanh toán từng món)</summary><div>${orderDetailHtml(o)}</div></details>`;
+}
+
+function pruneMergeSelection(){
+  Array.from(mergeSelection).forEach(id => {
+    const o = (DATA.orders || []).find(x => x.id === id);
+    if(!o || !canMergeOrder(o)) mergeSelection.delete(id);
+  });
+}
+function toggleMergeSelect(id, checked){
+  if(checked) mergeSelection.add(id); else mergeSelection.delete(id);
+  renderMergeBar();
+}
+function clearMergeSelection(){ mergeSelection.clear(); renderHistoryOrders(); }
+function renderMergeBar(){
+  const bar = document.getElementById('merge-bar'); if(!bar) return;
+  const n = mergeSelection.size;
+  if(n === 0){ bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  bar.style.display = 'flex';
+  bar.innerHTML = `<span>☑️ Đã chọn <b>${n}</b> đơn${n < 2 ? ' — chọn thêm ít nhất 1 đơn nữa để gộp' : ''}</span>
+    <span style="display:flex; gap:6px;">
+      <button class="btn small success" ${n < 2 ? 'disabled style="opacity:.5;"' : ''} onclick="openMergeModal()">🔗 Gộp bill</button>
+      <button class="btn small ghost" onclick="clearMergeSelection()">Bỏ chọn</button>
+    </span>`;
+}
+function getMergeSources(){
+  const list = DATA.orders || [];
+  // DATA.orders xếp mới nhất trước → đơn sớm nhất có chỉ số lớn nhất
+  return list.filter(o => mergeSelection.has(o.id)).sort((a, b) => list.indexOf(b) - list.indexOf(a));
+}
+function validateMergeSources(src){
+  if(src.length < 2) return 'Hãy chọn ít nhất 2 đơn để gộp.';
+  if(src.some(o => !canMergeOrder(o))) return 'Có đơn không được phép gộp (đơn từ app, đơn hủy, hoặc không phải đơn của bạn trong ca hôm nay).';
+  if(new Set(src.map(o => o.staffName)).size > 1) return 'Chỉ gộp được các đơn của cùng 1 nhân viên (để tiền ca của từng người không bị lệch). Hãy bỏ chọn bớt.';
+  if(new Set(src.map(o => getOrderShiftDay(o))).size > 1) return 'Chỉ gộp được các đơn trong cùng 1 ngày làm việc.';
+  return '';
+}
+function buildMergedOrder(src, table, note){
+  const items = [];
+  src.forEach(o => {
+    const mixed = isMixedOrder(o), bank = isBankOrder(o);
+    (o.items || []).forEach(it => {
+      const c = JSON.parse(JSON.stringify(it));
+      if(!c.itemKey) c.itemKey = uid('item');
+      const q = c.qty || 0;
+      c.bankQty = mixed ? Math.min(Math.max(c.bankQty || 0, 0), q) : (bank ? q : 0);
+      items.push(c);
+    });
+  });
+  let cupsBank = 0, cupsCash = 0;
+  items.forEach(i => { cupsBank += i.bankQty || 0; cupsCash += (i.qty || 0) - (i.bankQty || 0); });
+  const method = cupsBank === 0 ? 'Tiền mặt' : (cupsCash === 0 ? 'Chuyển khoản' : PAY_MIXED);
+  if(method !== PAY_MIXED) items.forEach(i => { delete i.bankQty; });
+  const first = src[0];
+  return {
+    id: uid('order'), table: table, paymentMethod: method, generalNote: note, items: items,
+    totalQty: items.reduce((s, i) => s + (i.qty || 0), 0),
+    totalPrice: items.reduce((s, i) => s + (i.unitPrice || 0) * (i.qty || 0), 0),
+    totalCost: items.reduce((s, i) => s + (i.unitCost || 0) * (i.qty || 0), 0),
+    staffName: first.staffName, dateIso: first.dateIso, time: first.time,
+    mergedFrom: src.map(o => ({ id: o.id, time: o.time, table: o.table, totalQty: o.totalQty, totalPrice: o.totalPrice, paymentMethod: o.paymentMethod })),
+    mergedAt: new Date().toISOString(), mergedBy: CURRENT_USER ? CURRENT_USER.name : ''
+  };
+}
+function openMergeModal(){
+  pruneMergeSelection();
+  const src = getMergeSources();
+  const err = validateMergeSources(src);
+  if(err){ alert('⚠️ ' + err); renderMergeBar(); return; }
+  mergeDraftIds = src.map(o => o.id);
+  const tables = Array.from(new Set(src.map(o => String(o.table || '').trim()).filter(Boolean)));
+  document.getElementById('merge-table').value = tables.length <= 1 ? (tables[0] || 'Mang đi / Khách lẻ') : tables.join(' + ');
+  document.getElementById('merge-note').value = Array.from(new Set(src.map(o => String(o.generalNote || '').trim()).filter(Boolean))).join(' | ');
+  const m = buildMergedOrder(src, '', '');
+  document.getElementById('merge-src-list').innerHTML = `<div style="font-weight:800; margin-bottom:4px;">Gộp ${src.length} đơn của <b>${escapeHtml(src[0].staffName)}</b>:</div>` +
+    src.map((o, i) => `<div>#${i + 1} 🕒 ${escapeHtml(String(o.time || '').split(' — ')[0])} · ${escapeHtml(o.table || '')} · ${o.totalQty || 0} ly · ${fmt(o.totalPrice || 0)}đ · ${escapeHtml(orderPayLabel(o))}</div>`).join('');
+  document.getElementById('merge-items-list').innerHTML = orderDetailHtml(m);
+  document.getElementById('merge-totals').innerHTML = `<span>🥤 ${m.totalQty} ly — <b>${fmt(m.totalPrice)}đ</b></span><span style="color:var(--good);">💵 Tiền mặt: ${fmt(orderCashAmt(m))}đ</span><span style="color:#2f5fa6;">📱 Chuyển khoản: ${fmt(orderBankAmt(m))}đ</span>`;
+  document.getElementById('merge-bill-modal').style.display = 'flex';
+}
+function closeMergeModal(){ document.getElementById('merge-bill-modal').style.display = 'none'; mergeDraftIds = []; }
+function saveMergedBill(){
+  if(!CURRENT_USER){ alert('⚠️ Vui lòng đăng nhập!'); return; }
+  const src = getMergeSources();
+  const err = validateMergeSources(src);
+  if(err){ alert('⚠️ ' + err); closeMergeModal(); return; }
+  if(src.length !== mergeDraftIds.length || src.some(o => mergeDraftIds.indexOf(o.id) < 0)){ alert('⚠️ Danh sách đơn vừa thay đổi, vui lòng chọn lại.'); closeMergeModal(); renderHistoryOrders(); return; }
+  if(CURRENT_USER.role === 'owner'){
+    const secPin = (DATA && DATA.config && DATA.config.securityPin) ? DATA.config.securityPin : '9999';
+    const code = prompt('🔒 Nhập Mã PIN Cấp Hai để gộp bill:');
+    if(code !== secPin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
+  }
+  checkShiftDayRollover();
+  const table = document.getElementById('merge-table').value.trim() || 'Mang đi / Khách lẻ';
+  const note = document.getElementById('merge-note').value.trim();
+  const merged = buildMergedOrder(src, table, note);
+  const ids = src.map(o => o.id);
+  const list = DATA.orders || [];
+  const pos = Math.min.apply(null, ids.map(id => list.findIndex(o => o.id === id)));
+  const rest = list.filter(o => ids.indexOf(o.id) < 0);
+  rest.splice(Math.max(pos, 0), 0, merged);
+  DATA.orders = rest;
+  src.forEach(o => refreshDiscrepanciesForOrder(o));
+  refreshDiscrepanciesForOrder(merged);
+  saveDataDirect();
+  mergeSelection.clear();
+  closeMergeModal();
+  renderHistoryOrders();
+  alert(`✅ Đã gộp ${src.length} đơn thành 1 bill: ${merged.totalQty} ly — ${fmt(merged.totalPrice)}đ`);
+}
+
+let addMoreState = { orderId: null, cat: null, drafts: [] };
+let addMoreOpt = { prodId: null, size: null, key: null };
+function addMoreProducts(){ return (DATA.products || []).filter(p => p.category !== 'Topping' && p.onMenu !== false); }
+function addMoreToOrder(id){
+  const order = (DATA.orders || []).find(o => o.id === id);
+  if(!order) return;
+  const _isOwner = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
+  if(_isOwner){
+    const secPin = (DATA && DATA.config && DATA.config.securityPin) ? DATA.config.securityPin : '9999';
+    const code = prompt('🔒 Nhập Mã PIN Cấp Hai:');
+    if(code !== secPin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
+  } else if(!canStaffEditOrder(order)){
+    alert('⚠️ Nhân viên chỉ gọi thêm món cho đơn của chính mình trong ca hôm nay.'); return;
+  }
+  if(isDebtOrder(order)){ alert('⚠️ Đơn đang ghi công nợ nên không thao tác được. Chủ quán bấm "Khách đã trả nợ" ở khung dưới cùng trước nhé.'); return; }
+  if(isCancelledOrder(order)){ alert('⚠️ Đơn đã hủy / đang yêu cầu hủy nên không gọi thêm được.'); return; }
+  const cats = Array.from(new Set(addMoreProducts().map(p => p.category)));
+  addMoreState = { orderId: id, cat: cats[0] || null, drafts: [] };
+  document.getElementById('add-more-target').textContent = `Thêm vào đơn: ${order.table || ''} — ${order.totalQty || 0} ly, ${fmt(order.totalPrice || 0)}đ`;
+  renderAddMore();
+  document.getElementById('add-more-modal').style.display = 'flex';
+}
+function closeAddMoreModal(){ document.getElementById('add-more-modal').style.display = 'none'; document.getElementById('add-more-option-modal').style.display = 'none'; addMoreState = { orderId: null, cat: null, drafts: [] }; }
+function setAddMoreCat(c){ addMoreState.cat = c; renderAddMore(); }
+function amDraftDetail(d){
+  const tops = (d.toppings || []).map(t => t.name);
+  return `Size ${escapeHtml(d.size)}${tops.length ? ' · + ' + tops.map(escapeHtml).join(', ') : ''}${d.note ? ' · 📝 ' + escapeHtml(d.note) : ''}`;
+}
+function amFindDraft(key){ return (addMoreState.drafts || []).find(d => d.itemKey === key); }
+function openAddMoreOption(prodId, key){
+  const prod = (DATA.products || []).find(p => p.id === prodId); if(!prod) return;
+  const ex = key ? amFindDraft(key) : null;
+  const sizes = Object.keys(prod.sizes || {});
+  addMoreOpt = { prodId: prodId, size: ex ? ex.size : (sizes[0] || 'M'), key: ex ? ex.itemKey : null };
+  document.getElementById('am-opt-name').textContent = prod.name;
+  const tops = (DATA.products || []).filter(p => p.category === 'Topping');
+  const have = ex ? (ex.toppings || []).map(t => t.name) : [];
+  document.getElementById('am-opt-toppings').innerHTML = tops.length ? tops.map((tp, i) => {
+    const price = tp.sizes[Object.keys(tp.sizes)[0] || 'M'].price;
+    return `<label class="am-topping-check"><span><input type="checkbox" data-tidx="${i}" ${have.indexOf(tp.name) >= 0 ? 'checked' : ''} onchange="amUpdateOptPrice()"><em style="font-style:normal;">${escapeHtml(tp.name)}</em></span><b>${fmt(price)}đ</b></label>`;
+  }).join('') : '<p style="font-size:11.5px; color:var(--muted); margin:2px 0;">Chưa có topping.</p>';
+  document.getElementById('am-opt-note').value = ex ? (ex.note || '') : '';
+  document.getElementById('am-opt-ok').textContent = ex ? '💾 Lưu thay đổi' : '➕ Thêm ly này';
+  amRenderOptSizes(); amUpdateOptPrice();
+  document.getElementById('add-more-option-modal').style.display = 'flex';
+}
+function amRenderOptSizes(){
+  const prod = (DATA.products || []).find(p => p.id === addMoreOpt.prodId); if(!prod) return;
+  document.getElementById('am-opt-sizes').innerHTML = Object.keys(prod.sizes || {}).map(s => `<button type="button" class="chip ${s === addMoreOpt.size ? 'active' : ''}" onclick="amSetOptSize('${String(s).replace(/'/g, "\\'")}')">Size ${escapeHtml(s)} (${fmt(prod.sizes[s].price)}đ)</button>`).join('');
+}
+function amSetOptSize(s){ addMoreOpt.size = s; amRenderOptSizes(); amUpdateOptPrice(); }
+function amReadOptToppings(){
+  const tops = (DATA.products || []).filter(p => p.category === 'Topping');
+  const out = [];
+  document.querySelectorAll('#am-opt-toppings input[type="checkbox"]:checked').forEach(cb => {
+    const tp = tops[parseInt(cb.getAttribute('data-tidx'), 10)];
+    if(tp) out.push({ name: tp.name, price: tp.sizes[Object.keys(tp.sizes)[0] || 'M'].price || 0 });
+  });
+  return out;
+}
+function amBuildItem(prodId, size, toppings, note, key, qty){
+  const prod = (DATA.products || []).find(p => p.id === prodId);
+  const it = { itemKey: key || uid('item'), prodId: prodId, name: prod ? prod.name : '', size: size, basePrice: 0, toppings: toppings || [], toppingPrice: 0, unitPrice: 0, unitCost: 0, note: note || '', qty: qty || 1 };
+  recalcEditItem(it);
+  return it;
+}
+function amUpdateOptPrice(){
+  const it = amBuildItem(addMoreOpt.prodId, addMoreOpt.size, amReadOptToppings(), '', null, 1);
+  document.getElementById('am-opt-price').textContent = `Giá ly này: ${fmt(it.unitPrice)}đ`;
+}
+function closeAddMoreOption(){ document.getElementById('add-more-option-modal').style.display = 'none'; }
+function confirmAddMoreOption(){
+  const ex = addMoreOpt.key ? amFindDraft(addMoreOpt.key) : null;
+  const it = amBuildItem(addMoreOpt.prodId, addMoreOpt.size, amReadOptToppings(), document.getElementById('am-opt-note').value.trim(), ex ? ex.itemKey : null, ex ? ex.qty : 1);
+  if(ex){ addMoreState.drafts[addMoreState.drafts.indexOf(ex)] = it; } else { addMoreState.drafts.push(it); }
+  closeAddMoreOption();
+  renderAddMore();
+}
+function amChangeQty(key, delta){
+  const d = amFindDraft(key); if(!d) return;
+  d.qty = Math.max(0, (d.qty || 1) + delta);
+  if(d.qty === 0) addMoreState.drafts = addMoreState.drafts.filter(x => x.itemKey !== key);
+  renderAddMore();
+}
+function amRemoveDraft(key){ addMoreState.drafts = addMoreState.drafts.filter(x => x.itemKey !== key); renderAddMore(); }
+function renderAddMore(){
+  const prods = addMoreProducts();
+  const cats = Array.from(new Set(prods.map(p => p.category)));
+  document.getElementById('add-more-cats').innerHTML = cats.map(c => `<button class="chip ${c === addMoreState.cat ? 'active' : ''}" style="flex:0 0 auto;" onclick="setAddMoreCat('${String(c).replace(/'/g, "\\'")}')">${escapeHtml(c)}</button>`).join('');
+  document.getElementById('add-more-grid').innerHTML = prods.filter(p => p.category === addMoreState.cat).map(p => {
+    const sizes = Object.keys(p.sizes || {});
+    const minPrice = sizes.length ? Math.min.apply(null, sizes.map(k => p.sizes[k].price || 0)) : 0;
+    const imgUrl = (!isLiteMode() && DATA.productImages && DATA.productImages[p.id]) ? DATA.productImages[p.id] : null;
+    const q = (addMoreState.drafts || []).filter(d => d.prodId === p.id).reduce((s, d) => s + (d.qty || 0), 0);
+    return `<div onclick="openAddMoreOption('${p.id}')" style="position:relative; background:#fff; border:2px solid ${q ? '#e67e22' : 'var(--line)'}; border-radius:16px; padding:8px; cursor:pointer; display:flex; flex-direction:column; gap:4px;">
+      ${q ? `<div style="position:absolute; top:6px; right:6px; background:#e67e22; color:#fff; font-weight:800; font-size:12px; border-radius:999px; padding:1px 8px; z-index:1;">×${q}</div>` : ''}
+      <div style="height:72px; border-radius:12px; overflow:hidden; background:#f0eada; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; color:#cfc7b2;">${imgUrl ? `<img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover;">` : escapeHtml(String(p.name).charAt(0).toUpperCase())}</div>
+      <div style="font-weight:800; font-size:12.5px; line-height:1.25;">${escapeHtml(p.name)}</div>
+      <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:11.5px; color:var(--good); font-weight:700;">Từ ${fmt(minPrice)}đ</span><span style="background:#e67e22; color:#fff; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-weight:900;">+</span></div>
+    </div>`;
+  }).join('') || '<p style="font-size:12.5px; color:var(--muted); grid-column:1/-1; text-align:center;">Chưa có món.</p>';
+  const drafts = addMoreState.drafts || [];
+  let totalQty = 0, total = 0;
+  const lineHtml = drafts.map(d => {
+    totalQty += d.qty; total += d.unitPrice * d.qty;
+    return `<div style="padding:5px 0; border-bottom:1px dashed #eadfc8;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><span style="font-weight:800;">${escapeHtml(d.name)}</span><span style="display:flex; align-items:center; gap:6px;"><button class="icon-btn" onclick="amChangeQty('${d.itemKey}', -1)">-</button><b>${d.qty}</b><button class="icon-btn" onclick="amChangeQty('${d.itemKey}', 1)">+</button><span style="min-width:62px; text-align:right; color:var(--good); font-weight:800;">${fmt(d.unitPrice * d.qty)}đ</span></span></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:2px;"><span style="font-size:11.5px; color:var(--muted);">${amDraftDetail(d)}</span><span style="display:flex; gap:4px; flex:0 0 auto;"><button class="btn small ghost" onclick="openAddMoreOption('${d.prodId}', '${d.itemKey}')">✏️ Sửa</button><button class="btn small ghost" onclick="amRemoveDraft('${d.itemKey}')">✕</button></span></div>
+    </div>`;
+  }).join('');
+  const order = (DATA.orders || []).find(o => o.id === addMoreState.orderId);
+  const after = order ? `<div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); margin-top:2px;"><span>Đơn sau khi thêm: ${(order.totalQty || 0) + totalQty} ly</span><span>${fmt((order.totalPrice || 0) + total)}đ</span></div>` : '';
+  document.getElementById('add-more-summary').innerHTML = drafts.length
+    ? `<div style="font-weight:800; margin-bottom:2px;">🧾 Xem lại các ly thêm:</div>` + lineHtml + `<div style="display:flex; justify-content:space-between; font-weight:800; margin-top:6px;"><span>Thêm ${totalQty} ly</span><span style="color:var(--good);">${fmt(total)}đ</span></div>` + after
+    : '<div style="color:var(--muted); text-align:center;">Bấm vào món để chọn size, topping, ghi chú.</div>';
+}
+function confirmAddMore(){
+  const order = (DATA.orders || []).find(o => o.id === addMoreState.orderId);
+  if(!order){ closeAddMoreModal(); return; }
+  const _isOwner = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
+  if(!_isOwner && !canStaffEditOrder(order)){ alert('⚠️ Đơn này không còn thêm món được (đã hủy / sang ca khác / không phải đơn của bạn).'); closeAddMoreModal(); renderHistoryOrders(); return; }
+  if(isDebtOrder(order)){ alert('⚠️ Đơn đang ghi công nợ nên không thao tác được. Chủ quán bấm "Khách đã trả nợ" ở khung dưới cùng trước nhé.'); closeAddMoreModal(); return; }
+  if(isCancelledOrder(order)){ alert('⚠️ Đơn đã hủy / đang yêu cầu hủy.'); closeAddMoreModal(); return; }
+  const drafts = (addMoreState.drafts || []).filter(d => d && d.qty > 0);
+  if(!drafts.length){ alert('⚠️ Bạn chưa chọn món nào!'); return; }
+  checkShiftDayRollover();
+  const mixed = isMixedOrder(order), bank = isBankOrder(order);
+  const newItems = drafts.map(d => {
+    const it = amBuildItem(d.prodId, d.size, JSON.parse(JSON.stringify(d.toppings || [])), d.note, null, d.qty);
+    if(mixed) it.bankQty = 0;
+    return it;
+  });
+  const addQty = newItems.reduce((s, i) => s + i.qty, 0);
+  const addPrice = newItems.reduce((s, i) => s + i.unitPrice * i.qty, 0);
+  const addCost = newItems.reduce((s, i) => s + (i.unitCost || 0) * i.qty, 0);
+  const oldTotal = order.totalPrice || 0;
+  const addBank = bank ? addPrice : 0, addCash = addPrice - addBank; // đơn chuyển khoản → ly thêm chuyển khoản; còn lại tiền mặt
+  if(isOrderSettled(order)){
+    const why = `Gọi thêm món bàn ${order.table} (${order.dateIso})`;
+    if(addCash) logSettledOrderAdjust('order-edit', 'cash', addCash, why, order);
+    if(addBank) logSettledOrderAdjust('order-edit', 'bank', addBank, why, order);
+  } else {
+    if(addCash) logCashFundOnly('order-edit', 'shiftCash', addCash, `Gọi thêm món (Bàn ${order.table}) - tiền mặt`, order.id);
+    if(addBank) logCashFundOnly('order-edit', 'shiftBank', addBank, `Gọi thêm món (Bàn ${order.table}) - chuyển khoản`, order.id);
+  }
+  order.items = (order.items || []).concat(newItems);
+  order.totalQty = (order.totalQty || 0) + addQty;
+  order.totalPrice = oldTotal + addPrice;
+  order.totalCost = (order.totalCost || 0) + addCost;
+  order.editedAt = new Date().toISOString();
+  if(!_isOwner){
+    const _n = getVietnamTimeNow();
+    const timeStr = `${String(_n.getHours()).padStart(2,'0')}:${String(_n.getMinutes()).padStart(2,'0')}:${String(_n.getSeconds()).padStart(2,'0')} — ${String(_n.getDate()).padStart(2,'0')}/${String(_n.getMonth()+1).padStart(2,'0')}/${_n.getFullYear()}`;
+    const parts = newItems.map(i => `+${i.qty} ${i.name} (${i.size})${(i.toppings || []).length ? ' + ' + i.toppings.map(t => t.name).join(', ') : ''}${i.note ? ' [' + i.note + ']' : ''}`);
+    if(!DATA.notifications) DATA.notifications = [];
+    DATA.notifications.unshift({ id: uid('noti'), type: 'order-edit', orderId: order.id, orderDate: order.dateIso, message: `➕ ${CURRENT_USER.name} gọi thêm vào đơn ${order.table} (${fmt(oldTotal)}đ → ${fmt(order.totalPrice)}đ): ${parts.join('; ')}`, time: timeStr, read: false });
+    if(!order.staffEdits) order.staffEdits = [];
+    order.staffEdits.push({ by: CURRENT_USER.name, at: timeStr, changes: parts, from: oldTotal, to: order.totalPrice });
+  }
+  refreshDiscrepanciesForOrder(order);
+  saveDataDirect();
+  closeAddMoreModal();
+  renderHistoryOrders();
+  showToast(`✅ Đã thêm ${addQty} ly (+${fmt(addPrice)}đ) vào đơn ${escapeHtml(order.table || '')}. Cần chia tiền mặt / chuyển khoản từng ly → bấm ✏️ Chỉnh đơn.`);
+}
+
+function applyHistoryDateFilterTo(list){
+  const selDate = document.getElementById('history-date').value;
+  const selWeek = document.getElementById('history-week').value;
+  const selMonth = document.getElementById('history-month').value;
+  const dateFrom = document.getElementById('history-date-from').value;
+  const dateTo = document.getElementById('history-date-to').value;
+  if(selDate) return list.filter(o => o.dateIso === selDate);
+  if(selWeek){
+    const parts = selWeek.split('-W');
+    if(parts.length === 2){
+      const ty = parseInt(parts[0]), tw = parseInt(parts[1]);
+      return list.filter(o => { if(!o.dateIso) return false; const w = getWeekNumber(o.dateIso); return w.year === ty && w.week === tw; });
+    }
+    return list;
+  }
+  if(selMonth) return list.filter(o => o.dateIso && o.dateIso.startsWith(selMonth));
+  if(dateFrom && dateTo) return list.filter(o => o.dateIso && o.dateIso >= dateFrom && o.dateIso <= dateTo);
+  return list;
+}
+function renderCancelledOrdersBox(){
+  const wrap = document.getElementById('cancelled-order-list'); if(!wrap) return;
+  const toArr = x => Array.isArray(x) ? x : Object.values(x || {});
+  const entries = [];
+  applyHistoryDateFilterTo((DATA.orders || []).filter(isCancelledOrder)).forEach(o => entries.push({ o: o, kind: o.status === 'Yêu cầu hủy' ? 'request' : 'cancelled', ts: getOrderTs(o) || 0 }));
+  applyHistoryDateFilterTo((DATA.orders || []).filter(isDebtOrder)).forEach(o => entries.push({ o: o, kind: 'debt', ts: getOrderTs(o) || 0 }));
+  applyHistoryDateFilterTo(toArr(DATA.deletedOrders).filter(Boolean)).forEach(o => entries.push({ o: o, kind: 'deleted', ts: o.deletedAtMs || getOrderTs(o) || 0 }));
+  entries.sort((a, b) => b.ts - a.ts);
+  const cnt = document.getElementById('cancelled-orders-count');
+  if(cnt) cnt.textContent = entries.length ? `(${entries.length})` : '';
+  if(!entries.length){ wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted); text-align:center; padding:12px 0;">Không có đơn hủy / yêu cầu hủy / công nợ / đã xóa nào.</p>'; return; }
+  const isOwnerNow = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
+  wrap.innerHTML = entries.map(e => {
+    const o = e.o;
+    const badge = e.kind === 'debt' ? { t: '📕 CÔNG NỢ', c: '#b3261e' } : e.kind === 'request' ? { t: 'YÊU CẦU HỦY', c: '#000' } : (e.kind === 'cancelled' ? { t: 'ĐÃ HỦY', c: '#d9534f' } : { t: 'ĐÃ XÓA', c: '#6b6b6b' });
+    const fromApp = isWebLikeOrder(o);
+    return `
+    <div style="background:#fff; border:2px solid ${badge.c}; border-left:6px solid ${badge.c}; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
+      <div style="position:absolute; top:-8px; right:12px; background:${badge.c}; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px;">${badge.t}</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; font-weight:800; font-size:14px; margin-bottom:4px;">
+        <span>📍 ${escapeHtml(o.table)} ${fromApp ? '<span style="font-size:11px; background:#fff5cc; border:1px solid #e0c040; padding:2px 6px; border-radius:6px; margin-left:4px;">📱 Đơn từ app</span>' : ''}</span>
+        ${e.kind === 'debt' ? `<span style="white-space:nowrap; color:#b3261e;">Nợ: ${fmt(o.totalPrice)}đ</span>` : `<span style="white-space:nowrap; text-decoration:line-through; color:var(--muted);">${fmt(o.totalPrice)}đ</span>`}
+      </div>
+      <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
+        👤 ${escapeHtml(o.staffName || '')} | 🕒 ${escapeHtml(o.time || '')} | 🥤 ${o.totalQty || 0} ly | 💳 ${escapeHtml(orderPayLabel(o))}
+        ${o.appliedVoucher && o.appliedVoucher !== 'none' ? `<br>✨ <b>Voucher:</b> ${escapeHtml(o.appliedVoucher)}` : ''}
+        ${o.generalNote ? `<br>📝 ${escapeHtml(o.generalNote)}` : ''}
+        ${e.kind === 'deleted' ? `<br>🗑️ <b>Xóa lúc</b> ${escapeHtml(o.deletedTime || '')} bởi <b>${escapeHtml(o.deletedBy || '')}</b> — ${escapeHtml(o.deletedReason || '')}` : ''}
+        ${e.kind === 'debt' ? `<br>📕 <b>Ghi nợ lúc</b> ${escapeHtml(o.debtTime || '')} bởi <b>${escapeHtml(o.debtBy || '')}</b> — khách còn thiếu, <b>không tính vào doanh thu / quỹ</b>.` : ''}
+        ${e.kind === 'request' ? '<br>⏳ <b>Khách đang yêu cầu hủy</b> — chủ quán xác nhận bằng nút Xóa đơn.' : ''}
+      </div>
+      ${orderDetailsBlock(o)}
+      ${(isOwnerNow && e.kind === 'debt') ? `<div class="order-actions"><button class="btn small" style="background:#2e9e5b; color:#fff; border-color:#2e9e5b;" onclick="clearOrderDebt('${o.id}')">💰 Khách đã trả nợ</button><button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="deleteOrder('${o.id}')">🗑️ Xóa đơn</button></div>` : ''}
+      ${(isOwnerNow && e.kind !== 'deleted' && e.kind !== 'debt') ? `<div class="order-actions"><button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="deleteOrder('${o.id}')">🗑️ Xác nhận hủy (xóa đơn)</button></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ============ CÔNG NỢ: khách thiếu tiền → đơn không tính vào doanh thu / quỹ ============ */
+function markOrderDebt(id){
+  if(!CURRENT_USER){ alert('⚠️ Vui lòng đăng nhập!'); return; }
+  const order = (DATA.orders || []).find(o => o.id === id);
+  if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
+  if(isDebtOrder(order)) return;
+  if(isCancelledOrder(order)){ alert('⚠️ Đơn đã hủy / đang yêu cầu hủy nên không ghi công nợ được.'); return; }
+  if(CURRENT_USER.role !== 'owner'){
+    const staff = (DATA.users || []).find(u => u.id === CURRENT_USER.id);
+    const code = prompt('🔒 Nhập mã PIN đăng nhập của bạn để xác nhận ghi CÔNG NỢ:');
+    if(code === null) return;
+    if(!staff || String(code).trim() !== String(staff.pin)){ alert('❌ Mã PIN không chính xác!'); return; }
+  }
+  if(!confirm(`Ghi CÔNG NỢ cho đơn "${order.table}" (${fmt(order.totalPrice || 0)}đ)?\n\nKhách còn thiếu tiền nên đơn này sẽ KHÔNG được tính vào doanh thu và quỹ quán.`)) return;
+  checkShiftDayRollover();
+  const dCash = orderCashAmt(order), dBank = orderBankAmt(order);
+  // Đơn đã lỡ cộng vào quỹ lúc order → trừ ra (giống lúc xóa đơn)
+  if(isOrderSettled(order)){
+    if(dCash) logSettledOrderAdjust('debt', 'cash', -dCash, `Ghi công nợ bàn ${order.table} (ngày ${order.dateIso})`, order);
+    if(dBank) logSettledOrderAdjust('debt', 'bank', -dBank, `Ghi công nợ bàn ${order.table} (ngày ${order.dateIso})`, order);
+  } else {
+    if(dCash) logCashFundOnly('debt', 'shiftCash', -dCash, `Ghi công nợ bàn ${order.table}`, order.id);
+    if(dBank) logCashFundOnly('debt', 'shiftBank', -dBank, `Ghi công nợ bàn ${order.table}`, order.id);
+  }
+  const _n = getVietnamTimeNow();
+  const timeStr = `${String(_n.getHours()).padStart(2,'0')}:${String(_n.getMinutes()).padStart(2,'0')}:${String(_n.getSeconds()).padStart(2,'0')} — ${String(_n.getDate()).padStart(2,'0')}/${String(_n.getMonth()+1).padStart(2,'0')}/${_n.getFullYear()}`;
+  order.debt = true;
+  order.debtAt = Date.now();
+  order.debtBy = getFormattedUserDisplayName(CURRENT_USER);
+  order.debtTime = timeStr;
+  if(CURRENT_USER.role !== 'owner'){
+    if(!DATA.notifications) DATA.notifications = [];
+    DATA.notifications.unshift({ id: uid('noti'), type: 'order-debt', orderId: order.id, orderDate: order.dateIso, message: `📕 ${CURRENT_USER.name} ghi công nợ đơn ${order.table} (${fmt(order.totalPrice || 0)}đ)`, time: timeStr, read: false });
+  }
+  try{ refreshDiscrepanciesForOrder(order); }catch(e){ console.error(e); }
+  try{ recalculateShiftFundFromOrders(); }catch(e){ console.error(e); }
+  saveDataDirect();
+  renderHistoryOrders();
+  showToast(`📕 Đã ghi công nợ ${fmt(order.totalPrice || 0)}đ — đơn chuyển xuống khung dưới cùng.`);
+}
+/* Chủ quán: khách đã trả nợ → đơn được tính lại vào doanh thu / quỹ (giữ hình thức thanh toán cũ, muốn đổi thì ✏️ Chỉnh đơn) */
+function clearOrderDebt(id){
+  if(!CURRENT_USER || CURRENT_USER.role !== 'owner'){ alert('⚠️ Chỉ chủ quán mới xác nhận khách đã trả nợ.'); return; }
+  const order = (DATA.orders || []).find(o => o.id === id);
+  if(!order || !isDebtOrder(order)) return;
+  const secPin = (DATA && DATA.config && DATA.config.securityPin) ? DATA.config.securityPin : '9999';
+  const code = prompt('🔒 Nhập Mã PIN Cấp Hai để xác nhận khách ĐÃ TRẢ NỢ:');
+  if(code !== secPin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
+  if(!confirm(`Khách đã trả đủ ${fmt(order.totalPrice || 0)}đ cho đơn "${order.table}"?\n\nĐơn sẽ được tính lại vào doanh thu và quỹ (${orderPayLabel(order)}).`)) return;
+  checkShiftDayRollover();
+  const dCash = orderCashAmt(order), dBank = orderBankAmt(order);
+  if(isOrderSettled(order)){
+    if(dCash) logSettledOrderAdjust('debt-paid', 'cash', dCash, `Khách trả nợ bàn ${order.table} (ngày ${order.dateIso})`, order);
+    if(dBank) logSettledOrderAdjust('debt-paid', 'bank', dBank, `Khách trả nợ bàn ${order.table} (ngày ${order.dateIso})`, order);
+  } else {
+    if(dCash) logCashFundOnly('debt-paid', 'shiftCash', dCash, `Khách trả nợ bàn ${order.table}`, order.id);
+    if(dBank) logCashFundOnly('debt-paid', 'shiftBank', dBank, `Khách trả nợ bàn ${order.table}`, order.id);
+  }
+  order.debt = false;
+  order.debtPaidAt = Date.now();
+  order.debtPaidBy = getFormattedUserDisplayName(CURRENT_USER);
+  try{ refreshDiscrepanciesForOrder(order); }catch(e){ console.error(e); }
+  try{ recalculateShiftFundFromOrders(); }catch(e){ console.error(e); }
+  saveDataDirect();
+  renderHistoryOrders();
+  showToast('💰 Đã ghi nhận khách trả nợ — đơn được tính lại vào doanh thu.');
 }
 
 /* ============ FIX #6: XÓA ĐƠN ============ */
@@ -3565,6 +4092,7 @@ function completeOrder(id){
   const order = (DATA.orders || []).find(o => o.id === id);
   if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
   if(isCompletedOrder(order)) return;
+  if(isDebtOrder(order)){ alert('⚠️ Đơn đang ghi công nợ nên không thao tác được. Chủ quán bấm "Khách đã trả nợ" ở khung dưới cùng trước nhé.'); return; }
   if(isCancelledOrder(order)){ alert('⚠️ Đơn đang yêu cầu hủy / đã hủy nên không hoàn thành được. Xử lý hủy trước nhé.'); return; }
   if(!confirm(`Xác nhận ĐÃ GIAO XONG đơn "${order.table}" (${fmt(order.totalPrice || 0)}đ)?\n\nSau khi hoàn thành, khách sẽ không xóa/hủy được đơn này nữa.`)) return;
   const n = getVietnamTimeNow();
@@ -3585,7 +4113,7 @@ function renderStaffCupsPanel(list){
   live.forEach(o => {
     const k = o.staffName || '(không rõ)';
     const g = by[k] || (by[k] = { cups:0, orders:0, revenue:0, items:{}, days:{} });
-    g.cups += (o.totalQty || 0); g.orders++; g.revenue += (o.totalPrice || 0);
+    g.cups += (o.totalQty || 0); g.orders++; g.revenue += isDebtOrder(o) ? 0 : (o.totalPrice || 0);
     const d = o.dateIso || '';
     g.days[d] = (g.days[d] || 0) + (o.totalQty || 0);
     (o.items || []).forEach(i => { const key = `${i.name} (${i.size})`; g.items[key] = (g.items[key] || 0) + (i.qty || 0); });
@@ -3611,7 +4139,7 @@ function deleteOrder(id){
   const order = (DATA.orders || []).find(o => o.id === id);
   if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
   checkShiftDayRollover();
-  if(!isCancelledOrder(order)){
+  if(!isNonRevenueOrder(order)){
     const dCash = orderCashAmt(order), dBank = orderBankAmt(order);
     if(isOrderSettled(order)){
       // Ngày của đơn đã chốt vào Quỹ Tổng → trừ thẳng khỏi Quỹ Tổng
@@ -3664,7 +4192,21 @@ function deleteOrder(id){
       });
     }).catch(err => console.error('❌ Lỗi thu hồi:', err));
   }
+  try{
+    const _n = getVietnamTimeNow();
+    const _logged = JSON.parse(JSON.stringify(order));
+    _logged.statusBeforeDelete = order.status || '';
+    _logged.deletedAtMs = Date.now();
+    _logged.deletedTime = `${String(_n.getHours()).padStart(2,'0')}:${String(_n.getMinutes()).padStart(2,'0')}:${String(_n.getSeconds()).padStart(2,'0')} — ${String(_n.getDate()).padStart(2,'0')}/${String(_n.getMonth()+1).padStart(2,'0')}/${_n.getFullYear()}`;
+    _logged.deletedBy = CURRENT_USER ? getFormattedUserDisplayName(CURRENT_USER) : '';
+    _logged.deletedReason = (order.status === 'Yêu cầu hủy') ? 'Khách yêu cầu hủy — chủ quán xác nhận' : (order.debt ? 'Chủ quán xóa đơn công nợ' : 'Chủ quán xóa đơn');
+    if(!Array.isArray(DATA.deletedOrders)) DATA.deletedOrders = [];
+    DATA.deletedOrders = DATA.deletedOrders.filter(x => x && x.id !== order.id);
+    DATA.deletedOrders.unshift(_logged);
+    if(DATA.deletedOrders.length > 500) DATA.deletedOrders.length = 500;
+  }catch(e){ console.error('log deleted order', e); }
   DATA.orders = DATA.orders.filter(o => o.id !== id);
+  mergeSelection.delete(id);
   refreshDiscrepanciesForOrder(order);
   saveDataDirect();
   renderHistoryOrders();
@@ -3676,6 +4218,7 @@ function staffChangePayment(id){
   if(!CURRENT_USER || CURRENT_USER.role === 'owner') return;
   const order = (DATA.orders || []).find(o => o.id === id);
   if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
+  if(isDebtOrder(order)){ alert('⚠️ Đơn đang ghi công nợ nên không thao tác được. Chủ quán bấm "Khách đã trả nợ" ở khung dưới cùng trước nhé.'); return; }
   if(isCancelledOrder(order)){ alert('⚠️ Đơn đã hủy / đang yêu cầu hủy nên không đổi được.'); return; }
   if(isMixedOrder(order)){ alert('⚠️ Đơn này đã chia thanh toán theo từng ly, vui lòng báo chủ quán chỉnh.'); return; }
   checkShiftDayRollover();
@@ -3702,6 +4245,7 @@ function staffChangePayment(id){
 }
 
 let editingOrderId = null, editOrderDraftItems = null;
+let editOrderStaffMode = false, editOrderOrigItems = [], editOrderOrigQty = {}, editOrderOrigToppings = {};
 function getToppingCostByName(name){
   const topProd = (DATA.products || []).find(p => p.category === 'Topping' && p.name === name);
   if(!topProd) return 0;
@@ -3726,16 +4270,28 @@ function recalcEditItem(item){
 function openEditOrderModal(id){
   const order = (DATA.orders || []).find(o => o.id === id);
   if(!order) return;
-  const secPin = (DATA && DATA.config && DATA.config.securityPin) ? DATA.config.securityPin : '9999';
-  const code = prompt('🔒 Nhập Mã PIN Cấp Hai:');
-  if(code !== secPin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
+  if(isDebtOrder(order)){ alert('⚠️ Đơn đang ghi công nợ nên không chỉnh được. Chủ quán bấm "Khách đã trả nợ" ở khung dưới cùng trước nhé.'); return; }
+  const _isOwner = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
+  if(_isOwner){
+    const secPin = (DATA && DATA.config && DATA.config.securityPin) ? DATA.config.securityPin : '9999';
+    const code = prompt('🔒 Nhập Mã PIN Cấp Hai:');
+    if(code !== secPin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
+  } else if(!canStaffEditOrder(order)){
+    alert('⚠️ Nhân viên chỉ chỉnh được đơn của chính mình trong ca hôm nay (và đơn chưa hủy).'); return;
+  }
+  editOrderStaffMode = !_isOwner;
   editingOrderId = id;
   editOrderDraftItems = JSON.parse(JSON.stringify(order.items || []));
   const _mixed = isMixedOrder(order), _bank = isBankOrder(order);
   editOrderDraftItems.forEach(it => {
+    if(!it.itemKey) it.itemKey = uid('item');
     if(_mixed) it.bankQty = Math.min(Math.max(it.bankQty || 0, 0), it.qty || 0);
     else it.bankQty = _bank ? (it.qty || 0) : 0;
   });
+  editOrderOrigItems = JSON.parse(JSON.stringify(editOrderDraftItems));
+  editOrderOrigQty = {}; editOrderOrigToppings = {};
+  editOrderOrigItems.forEach(it => { editOrderOrigQty[it.itemKey] = it.qty || 0; editOrderOrigToppings[it.itemKey] = (it.toppings || []).map(t => t.name); });
+  const _sn = document.getElementById('edit-order-staff-note'); if(_sn) _sn.style.display = editOrderStaffMode ? 'block' : 'none';
   document.getElementById('edit-order-table').value = order.table || '';
   document.getElementById('edit-order-payment').value = _mixed ? 'MIXED' : (_bank ? 'Chuyển khoản' : 'Tiền mặt');
   document.getElementById('edit-order-note').value = order.generalNote || '';
@@ -3747,7 +4303,7 @@ function openEditOrderModal(id){
 }
 function closeEditOrderModal(){
   document.getElementById('edit-order-modal').style.display = 'none';
-  editingOrderId = null; editOrderDraftItems = null;
+  editingOrderId = null; editOrderDraftItems = null; editOrderStaffMode = false;
 }
 document.getElementById('btn-cancel-edit-order').addEventListener('click', closeEditOrderModal);
 function renderEditOrderItems(){
@@ -3755,22 +4311,29 @@ function renderEditOrderItems(){
   if(!editOrderDraftItems || editOrderDraftItems.length === 0){ wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted); text-align:center; padding:12px 0;">Không còn món nào.</p>'; }
   else {
     const toppingProducts = (DATA.products || []).filter(p => p.category === 'Topping');
+    const swapProducts = (DATA.products || []).filter(p => p.category !== 'Topping');
     wrap.innerHTML = editOrderDraftItems.map((item, idx)=>{
       const prod = (DATA.products || []).find(p => p.id === item.prodId);
+      const _origQty = editOrderOrigQty[item.itemKey] || 0;
+      const _origTops = editOrderOrigToppings[item.itemKey] || [];
+      const _lockRemove = editOrderStaffMode && _origQty > 0;
+      const _minusLocked = editOrderStaffMode && item.qty <= _origQty;
+      const swapOptionsHtml = (swapProducts.some(p => p.id === item.prodId) ? '' : `<option value="" selected disabled>${escapeHtml(item.name)}</option>`) + swapProducts.map(p => `<option value="${p.id}" ${p.id === item.prodId ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('');
       const sizeOptionsHtml = prod ? Object.keys(prod.sizes).map(s=>`<option value="${s}" ${s===item.size?'selected':''}>Size ${s} (${fmt(prod.sizes[s].price)}đ)</option>`).join('') : '';
       const toppingListHtml = toppingProducts.length > 0 ? toppingProducts.map(tp=>{
         const szKey = Object.keys(tp.sizes)[0] || 'M';
         const price = tp.sizes[szKey].price;
         const isChecked = (item.toppings || []).some(t => t.name === tp.name);
-        return `<label class="eo-topping-check"><span><input type="checkbox" ${isChecked?'checked':''} onchange="toggleEditItemTopping(${idx}, '${tp.name.replace(/'/g,"\\'")}', ${price}, this.checked)"> + ${escapeHtml(tp.name)}</span><b>${fmt(price)}đ</b></label>`;
+        return `<label class="eo-topping-check"><span><input type="checkbox" ${isChecked?'checked':''} ${(editOrderStaffMode && isChecked && _origTops.indexOf(tp.name) >= 0) ? 'disabled' : ''} onchange="toggleEditItemTopping(${idx}, '${tp.name.replace(/'/g,"\\'")}', ${price}, this.checked)"> + ${escapeHtml(tp.name)}</span><b>${fmt(price)}đ</b></label>`;
       }).join('') : '<p style="font-size:11.5px; color:var(--muted); margin:2px 0;">Chưa có topping.</p>';
       return `
         <div class="edit-order-item-row">
-          <button class="icon-btn danger" style="position:absolute; top:8px; right:8px; width:26px; height:26px; font-size:12px;" onclick="removeEditItem(${idx})">✕</button>
+          ${_lockRemove ? '<span title="Nhân viên không xóa được ly đã gọi" style="position:absolute; top:8px; right:10px; font-size:14px;">🔒</span>' : `<button class="icon-btn danger" style="position:absolute; top:8px; right:8px; width:26px; height:26px; font-size:12px;" onclick="removeEditItem(${idx})">✕</button>`}
           <div style="display:flex; justify-content:space-between; align-items:center; padding-right:30px;">
             <b style="font-size:13.5px;">${escapeHtml(item.name)}</b>
-            <div style="display:flex; align-items:center; gap:6px;"><button class="icon-btn" onclick="changeEditItemQty(${idx}, -1)">-</button><b>${item.qty}</b><button class="icon-btn" onclick="changeEditItemQty(${idx}, 1)">+</button></div>
+            <div style="display:flex; align-items:center; gap:6px;"><button class="icon-btn" ${_minusLocked ? 'disabled style="opacity:.35;"' : ''} onclick="changeEditItemQty(${idx}, -1)">-</button><b>${item.qty}</b><button class="icon-btn" onclick="changeEditItemQty(${idx}, 1)">+</button></div>
           </div>
+          <div style="margin-top:6px;"><label style="font-size:11px; font-weight:700; color:var(--muted);">🔄 Đổi món:</label><select style="margin-top:2px; font-weight:700;" onchange="changeEditItemProduct(${idx}, this.value)">${swapOptionsHtml}</select></div>
           ${sizeOptionsHtml ? `<div style="margin-top:6px;"><label style="font-size:11px; font-weight:700; color:var(--muted);">Size:</label><select style="margin-top:2px;" onchange="changeEditItemSize(${idx}, this.value)">${sizeOptionsHtml}</select></div>` : ''}
           <label style="font-size:11px; font-weight:700; color:var(--muted); display:block; margin-top:8px;">Topping:</label>
           <div class="eo-topping-list">${toppingListHtml}</div>
@@ -3821,8 +4384,19 @@ function onEditOrderPaymentChange(v){
   (editOrderDraftItems || []).forEach(it => { it.bankQty = (v === 'Chuyển khoản') ? (it.qty || 0) : 0; });
   renderEditOrderItems();
 }
+function changeEditItemProduct(idx, prodId){
+  const item = editOrderDraftItems[idx]; if(!item || !prodId) return;
+  const prod = (DATA.products || []).find(p => p.id === prodId);
+  if(!prod || prod.category === 'Topping') return;
+  item.prodId = prod.id; item.name = prod.name;
+  const sizes = Object.keys(prod.sizes || {});
+  if(!prod.sizes || !prod.sizes[item.size]) item.size = sizes[0] || 'M';
+  recalcEditItem(item);
+  renderEditOrderItems();
+}
 function changeEditItemQty(idx, delta){
   const item = editOrderDraftItems[idx]; if(!item) return;
+  if(editOrderStaffMode && delta < 0 && (item.qty + delta) < (editOrderOrigQty[item.itemKey] || 0)){ alert('⚠️ Nhân viên không được xóa / giảm ly đã gọi. Cần xóa vui lòng báo chủ quán.'); return; }
   const oldQty = item.qty, oldBank = item.bankQty || 0;
   item.qty += delta;
   if(item.qty <= 0){ editOrderDraftItems.splice(idx, 1); }
@@ -3838,12 +4412,16 @@ function toggleEditItemTopping(idx, toppingName, price, isChecked){
   const item = editOrderDraftItems[idx];
   if(!item) return;
   if(!item.toppings) item.toppings = [];
+  if(editOrderStaffMode && !isChecked && (editOrderOrigToppings[item.itemKey] || []).indexOf(toppingName) >= 0){ alert('⚠️ Nhân viên không được bỏ topping đã gọi.'); renderEditOrderItems(); return; }
   if(isChecked){ if(!item.toppings.some(t=>t.name===toppingName)) item.toppings.push({ name: toppingName, price }); }
   else { item.toppings = item.toppings.filter(t => t.name !== toppingName); }
   recalcEditItem(item); renderEditOrderItems();
 }
 function updateEditItemNote(idx, val){ const item = editOrderDraftItems[idx]; if(!item) return; item.note = val; }
-function removeEditItem(idx){ if(!confirm('Xóa món này?')) return; editOrderDraftItems.splice(idx, 1); renderEditOrderItems(); }
+function removeEditItem(idx){
+  const _it = editOrderDraftItems[idx];
+  if(editOrderStaffMode && _it && (editOrderOrigQty[_it.itemKey] || 0) > 0){ alert('⚠️ Nhân viên không được xóa ly đã gọi. Cần xóa vui lòng báo chủ quán.'); return; }
+  if(!confirm('Xóa món này?')) return; editOrderDraftItems.splice(idx, 1); renderEditOrderItems(); }
 document.getElementById('btn-edit-order-add-item').addEventListener('click', ()=>{
   const prodId = document.getElementById('edit-order-add-product-select').value;
   const prod = (DATA.products || []).find(p => p.id === prodId);
@@ -3862,6 +4440,17 @@ document.getElementById('btn-save-edit-order').addEventListener('click', ()=>{
   const order = (DATA.orders || []).find(o => o.id === editingOrderId);
   if(!order) return;
   if(!editOrderDraftItems || editOrderDraftItems.length === 0){ alert('⚠️ Hóa đơn phải có ít nhất 1 món!'); return; }
+  const _staffMode = editOrderStaffMode;
+  if(_staffMode){
+    if(!canStaffEditOrder(order)){ alert('⚠️ Đơn này không còn chỉnh được (đã hủy / sang ca khác / không phải đơn của bạn).'); closeEditOrderModal(); renderHistoryOrders(); return; }
+    for(const oi of editOrderOrigItems){
+      const di = editOrderDraftItems.find(x => x.itemKey === oi.itemKey);
+      if(!di || (di.qty || 0) < (oi.qty || 0)){ alert('⚠️ Nhân viên không được xóa / giảm ly đã gọi (' + oi.name + '). Cần xóa vui lòng báo chủ quán.'); return; }
+      const dTops = (di.toppings || []).map(t => t.name);
+      if((oi.toppings || []).some(t => dTops.indexOf(t.name) < 0)){ alert('⚠️ Nhân viên không được bỏ topping đã gọi (' + oi.name + ').'); return; }
+    }
+  }
+  const _oldTotalForNoti = order.totalPrice || 0;
   const newTable = document.getElementById('edit-order-table').value.trim() || 'Mang đi / Khách lẻ';
   const _split = editOrderPaySplit();
   const newPayment = _split.method;
@@ -3894,6 +4483,29 @@ document.getElementById('btn-save-edit-order').addEventListener('click', ()=>{
     const why = `Sửa hóa đơn bàn ${order.table} (${order.dateIso}): tiền mặt ${fmt(oldCashAmt)}đ → ${fmt(newCashAmt)}đ, CK ${fmt(oldBankAmt)}đ → ${fmt(newBankAmt)}đ`;
     if(dCash !== 0){ logSettledOrderAdjust('order-edit', 'cash', dCash, why, order); fundMsg += `\n💰 Quỹ Tiền Mặt Tổng ${dCash > 0 ? 'cộng' : 'trừ'} ${fmt(Math.abs(dCash))}đ.`; }
     if(dBank !== 0){ logSettledOrderAdjust('order-edit', 'bank', dBank, why, order); fundMsg += `\n💰 Quỹ Tài Khoản ${dBank > 0 ? 'cộng' : 'trừ'} ${fmt(Math.abs(dBank))}đ.`; }
+  }
+  if(_staffMode){
+    const parts = [];
+    const oldMap = {}; editOrderOrigItems.forEach(i => { oldMap[i.itemKey] = i; });
+    order.items.forEach(n => {
+      const o0 = oldMap[n.itemKey];
+      if(!o0){ parts.push(`+${n.qty} ${n.name} (${n.size})`); return; }
+      if(o0.name !== n.name) parts.push(`đổi ${o0.name} → ${n.name}`);
+      if(o0.size !== n.size) parts.push(`${n.name}: size ${o0.size} → ${n.size}`);
+      const ot = (o0.toppings || []).map(t => t.name), nt = (n.toppings || []).map(t => t.name);
+      const added = nt.filter(x => ot.indexOf(x) < 0);
+      if(added.length) parts.push(`${n.name}: thêm topping ${added.join(', ')}`);
+      if((n.qty || 0) > (o0.qty || 0)) parts.push(`${n.name}: +${n.qty - o0.qty} ly`);
+    });
+    if(newCashAmt !== oldCashAmt || newBankAmt !== oldBankAmt) parts.push(`thanh toán: TM ${fmt(oldCashAmt)}đ→${fmt(newCashAmt)}đ, CK ${fmt(oldBankAmt)}đ→${fmt(newBankAmt)}đ`);
+    if(parts.length){
+      const _n = getVietnamTimeNow();
+      const timeStr = `${String(_n.getHours()).padStart(2,'0')}:${String(_n.getMinutes()).padStart(2,'0')}:${String(_n.getSeconds()).padStart(2,'0')} — ${String(_n.getDate()).padStart(2,'0')}/${String(_n.getMonth()+1).padStart(2,'0')}/${_n.getFullYear()}`;
+      if(!DATA.notifications) DATA.notifications = [];
+      DATA.notifications.unshift({ id: uid('noti'), type: 'order-edit', orderId: order.id, orderDate: order.dateIso, message: `✏️ ${CURRENT_USER.name} chỉnh đơn ${order.table} (${fmt(_oldTotalForNoti)}đ → ${fmt(order.totalPrice)}đ): ${parts.join('; ')}`, time: timeStr, read: false });
+      if(!order.staffEdits) order.staffEdits = [];
+      order.staffEdits.push({ by: CURRENT_USER.name, at: timeStr, changes: parts, from: _oldTotalForNoti, to: order.totalPrice });
+    }
   }
   refreshDiscrepanciesForOrder(order);
   saveDataDirect();
@@ -5274,7 +5886,7 @@ function exportWeekExcel(){
   /* --- dữ liệu nền --- */
   const orders = (DATA.orders || []).filter(o => inWeek(getOrderShiftDay(o)))
     .sort((a, b) => (getOrderShiftDay(a) + (a.time||'')).localeCompare(getOrderShiftDay(b) + (b.time||'')));
-  const okOrders = orders.filter(o => !isCancelledOrder(o));
+  const okOrders = orders.filter(o => !isNonRevenueOrder(o));
   const buys = (DATA.inventoryLogs || []).filter(l => l.type === 'mua thành công' && l.timestamp && inWeek(wkTsShiftDay(l.timestamp))).sort((a,b)=>a.timestamp-b.timestamp);
   const outs = (DATA.inventoryLogs || []).filter(l => l.type === 'báo hết' && l.timestamp && inWeek(wkTsShiftDay(l.timestamp))).sort((a,b)=>a.timestamp-b.timestamp);
   const atts = (DATA.attendance || []).filter(a => inWeek(a.shiftDay || a.dateStr)).sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
@@ -5345,6 +5957,8 @@ function exportWeekExcel(){
     ['Giá vốn ước tính', Math.round(tCost)],
     ['Lãi gộp ước tính', Math.round(tCash + tBank - tCost)],
     ['Số đơn hủy / yêu cầu hủy', orders.filter(isCancelledOrder).length],
+    ['Công nợ chưa thu (số đơn)', orders.filter(isDebtOrder).length],
+    ['Công nợ chưa thu (số tiền)', sum(orders.filter(isDebtOrder), o => o.totalPrice)],
     ['Số đơn đã đổi hình thức thanh toán', orders.filter(o => (o.paymentChanges || []).length).length],
     [],
     ['MUA NGUYÊN LIỆU'],
@@ -5375,7 +5989,7 @@ function exportWeekExcel(){
 
   /* --- Đơn hàng --- */
   const orderRows = [['Ngày ca','Giờ','Bàn / Khách','Nhân viên','Thanh toán','Món','Số ly','Tổng tiền','Tiền mặt','Chuyển khoản','Giá vốn','Ghi chú','Voucher','Trạng thái','Lịch sử đổi thanh toán']];
-  orders.forEach(o => orderRows.push([wkDmy(getOrderShiftDay(o)), o.time || '', o.table || '', o.staffName || '', isMixedOrder(o) ? 'Chia từng ly' : (o.paymentMethod || 'Tiền mặt'), wkItemsText(o), o.totalQty || 0, o.totalPrice || 0, orderCashAmt(o), orderBankAmt(o), Math.round(o.totalCost || 0), o.generalNote || '', (o.appliedVoucher && o.appliedVoucher !== 'none') ? o.appliedVoucher : '', o.status || 'Hoàn tất', (o.paymentChanges || []).map(c => `${c.at}: ${c.from}→${c.to} (${c.by})`).join(' | ')]));
+  orders.forEach(o => orderRows.push([wkDmy(getOrderShiftDay(o)), o.time || '', o.table || '', o.staffName || '', isMixedOrder(o) ? 'Chia từng ly' : (o.paymentMethod || 'Tiền mặt'), wkItemsText(o), o.totalQty || 0, o.totalPrice || 0, isDebtOrder(o) ? 0 : orderCashAmt(o), isDebtOrder(o) ? 0 : orderBankAmt(o), Math.round(o.totalCost || 0), o.generalNote || '', (o.appliedVoucher && o.appliedVoucher !== 'none') ? o.appliedVoucher : '', isDebtOrder(o) ? 'CÔNG NỢ (chưa thu)' : (o.status || 'Hoàn tất'), (o.paymentChanges || []).map(c => `${c.at}: ${c.from}→${c.to} (${c.by})`).join(' | ')]));
   if(orders.length === 0) orderRows.push(['(Kỳ này không có đơn)']);
   addSheet('Đơn hàng', orderRows, [12, 22, 18, 20, 14, 60, 8, 12, 12, 14, 12, 22, 16, 14, 40]);
 
