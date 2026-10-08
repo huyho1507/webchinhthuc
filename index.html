@@ -141,7 +141,10 @@
   .log-row.info{ border-left:5px solid #3b7dd8; background:linear-gradient(90deg,#f0f5fd,#fff); }
   .log-row.warn{ border-left:5px solid #e0a800; background:linear-gradient(90deg,#fffaeb,#fff); }
   .live-stamp{ font-size:11px; color:var(--muted); font-weight:700; }
-  .order-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:10px; padding-top:8px; border-top:1px dashed #e6e0d2; }
+  .order-actions{ display:grid; grid-template-columns:repeat(auto-fit,minmax(136px,1fr)); gap:8px; margin-top:10px; padding-top:10px; border-top:1px dashed #e6e0d2; }
+  .order-actions .btn.small{ display:flex; align-items:center; justify-content:center; gap:5px; min-height:40px; padding:8px 10px; font-size:13px; line-height:1.15; border-radius:12px; white-space:nowrap; text-align:center; }
+  .order-actions .btn.small:active{ transform:translateY(1px); }
+  .merge-check{ width:20px; height:20px; min-width:20px; margin:0; padding:0; flex:0 0 auto; }
   section.panel{ display:none !important; }
   section.panel.active{ display:block !important; }
   .card{ background:var(--card); border:2px solid var(--line); border-radius:20px; padding:16px; margin-bottom:14px; }
@@ -3614,14 +3617,17 @@ function renderHistoryOrders(){
     const lastPayChange = (o.paymentChanges && o.paymentChanges.length) ? o.paymentChanges[o.paymentChanges.length - 1] : null;
     const isCompleted = isCompletedOrder(o);
     const canComplete = !!CURRENT_USER && isWebOrder && !isCancelRequest && !isCancelledOrder(o) && !isCompleted;
-    const canDebt = !!CURRENT_USER && !isCancelledOrder(o) && !isDebtOrder(o);
+    // Quyền: chỉ NGƯỜI TẠO BILL (trong ngày làm việc) hoặc CHỦ QUÁN mới sửa / thêm món / công nợ / in lại. Bill của người khác chỉ xem nội dung.
+    const isMine = !!(CURRENT_USER && o.staffName === CURRENT_USER.name);
+    const canPrint = (isOwnerNow || isMine) && printerEnabled(); // chỉ hiện khi máy này đã chọn máy in
+    const canDebt = (isOwnerNow || staffCanEdit) && !isCancelledOrder(o) && !isDebtOrder(o);
     const debtBtn = canDebt ? `<button class="btn small" style="background:#b3261e; color:#fff; border-color:#b3261e;" onclick="markOrderDebt('${o.id}')">📕 Công nợ</button>` : '';
     return `
     <div style="background:${bgStyle}; border:${borderStyle}; border-left:6px solid ${payColor}; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
       ${isCompleted ? '<div style="position:absolute; top:-8px; right:12px; background:#2e9e5b; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">✅ ĐÃ HOÀN THÀNH</div>' : ''}
       ${isCancelRequest ? '<div style="position:absolute; top:-8px; right:12px; background:#000; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">YÊU CẦU HỦY</div>' : ''}
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; font-weight:800; font-size:14px; margin-bottom:4px;">
-        <span>${canMergeOrder(o) ? `<input type="checkbox" class="merge-check" title="Chọn để gộp bill" ${mergeSelection.has(o.id) ? 'checked' : ''} onchange="toggleMergeSelect('${o.id}', this.checked)">` : ''}📍 ${escapeHtml(o.table)} <span style="font-size:11px; background:${payBg}; color:${payColor}; border:1px solid ${payColor}; padding:2px 6px; border-radius:6px; margin-left:6px;">${isMixed ? '💵+📱' : (isBank ? '📱' : '💵')} ${isMixed ? 'Chia từng ly' : escapeHtml(o.paymentMethod || 'Tiền mặt')}</span></span>
+        <span style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0;">${canMergeOrder(o) ? `<input type="checkbox" class="merge-check" title="Chọn để gộp bill" ${mergeSelection.has(o.id) ? 'checked' : ''} onchange="toggleMergeSelect('${o.id}', this.checked)">` : ''}📍 ${escapeHtml(o.table)} <span style="font-size:11px; background:${payBg}; color:${payColor}; border:1px solid ${payColor}; padding:2px 6px; border-radius:6px; margin-left:6px;">${isMixed ? '💵+📱' : (isBank ? '📱' : '💵')} ${isMixed ? 'Chia từng ly' : escapeHtml(o.paymentMethod || 'Tiền mặt')}</span></span>
         <span style="color:${payColor}; white-space:nowrap;">${isMixed ? 'Tổng' : (isBank ? 'DT Chuyển khoản' : 'DT Tiền mặt')}: ${fmt(o.totalPrice)}đ</span>
       </div>
       <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
@@ -3641,14 +3647,13 @@ function renderHistoryOrders(){
         }).join('<br>')}
       </div>
       ${orderDetailsBlock(o)}
-      ${(printerEnabled() || isOwnerNow || staffCanFix || staffCanEdit || canComplete || canDebt) ? `
+      ${(canPrint || isOwnerNow || staffCanEdit || canComplete || canDebt) ? `
       <div class="order-actions">
         ${canComplete ? `<button class="btn small" style="background:#2e9e5b; color:#fff; border-color:#2e9e5b;" onclick="completeOrder('${o.id}')">✅ Hoàn thành</button>` : ''}
-        ${printerEnabled() ? `<button class="btn small ghost" onclick="printOrderById('${o.id}')">🖨️ In lại bill</button>` : ''}
-        ${staffCanFix ? `<button class="btn small ghost" onclick="staffChangePayment('${o.id}')">💱 Đổi sang ${isBank ? 'Tiền mặt' : 'Chuyển khoản'}</button>` : ''}
+        ${canPrint ? `<button class="btn small ghost" onclick="printOrderById('${o.id}')">🖨️ In lại bill</button>` : ''}
         ${staffCanEdit ? `<button class="btn small ghost" onclick="openEditOrderModal('${o.id}')">✏️ Chỉnh đơn</button>
-        <button class="btn small" style="background:#e67e22; color:#fff; border-color:#e67e22;" onclick="addMoreToOrder('${o.id}')">➕ Gọi thêm món</button>${debtBtn}` : (canDebt && !isOwnerNow ? debtBtn : '')}
-        ${CURRENT_USER && CURRENT_USER.role==='owner' ? `<button class="btn small ghost" onclick="openEditOrderModal('${o.id}')">✏️ Chỉnh đơn</button>
+        <button class="btn small" style="background:#e67e22; color:#fff; border-color:#e67e22;" onclick="addMoreToOrder('${o.id}')">➕ Gọi thêm món</button>${debtBtn}` : ''}
+        ${isOwnerNow ? `<button class="btn small ghost" onclick="openEditOrderModal('${o.id}')">✏️ Chỉnh đơn</button>
         ${!isCancelledOrder(o) ? `<button class="btn small" style="background:#e67e22; color:#fff; border-color:#e67e22;" onclick="addMoreToOrder('${o.id}')">➕ Gọi thêm món</button>` : ''}
         ${debtBtn}
         <button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="deleteOrder('${o.id}')">🗑️ Xóa đơn</button>` : ''}
@@ -4033,6 +4038,7 @@ function markOrderDebt(id){
   if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
   if(isDebtOrder(order)) return;
   if(isCancelledOrder(order)){ alert('⚠️ Đơn đã hủy / đang yêu cầu hủy nên không ghi công nợ được.'); return; }
+  if(CURRENT_USER.role !== 'owner' && !canStaffEditOrder(order)){ alert('⚠️ Chỉ người tạo bill (trong ngày làm việc) hoặc chủ quán mới ghi công nợ được.'); return; }
   if(CURRENT_USER.role !== 'owner'){
     const staff = (DATA.users || []).find(u => u.id === CURRENT_USER.id);
     const code = prompt('🔒 Nhập mã PIN đăng nhập của bạn để xác nhận ghi CÔNG NỢ:');
