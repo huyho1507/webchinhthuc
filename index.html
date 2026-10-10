@@ -568,6 +568,10 @@
     transition:none !important; animation:none !important; text-shadow:none !important;
   }
   html.lite body::before{ display:none !important; }
+  html.lite .card, html.lite .bill-card, html.lite .pos-item, html.lite .stat-card, html.lite .modal-card, html.lite .noti-dropdown, html.lite .toast{ box-shadow:none !important; }
+  html.lite img{ image-rendering:auto; }
+  html.lite{ scroll-behavior:auto !important; }
+  html.lite body{ -webkit-font-smoothing:auto; }
   html.lite .login-screen{ background:#86b98a !important; }
   html.lite .modal-overlay{ background:rgba(15,15,15,.55); }
   html.lite .topup-overlay{ background:rgba(0,0,0,.45); }
@@ -841,6 +845,16 @@
 </div>
 
 <!-- ==================== MODAL KIỂM KÊ RA CA (FIXED) ==================== -->
+<div class="modal-overlay" id="order-type-modal" style="display:none;" onclick="if(event.target===this) closeOrderTypeModal()">
+  <div class="modal-card" style="max-width:400px; text-align:center;">
+    <h3 style="margin-top:0; font-size:19px;">Khách dùng tại quán hay mang đi?</h3>
+    <div style="display:flex; flex-direction:column; gap:10px; margin:14px 0;">
+      <button class="btn" style="padding:14px; font-size:16px; background:#e67e22; border-color:#e67e22; color:#fff;" onclick="submitOrderBill(false)">🥡 KHÁCH MANG ĐI<br><span style="font-size:11.5px; font-weight:600;">Thanh toán luôn — tính vào quỹ ngay</span></button>
+      <button class="btn" style="padding:14px; font-size:16px; background:#2f5fa6; border-color:#2f5fa6; color:#fff;" onclick="submitOrderBill(true)">🪑 KHÁCH NGỒI LẠI QUÁN<br><span style="font-size:11.5px; font-weight:600;">Bill chờ ở tab 2 — bấm "Đã thanh toán" mới tính tiền</span></button>
+    </div>
+    <button class="btn ghost small" onclick="closeOrderTypeModal()">Hủy</button>
+  </div>
+</div>
 <div class="modal-overlay" id="checkout-cash-modal" style="display:none;">
   <div class="modal-card" style="max-width:620px; max-height:94vh; overflow-y:auto;">
     <h3 style="margin-top:0; font-size:20px;">🔴 Kiểm Kê Tiền Mặt &amp; Ra Ca</h3>
@@ -1312,38 +1326,6 @@
   </section>
 
   <section class="panel" id="tab-history">
-<div class="card owner-only" id="checkout-formula-card" style="border:2.5px solid #e67e22; background:#fffdf8;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
-        <h2 style="margin:0; color:#c2410c;">🧮 Cấu Hình Công Thức Kiểm Kê Quỹ (Chỉ Owner)</h2>
-        <div style="display:flex; gap:6px;">
-          <button class="btn small ghost" onclick="resetCheckoutFormula()">↺ Mặc định</button>
-          <button class="btn small success" onclick="saveCheckoutFormula()">💾 LƯU CÔNG THỨC</button>
-        </div>
-      </div>
-      <p style="font-size:12.5px; color:var(--muted); margin:-4px 0 12px;">
-        Chỉnh công thức so khớp quỹ khi nhân viên kết ca. Nhân viên sẽ dùng công thức này để kiểm kê. VD đúng: <b>X1 + Y1 + Z = X2 + Y2</b>
-      </p>
-      <div style="background:var(--soft); padding:10px 14px; border-radius:10px; font-size:12.5px; margin-bottom:12px; line-height:1.7;">
-        <b>📌 Biến khả dụng:</b><br>
-        • <b>X1</b> = Tiền mặt thu trong ca (tự động tính từ đơn)<br>
-        • <b>Y1</b> = Chuyển khoản thu trong ca (tự động tính từ đơn)<br>
-        • <b>Z</b> = Quỹ tiền mặt đầu ngày (owner nhập)<br>
-        • <b>X2</b> = Tiền mặt đếm được cuối ca (nhân viên nhập)<br>
-        • <b>Y2</b> = Chuyển khoản thực tế cuối ca (nhân viên nhập)
-      </div>
-      <div style="display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center; margin-bottom:12px;">
-        <div>
-          <label style="font-size:11.5px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px;">VẾ TRÁI (Kỳ vọng):</label>
-          <input type="text" id="formula-left-input" style="font-family:monospace; font-weight:800; text-align:center; font-size:14px;">
-        </div>
-        <div style="font-size:24px; font-weight:900; color:var(--accent);">=</div>
-        <div>
-          <label style="font-size:11.5px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px;">VẾ PHẢI (Thực tế):</label>
-          <input type="text" id="formula-right-input" style="font-family:monospace; font-weight:800; text-align:center; font-size:14px;">
-        </div>
-      </div>
-      <div id="formula-preview" style="background:#eaf4ed; padding:12px; border-radius:10px; font-size:13px; font-weight:700; text-align:center;"></div>
-    </div>
     <div class="card">
       <h2>Lịch sử Hóa Đơn Order &amp; Phân Tích Doanh Thu</h2>
       <div class="filter-bar" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--soft); padding:10px 14px; border-radius:12px; border:1.5px solid var(--line);">
@@ -1361,6 +1343,7 @@
         <div class="stat-card" style="background:#f4fbf5; border:1.5px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">💵 DT Tiền mặt</div><div class="num" id="stat-revenue-cash" style="font-weight:800; font-size:18px; color:var(--good);">0đ</div><div id="stat-revenue-cash-sub" style="font-size:10.5px; color:var(--muted); margin-top:2px;">0 đơn</div></div>
         <div class="stat-card" style="background:#f3f7fd; border:1.5px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">📱 DT Chuyển khoản</div><div class="num" id="stat-revenue-bank" style="font-weight:800; font-size:18px; color:#2f5fa6;">0đ</div><div id="stat-revenue-bank-sub" style="font-size:10.5px; color:var(--muted); margin-top:2px;">0 đơn</div></div>
         <div class="stat-card" style="background:#fdeceb; border:1.5px solid #e8a6a1; border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:#b3261e">📕 Công nợ (chưa thu)</div><div class="num" id="stat-revenue-debt" style="font-weight:800; font-size:18px; color:#b3261e;">0đ</div><div id="stat-revenue-debt-sub" style="font-size:10.5px; color:#b3261e; margin-top:2px;">0 đơn</div></div>
+        <div class="stat-card" style="background:#fff4e5; border:1.5px solid #f0b66b; border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:#b45309">🪑 Khách ngồi lại - chưa thanh toán</div><div class="num" id="stat-revenue-unpaid" style="font-weight:800; font-size:18px; color:#b45309;">0đ</div><div id="stat-revenue-unpaid-sub" style="font-size:10.5px; color:#b45309; margin-top:2px;">0 đơn</div></div>
       </div>
       <div id="history-staff-cups" style="margin-top:12px;"></div>
     </div>
@@ -1398,6 +1381,38 @@
         <div><button class="btn small" id="btn-clock-in">🟢 Vào Ca Làm</button><button class="btn small danger" id="btn-clock-out" style="display:none;">🔴 Ra Ca Làm</button></div>
       </div>
       <div id="handover-info" style="margin-top:10px; font-size:13px; background:#fff8e1; border:1.5px dashed var(--accent); border-radius:10px; padding:8px 12px;"></div>
+    </div>
+<div class="card owner-only" id="checkout-formula-card" style="border:2.5px solid #e67e22; background:#fffdf8;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+        <h2 style="margin:0; color:#c2410c;">🧮 Cấu Hình Công Thức Kiểm Kê Quỹ (Chỉ Owner)</h2>
+        <div style="display:flex; gap:6px;">
+          <button class="btn small ghost" onclick="resetCheckoutFormula()">↺ Mặc định</button>
+          <button class="btn small success" onclick="saveCheckoutFormula()">💾 LƯU CÔNG THỨC</button>
+        </div>
+      </div>
+      <p style="font-size:12.5px; color:var(--muted); margin:-4px 0 12px;">
+        Chỉnh công thức so khớp quỹ khi nhân viên kết ca. Nhân viên sẽ dùng công thức này để kiểm kê. VD đúng: <b>X1 + Y1 + Z = X2 + Y1</b> (gõ chữ hoa hay thường đều được)
+      </p>
+      <div style="background:var(--soft); padding:10px 14px; border-radius:10px; font-size:12.5px; margin-bottom:12px; line-height:1.7;">
+        <b>📌 Biến khả dụng:</b><br>
+        • <b>X1</b> = Tiền mặt thu trong ca (tự động tính từ đơn)<br>
+        • <b>Y1</b> = Chuyển khoản thu trong ca (tự động tính từ đơn)<br>
+        • <b>Z</b> = Quỹ tiền mặt đầu ngày (owner nhập)<br>
+        • <b>X2</b> = Tiền mặt đếm được cuối ca (nhân viên nhập)<br>
+        • <b>Y2</b> = Chuyển khoản thực tế cuối ca (nhân viên nhập)
+      </div>
+      <div style="display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center; margin-bottom:12px;">
+        <div>
+          <label style="font-size:11.5px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px;">VẾ TRÁI (Kỳ vọng):</label>
+          <input type="text" id="formula-left-input" style="font-family:monospace; font-weight:800; text-align:center; font-size:14px;">
+        </div>
+        <div style="font-size:24px; font-weight:900; color:var(--accent);">=</div>
+        <div>
+          <label style="font-size:11.5px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px;">VẾ PHẢI (Thực tế):</label>
+          <input type="text" id="formula-right-input" style="font-family:monospace; font-weight:800; text-align:center; font-size:14px;">
+        </div>
+      </div>
+      <div id="formula-preview" style="background:#eaf4ed; padding:12px; border-radius:10px; font-size:13px; font-weight:700; text-align:center;"></div>
     </div>
     <div class="card owner-only" style="border: 2.5px solid var(--ink); background: #fffdf9;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
@@ -1993,7 +2008,7 @@ function startLiveClock() {
     const day = String(vnTime.getDate()).padStart(2, '0');
     const month = String(vnTime.getMonth() + 1).padStart(2, '0');
     const year = vnTime.getFullYear();
-    clockSpan.textContent = `${hours}:${mins}:${secs} (${day}/${month}/${year})`;
+    if(!document.hidden) clockSpan.textContent = `${hours}:${mins}:${secs} (${day}/${month}/${year})`;
     if (checkShiftDayRollover()) {
       renderHeaderMoneyBadge();
       showToast(`🔄 Đã sang ngày mới! Doanh thu ngày trước đã chốt dồn vào Quỹ Tổng.`);
@@ -2417,7 +2432,9 @@ function isCompletedOrder(o){ return !!o && o.status === 'Hoàn thành'; }
 function isCancelledOrder(o){ return !!o && (o.status === 'Đã hủy' || o.status === 'Yêu cầu hủy'); }
 /* ===== CÔNG NỢ: đơn khách còn thiếu tiền → KHÔNG tính vào doanh thu / quỹ ===== */
 function isDebtOrder(o){ return !!o && o.debt === true; }
-function isNonRevenueOrder(o){ return isCancelledOrder(o) || isDebtOrder(o); }
+/* ===== KHÁCH NGỒI LẠI QUÁN: đơn chưa thanh toán → KHÔNG tính vào doanh thu / quỹ ca cho tới khi bấm "Đã thanh toán" ===== */
+function isUnpaidOrder(o){ return !!o && o.unpaid === true; }
+function isNonRevenueOrder(o){ return isCancelledOrder(o) || isDebtOrder(o) || isUnpaidOrder(o); }
 function isOrderSettled(o){ const d = getOrderShiftDay(o); return !!d && d < getShiftDayStr(); }
 /* Mốc thời gian (cùng hệ với nowVN.getTime()) của 1 đơn, đọc từ chuỗi giờ "HH:MM:SS — DD/MM/YYYY". Không đọc được → null */
 function getOrderTs(o){
@@ -3311,8 +3328,8 @@ function switchTab(tabName, force = false){
 }
 
 function refreshActiveTabContent(tabName){
-  if(tabName==='history') { renderHistoryOrders(); if(CURRENT_USER && CURRENT_USER.role==='owner') initCheckoutFormulaCard(); }
-  if(tabName==='shift') renderShiftTab();
+  if(tabName==='history') { renderHistoryOrders(); }
+  if(tabName==='shift') { renderShiftTab(); if(CURRENT_USER && CURRENT_USER.role==='owner') initCheckoutFormulaCard(); }
   if(tabName==='recipe') { renderCategoryChips(); renderProductList(); }
   if(tabName==='ing') { if(!hasUnsavedIngChanges && DATA.ingredients){ draftIngredients = JSON.parse(JSON.stringify(DATA.ingredients)); } renderIngredients(); }
   if(tabName==='settings') {
@@ -3481,9 +3498,16 @@ function updateBillQty(idx, delta){
 }
 document.getElementById('btn-submit-order').addEventListener('click', ()=>{
   if(!DATA) { loadData(); return; }
+  if(getCurrentUserBill().length === 0){ alert('⚠️ Vui lòng chọn món!'); return; }
+  document.getElementById('order-type-modal').style.display = 'flex';
+});
+function closeOrderTypeModal(){ document.getElementById('order-type-modal').style.display = 'none'; }
+function submitOrderBill(dineIn){
+  closeOrderTypeModal();
+  if(!DATA) { loadData(); return; }
   const currentBill = getCurrentUserBill();
   if(currentBill.length === 0){ alert('⚠️ Vui lòng chọn món!'); return; }
-  const tableName = document.getElementById('table-number').value.trim() || 'Mang đi / Khách lẻ';
+  const tableName = document.getElementById('table-number').value.trim() || (dineIn ? 'Khách ngồi lại' : 'Mang đi / Khách lẻ');
   const paymentMethod = document.getElementById('order-payment-method').value;
   const generalNote = document.getElementById('order-general-note').value.trim();
   const nowVN = getVietnamTimeNow();
@@ -3498,10 +3522,11 @@ document.getElementById('btn-submit-order').addEventListener('click', ()=>{
     dateIso: toVNDateStr(nowVN),
     time: `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')}:${String(nowVN.getSeconds()).padStart(2,'0')} — ${String(nowVN.getDate()).padStart(2,'0')}/${String(nowVN.getMonth()+1).padStart(2,'0')}/${nowVN.getFullYear()}`
   };
+  if(dineIn){ order.dineIn = true; order.unpaid = true; } // ngồi lại: chưa tính tiền vào quỹ cho tới khi bấm "Đã thanh toán"
   if(!DATA.orders) DATA.orders = [];
   DATA.orders.unshift(order);
   const isBank = (paymentMethod === 'Chuyển khoản');
-  logCashFundOnly('order', isBank ? 'shiftBank' : 'shiftCash', totalPrice, `Order bàn ${tableName}`, order.id);
+  if(!dineIn) logCashFundOnly('order', isBank ? 'shiftBank' : 'shiftCash', totalPrice, `Order bàn ${tableName}`, order.id);
   saveDataDirect();
   userBillsMap[CURRENT_USER ? CURRENT_USER.id : 'guest'] = [];
   document.getElementById('table-number').value = '';
@@ -3512,9 +3537,11 @@ document.getElementById('btn-submit-order').addEventListener('click', ()=>{
   if(!isLiteMode() || getActiveTabName() === 'history') renderHistoryOrders(); // chế độ nhẹ: tab Lịch sử tự vẽ lại khi mở
   let _printed = false;
   try { if(printerEnabled() && prnCfg().auto){ printOrder(order); _printed = true; } } catch(e){ console.error('print error', e); }
-  const _okMsg = `✅ Gửi Order thành công! (${order.totalQty} ly - ${fmt(order.totalPrice)}đ | ${paymentMethod})`;
+  const _okMsg = dineIn
+    ? `✅ Gửi Order thành công! (${order.totalQty} ly - ${fmt(order.totalPrice)}đ) — 🪑 khách ngồi lại, bill đang chờ thanh toán ở tab 2`
+    : `✅ Gửi Order thành công! (${order.totalQty} ly - ${fmt(order.totalPrice)}đ | ${paymentMethod})`;
   if(_printed) showToast(_okMsg + ' — đang in bill...'); else alert(_okMsg);
-});
+}
 const historyDateInput = document.getElementById('history-date');
 if(historyDateInput) historyDateInput.value = toVNDateStr(getVietnamTimeNow());
 document.getElementById('history-date').addEventListener('change', ()=>{ document.getElementById('history-week').value=''; document.getElementById('history-month').value=''; document.getElementById('history-date-from').value=''; document.getElementById('history-date-to').value=''; renderHistoryOrders(); });
@@ -3553,7 +3580,7 @@ function calculateBreakEven(){
   const monthStrPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
   (DATA.users || []).forEach(u => { const actual = calculateActualWorkedHoursAndPay(u, monthStrPrefix); const net = (actual.actualPay) - (actual.totalDeduction || 0); totalStaffNetSalary += net > 0 ? net : 0; });
   const totalAllFixed = totalFixedCost + totalStaffNetSalary;
-  const totalGrossProfit = (DATA.orders||[]).reduce((sum, o)=>{ if(isDebtOrder(o)) return sum; const cost = o.totalCost !== undefined ? o.totalCost : 0; return sum + (o.totalPrice - cost); }, 0);
+  const totalGrossProfit = (DATA.orders||[]).reduce((sum, o)=>{ if(isDebtOrder(o) || isUnpaidOrder(o)) return sum; const cost = o.totalCost !== undefined ? o.totalCost : 0; return sum + (o.totalPrice - cost); }, 0);
   document.getElementById('be-fixed-cost').textContent = fmt(totalFixedCost) + 'đ';
   document.getElementById('be-staff-salary').textContent = fmt(totalStaffNetSalary) + 'đ';
   document.getElementById('be-target-revenue').textContent = fmt(totalAllFixed * 1.6) + 'đ (Gợi ý)';
@@ -3580,6 +3607,9 @@ function renderHistoryOrders(){
   document.getElementById('history-filter-active-label').innerHTML = `Hiển thị: ${labelText} &nbsp; ${liveStampHtml()}`;
   const _debtList = filtered.filter(isDebtOrder);
   filtered = filtered.filter(o => !isDebtOrder(o)); // đơn công nợ: không tính doanh thu, nằm ở khung dưới cùng
+  const _allShown = filtered;                       // gồm cả đơn khách ngồi lại chưa thanh toán (hiện trong danh sách nhưng KHÔNG tính doanh thu)
+  filtered = filtered.filter(o => !isUnpaidOrder(o));
+  const _unpaidAll = (DATA.orders || []).filter(o => isUnpaidOrder(o) && !isCancelledOrder(o) && !isDebtOrder(o));
   try{ pruneMergeSelection(); renderMergeBar(); renderCancelledOrdersBox(); }catch(e){ console.error(e); }
   document.getElementById('stat-orders-count').textContent = filtered.length;
   document.getElementById('stat-cups-count').textContent = filtered.reduce((s, o) => s + (o.totalQty||0), 0) + ' ly';
@@ -3597,10 +3627,21 @@ function renderHistoryOrders(){
     _debtEl.textContent = fmt(_debtList.reduce((s, o) => s + (o.totalPrice || 0), 0)) + 'đ';
     document.getElementById('stat-revenue-debt-sub').textContent = _debtList.length + ' đơn';
   }
-  try{ renderStaffCupsPanel(filtered.concat(_debtList)); }catch(e){ console.error(e); }
+  const _unEl = document.getElementById('stat-revenue-unpaid');
+  if(_unEl){
+    _unEl.textContent = fmt(_unpaidAll.reduce((s, o) => s + (o.totalPrice || 0), 0)) + 'đ';
+    document.getElementById('stat-revenue-unpaid-sub').textContent = _unpaidAll.length + ' đơn (mọi ngày)';
+  }
+  try{ renderStaffCupsPanel(filtered.concat(_allShown.filter(isUnpaidOrder), _debtList)); }catch(e){ console.error(e); }
   const wrap = document.getElementById('history-order-list');
-  if(filtered.length === 0){ wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted); text-align:center; padding:16px 0;">Không có đơn order nào.</p>'; return; }
-  wrap.innerHTML = filtered.map(o=>{
+  const _listShown = _allShown.filter(o => !(o.mergedInto && (DATA.orders || []).some(x => x.id === o.mergedInto)));
+  if(_listShown.length === 0){ wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted); text-align:center; padding:16px 0;">Không có đơn order nào.</p>'; return; }
+  const _hKey = labelText + '|' + (document.getElementById('history-date').value || '');
+  if(window.__histKey !== _hKey){ window.__histKey = _hKey; window.__histLimit = 60; }
+  const _hLimit = window.__histLimit || 60;
+  const _listCut = _listShown.length > _hLimit ? _listShown.slice(0, _hLimit) : _listShown;
+  const _openDet = new Set(Array.prototype.map.call(wrap.querySelectorAll('details.order-detail-box[open]'), d => d.getAttribute('data-k')));
+  wrap.innerHTML = _listCut.map(o=>{
     const isMixed = isMixedOrder(o);
     const isBank = (o.paymentMethod === 'Chuyển khoản');
     let payColor = isMixed ? '#8a5a1f' : (isBank ? '#2f5fa6' : 'var(--good)');
@@ -3611,10 +3652,13 @@ function renderHistoryOrders(){
     if (isWebOrder) { bgStyle = 'linear-gradient(180deg, #fff5cc, #fffdf8)'; }
     let borderStyle = '1.5px solid var(--line)';
     if (isCancelRequest) { borderStyle = '3px solid #000000'; payColor = '#000000'; }
+    else if (isUnpaidOrder(o)) { borderStyle = '2.5px dashed #e67e22'; }
     const isOwnerNow = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
     const staffCanFix = !!(CURRENT_USER && !isOwnerNow && !isCancelledOrder(o) && !isMixedOrder(o) && getOrderShiftDay(o) === getShiftDayStr());
     const staffCanEdit = canStaffEditOrder(o);
     const lastPayChange = (o.paymentChanges && o.paymentChanges.length) ? o.paymentChanges[o.paymentChanges.length - 1] : null;
+    const isUnpaid = isUnpaidOrder(o);
+    const canPay = isUnpaid && !!CURRENT_USER && (isOwnerNow || isMine0(o)) && !isCancelledOrder(o);
     const isCompleted = isCompletedOrder(o);
     const canComplete = !!CURRENT_USER && isWebOrder && !isCancelRequest && !isCancelledOrder(o) && !isCompleted;
     // Quyền: chỉ NGƯỜI TẠO BILL (trong ngày làm việc) hoặc CHỦ QUÁN mới sửa / thêm món / công nợ / in lại. Bill của người khác chỉ xem nội dung.
@@ -3624,6 +3668,8 @@ function renderHistoryOrders(){
     const debtBtn = canDebt ? `<button class="btn small" style="background:#b3261e; color:#fff; border-color:#b3261e;" onclick="markOrderDebt('${o.id}')">📕 Công nợ</button>` : '';
     return `
     <div style="background:${bgStyle}; border:${borderStyle}; border-left:6px solid ${payColor}; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
+      ${(isUnpaid && o.prepaid && o.prepaid.length) ? `<div style="background:#b3261e; color:#fff; border-radius:10px; padding:10px 12px; margin-bottom:8px; font-weight:800; font-size:14px; line-height:1.5;">⚠️ CÒN PHẢI THU ${fmt(o.totalPrice || 0)}đ<br><span style="font-size:12px; font-weight:700;">Đã thu trước ${fmt(o.prepaid.reduce((s,x)=>s+(x.totalPrice||0),0))}đ: ${o.prepaid.map(x => escapeHtml(x.table || '') + ' (' + escapeHtml(x.staffName || '') + ') ' + fmt(x.totalPrice||0) + 'đ · ' + escapeHtml(x.payLabel || '')).join(' | ')}<br>${o.prepaid.map(x => (x.items||[]).map(i => escapeHtml(i.name) + ' (' + escapeHtml(i.size||'') + ') x' + i.qty).join(', ')).join('; ')}</span></div>` : ''}
+      ${isUnpaid ? '<div style="position:absolute; top:-8px; right:12px; background:#e67e22; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">🪑 NGỒI LẠI · CHƯA THANH TOÁN</div>' : ''}
       ${isCompleted ? '<div style="position:absolute; top:-8px; right:12px; background:#2e9e5b; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">✅ ĐÃ HOÀN THÀNH</div>' : ''}
       ${isCancelRequest ? '<div style="position:absolute; top:-8px; right:12px; background:#000; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">YÊU CẦU HỦY</div>' : ''}
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; font-weight:800; font-size:14px; margin-bottom:4px;">
@@ -3633,6 +3679,7 @@ function renderHistoryOrders(){
       <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
         👤 NV: <b>${escapeHtml(o.staffName)}</b> | 🕒 ${o.time} | 🥤 ${o.totalQty} ly
         ${isMixed ? `<br>💵 <b>Tiền mặt:</b> ${fmt(orderCashAmt(o))}đ &nbsp;|&nbsp; 📱 <b>Chuyển khoản:</b> ${fmt(orderBankAmt(o))}đ` : ''}
+        ${(o.dineIn && !isUnpaid && o.orderTime) ? `<br>🪑 <b>Khách ngồi lại</b> · đặt lúc ${escapeHtml(o.orderTime)} · 💰 thanh toán lúc ${escapeHtml(o.paidTime || '')} (${escapeHtml(o.paidBy || '')})` : ''}
         ${isCompleted ? `<br>✅ <b>Hoàn thành:</b> ${escapeHtml(o.completedTime || '')} (${escapeHtml(o.completedBy || '')})` : ''}
         ${lastPayChange ? `<br>💱 <b>Đã đổi hình thức TT:</b> ${escapeHtml(lastPayChange.from)} → ${escapeHtml(lastPayChange.to)} (${escapeHtml(lastPayChange.by)})` : ''}
         ${o.mergedFrom && o.mergedFrom.length ? `<br>🔗 <b>Bill gộp từ ${o.mergedFrom.length} đơn</b> (${o.mergedFrom.map(m => escapeHtml(String(m.time || '').split(' — ')[0])).join(', ')})` : ''}
@@ -3646,6 +3693,11 @@ function renderHistoryOrders(){
           return `• <b>${escapeHtml(i.name)}</b> (${i.size}) x ${i.qty} —${fmt(i.unitPrice * i.qty)}đ${tag}`;
         }).join('<br>')}
       </div>
+      ${(o.prepaid && o.prepaid.length) ? `<div style="font-size:12px; background:#eaf6ee; border:1px dashed #86c79a; padding:8px 10px; border-radius:8px; margin-top:6px;">
+        <div style="font-weight:800; color:#2e7d32; margin-bottom:3px;">✅ Đã thanh toán trước (gộp vào bill này)</div>
+        ${o.prepaid.map(x => `<div style="margin-bottom:4px;"><b>${escapeHtml(x.table || '')}</b> · 👤 ${escapeHtml(x.staffName || '')} · ${escapeHtml(String(x.time || '').split(' — ')[0])} · ${escapeHtml(x.payLabel || '')} · <b>${fmt(x.totalPrice || 0)}đ</b><br>${(x.items || []).map(i => `• <b>${escapeHtml(i.name)}</b> (${escapeHtml(i.size || '')}) x ${i.qty}`).join('<br>')}</div>`).join('')}
+        <div style="border-top:1px dashed #86c79a; padding-top:4px; font-weight:800;">🧾 Tổng cả bill: ${fmt((o.totalPrice || 0) + o.prepaid.reduce((s,x)=>s+(x.totalPrice||0),0))}đ · ${(o.totalQty || 0) + o.prepaid.reduce((s,x)=>s+(x.totalQty||0),0)} ly <span style="font-weight:600; color:var(--muted);">(đã thu trước ${fmt(o.prepaid.reduce((s,x)=>s+(x.totalPrice||0),0))}đ${isUnpaid ? ' · còn thu ' : ' + thu sau '}${fmt(o.totalPrice || 0)}đ)</span></div>
+      </div>` : ''}
       ${orderDetailsBlock(o)}
       ${(canPrint || isOwnerNow || staffCanEdit || canComplete || canDebt) ? `
       <div class="order-actions">
@@ -3658,8 +3710,37 @@ function renderHistoryOrders(){
         ${debtBtn}
         <button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="deleteOrder('${o.id}')">🗑️ Xóa đơn</button>` : ''}
       </div>` : ''}
+      ${canPay ? `<button class="btn" style="width:100%; margin-top:10px; padding:12px; font-size:15px; background:#2e9e5b; border-color:#2e9e5b; color:#fff;" onclick="markOrderPaid('${o.id}')">✅ ĐÃ THANH TOÁN (${fmt(o.totalPrice || 0)}đ)</button>` : ''}
+      ${(isUnpaid && !canPay) ? `<div style="margin-top:8px; font-size:12px; color:#b45309; font-weight:700; text-align:center;">⏳ Chờ ${escapeHtml(o.staffName || '')} hoặc chủ quán xác nhận thanh toán</div>` : ''}
     </div>
-  `;}).join('');
+  `;}).join('') + (_listShown.length > _listCut.length ? `<button class="btn ghost" style="width:100%; margin:6px 0 10px;" onclick="window.__histLimit = (window.__histLimit || 60) + 60; renderHistoryOrders();">⬇️ Hiện thêm bill (đang hiện ${_listCut.length}/${_listShown.length})</button>` : '');
+  _openDet.forEach(k => { const d = wrap.querySelector('details.order-detail-box[data-k="' + k + '"]'); if(d) d.open = true; });
+}
+function isMine0(o){ return !!(CURRENT_USER && o && o.staffName === CURRENT_USER.name); }
+
+/* Khách ngồi lại: bấm "Đã thanh toán" → lúc này mới tính vào doanh thu + quỹ (tiền mặt / chuyển khoản trong ca) */
+function markOrderPaid(id){
+  if(!CURRENT_USER){ alert('⚠️ Vui lòng đăng nhập!'); return; }
+  const order = (DATA.orders || []).find(o => o.id === id);
+  if(!order || !isUnpaidOrder(order)){ renderHistoryOrders(); return; }
+  if(CURRENT_USER.role !== 'owner' && order.staffName !== CURRENT_USER.name){ alert('⚠️ Chỉ người tạo bill hoặc chủ quán mới xác nhận thanh toán được.'); return; }
+  if(isCancelledOrder(order) || isDebtOrder(order)){ alert('⚠️ Đơn này đang hủy / công nợ nên không xác nhận thanh toán được.'); return; }
+  if(!confirm(`Xác nhận khách ĐÃ THANH TOÁN đơn "${order.table}"?\n\n💰 ${fmt(order.totalPrice || 0)}đ — ${orderPayLabel(order)}\n\nTiền sẽ được tính vào quỹ ca ngay bây giờ. (Sai hình thức thanh toán? Bấm Hủy rồi dùng ✏️ Chỉnh đơn để đổi trước.)`)) return;
+  checkShiftDayRollover();
+  const nowVN = getVietnamTimeNow();
+  const timeStr = `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')}:${String(nowVN.getSeconds()).padStart(2,'0')} — ${String(nowVN.getDate()).padStart(2,'0')}/${String(nowVN.getMonth()+1).padStart(2,'0')}/${nowVN.getFullYear()}`;
+  // Tiền thu thực tế vào lúc này → tính theo thời điểm thanh toán (giữ lại giờ đặt để xem lại)
+  order.orderTime = order.time; order.orderDateIso = order.dateIso;
+  order.time = timeStr; order.dateIso = toVNDateStr(nowVN);
+  order.unpaid = false; order.paidAt = Date.now(); order.paidTime = timeStr; order.paidBy = getFormattedUserDisplayName(CURRENT_USER);
+  const dCash = orderCashAmt(order), dBank = orderBankAmt(order);
+  if(dCash) logCashFundOnly('order', 'shiftCash', dCash, `Khách ngồi lại thanh toán bàn ${order.table} - tiền mặt`, order.id);
+  if(dBank) logCashFundOnly('order', 'shiftBank', dBank, `Khách ngồi lại thanh toán bàn ${order.table} - chuyển khoản`, order.id);
+  try{ refreshDiscrepanciesForOrder(order); }catch(e){ console.error(e); }
+  try{ recalculateShiftFundFromOrders(); }catch(e){ console.error(e); }
+  saveDataDirect();
+  renderHistoryOrders();
+  showToast(`✅ Đã thanh toán ${fmt(order.totalPrice || 0)}đ — đã tính vào quỹ ca.`);
 }
 
 /* ============ CHI TIẾT MÓN / GỘP BILL / ĐƠN HỦY / GỌI THÊM MÓN ============ */
@@ -3668,12 +3749,11 @@ let mergeDraftIds = [];
 function isWebLikeOrder(o){ return !!(o && (o.customerPhone || o.isGuest || o.source === 'web' || String(o.table || '').includes('App:'))); }
 /* Nhân viên: chỉnh đơn / gọi thêm món cho đơn CỦA MÌNH trong ca hôm nay (không xóa ly) */
 function canStaffEditOrder(o){
-  return !!(CURRENT_USER && CURRENT_USER.role !== 'owner' && o && !isNonRevenueOrder(o) && o.staffName === CURRENT_USER.name && getOrderShiftDay(o) === getShiftDayStr());
+  return !!(CURRENT_USER && CURRENT_USER.role !== 'owner' && o && !isCancelledOrder(o) && !isDebtOrder(o) && o.staffName === CURRENT_USER.name && getOrderShiftDay(o) === getShiftDayStr());
 }
 function canMergeOrder(o){
-  if(!CURRENT_USER || !o || isNonRevenueOrder(o) || isWebLikeOrder(o)) return false;
-  if(CURRENT_USER.role === 'owner') return true;
-  return o.staffName === CURRENT_USER.name && getOrderShiftDay(o) === getShiftDayStr();
+  if(!CURRENT_USER || !o || isCancelledOrder(o) || isDebtOrder(o) || isWebLikeOrder(o) || o.mergedInto) return false;
+  return true; // quyền chi tiết (đơn đã thanh toán của người khác chỉ gộp được khi có kèm bill chưa thanh toán) kiểm tra ở validateMergeSources
 }
 function itemPaySplit(o, i){
   const q = i.qty || 0;
@@ -3697,7 +3777,7 @@ function orderDetailHtml(o){
 }
 function orderDetailsBlock(o){
   if(!o || !(o.items || []).length) return '';
-  return `<details class="order-detail-box"><summary>🔎 Chi tiết (topping · ghi chú · thanh toán từng món)</summary><div>${orderDetailHtml(o)}</div></details>`;
+  return `<details class="order-detail-box" data-k="${escapeHtml(o.id)}"><summary>🔎 Chi tiết (topping · ghi chú · thanh toán từng món)</summary><div>${orderDetailHtml(o)}</div></details>`;
 }
 
 function pruneMergeSelection(){
@@ -3729,12 +3809,22 @@ function getMergeSources(){
 }
 function validateMergeSources(src){
   if(src.length < 2) return 'Hãy chọn ít nhất 2 đơn để gộp.';
-  if(src.some(o => !canMergeOrder(o))) return 'Có đơn không được phép gộp (đơn từ app, đơn hủy, hoặc không phải đơn của bạn trong ca hôm nay).';
-  if(new Set(src.map(o => o.staffName)).size > 1) return 'Chỉ gộp được các đơn của cùng 1 nhân viên (để tiền ca của từng người không bị lệch). Hãy bỏ chọn bớt.';
-  if(new Set(src.map(o => getOrderShiftDay(o))).size > 1) return 'Chỉ gộp được các đơn trong cùng 1 ngày làm việc.';
+  if(src.some(o => !canMergeOrder(o))) return 'Có đơn không được phép gộp (đơn từ app, đơn hủy / công nợ).';
+  const anyUnpaid = src.some(o => isUnpaidOrder(o));
+  if(!anyUnpaid){
+    // Gộp toàn đơn ĐÃ thanh toán: giữ quy tắc cũ để tiền ca của từng người không bị lệch
+    if(CURRENT_USER.role !== 'owner' && src.some(o => !(o.staffName === CURRENT_USER.name && getOrderShiftDay(o) === getShiftDayStr()))) return 'Đơn đã thanh toán chỉ gộp được khi là đơn của bạn trong ca hôm nay (hoặc gộp kèm ít nhất 1 bill chưa thanh toán).';
+    if(new Set(src.map(o => o.staffName)).size > 1) return 'Chỉ gộp được các đơn đã thanh toán của cùng 1 nhân viên (để tiền ca của từng người không bị lệch). Hãy bỏ chọn bớt.';
+    if(new Set(src.map(o => getOrderShiftDay(o))).size > 1) return 'Chỉ gộp được các đơn đã thanh toán trong cùng 1 ngày làm việc.';
+  }
   return '';
 }
-function buildMergedOrder(src, table, note){
+function buildMergedOrder(srcAll, table, note){
+  // Gộp lẫn bill ĐÃ thanh toán + CHƯA thanh toán: bill gộp chỉ chứa phần chưa thanh toán (tiền thật chỉ thu phần này),
+  // các bill đã thanh toán giữ nguyên trong sổ (đã nằm trong quỹ ca của người thu) và được ghi chú "đã thu trước" trên bill gộp.
+  const paidSrc = srcAll.filter(o => !isUnpaidOrder(o)), unpaidSrc = srcAll.filter(o => isUnpaidOrder(o));
+  const mixedMerge = paidSrc.length > 0 && unpaidSrc.length > 0;
+  const src = mixedMerge ? unpaidSrc : srcAll;
   const items = [];
   src.forEach(o => {
     const mixed = isMixedOrder(o), bank = isBankOrder(o);
@@ -3751,7 +3841,7 @@ function buildMergedOrder(src, table, note){
   const method = cupsBank === 0 ? 'Tiền mặt' : (cupsCash === 0 ? 'Chuyển khoản' : PAY_MIXED);
   if(method !== PAY_MIXED) items.forEach(i => { delete i.bankQty; });
   const first = src[0];
-  return {
+  const m = {
     id: uid('order'), table: table, paymentMethod: method, generalNote: note, items: items,
     totalQty: items.reduce((s, i) => s + (i.qty || 0), 0),
     totalPrice: items.reduce((s, i) => s + (i.unitPrice || 0) * (i.qty || 0), 0),
@@ -3760,6 +3850,23 @@ function buildMergedOrder(src, table, note){
     mergedFrom: src.map(o => ({ id: o.id, time: o.time, table: o.table, totalQty: o.totalQty, totalPrice: o.totalPrice, paymentMethod: o.paymentMethod })),
     mergedAt: new Date().toISOString(), mergedBy: CURRENT_USER ? CURRENT_USER.name : ''
   };
+  const _inherited = [].concat.apply([], unpaidSrc.map(o => o.prepaid || []));
+  if(mixedMerge || _inherited.length){
+    m.prepaid = _inherited.concat(paidSrc.map(o => ({ id: o.id, table: o.table, staffName: o.staffName, time: o.time, totalQty: o.totalQty || 0, totalPrice: o.totalPrice || 0, payLabel: orderPayLabel(o),
+      items: (o.items || []).map(i => ({ name: i.name, size: i.size, qty: i.qty })) })));
+  }
+  if(src.every(o => isUnpaidOrder(o))){
+    m.dineIn = true; m.unpaid = true;
+    m.mergedFrom = src.map(o => ({ id: o.id, time: o.time, table: o.table, totalQty: o.totalQty, totalPrice: o.totalPrice, paymentMethod: o.paymentMethod, staffName: o.staffName }));
+    // Gộp xuyên người/ca: bill gộp thuộc về người đang gộp (người này sẽ thu tiền) và tính theo ca hiện tại
+    if(CURRENT_USER && CURRENT_USER.role !== 'owner'){
+      const _n = getVietnamTimeNow();
+      m.staffName = CURRENT_USER.name;
+      m.dateIso = toVNDateStr(_n);
+      m.time = `${String(_n.getHours()).padStart(2,'0')}:${String(_n.getMinutes()).padStart(2,'0')}:${String(_n.getSeconds()).padStart(2,'0')} — ${String(_n.getDate()).padStart(2,'0')}/${String(_n.getMonth()+1).padStart(2,'0')}/${_n.getFullYear()}`;
+    }
+  } // gộp các bill ngồi lại chưa thanh toán → vẫn chờ thanh toán 1 lần
+  return m;
 }
 function openMergeModal(){
   pruneMergeSelection();
@@ -3771,9 +3878,10 @@ function openMergeModal(){
   document.getElementById('merge-table').value = tables.length <= 1 ? (tables[0] || 'Mang đi / Khách lẻ') : tables.join(' + ');
   document.getElementById('merge-note').value = Array.from(new Set(src.map(o => String(o.generalNote || '').trim()).filter(Boolean))).join(' | ');
   const m = buildMergedOrder(src, '', '');
-  document.getElementById('merge-src-list').innerHTML = `<div style="font-weight:800; margin-bottom:4px;">Gộp ${src.length} đơn của <b>${escapeHtml(src[0].staffName)}</b>:</div>` +
-    src.map((o, i) => `<div>#${i + 1} 🕒 ${escapeHtml(String(o.time || '').split(' — ')[0])} · ${escapeHtml(o.table || '')} · ${o.totalQty || 0} ly · ${fmt(o.totalPrice || 0)}đ · ${escapeHtml(orderPayLabel(o))}</div>`).join('');
+  document.getElementById('merge-src-list').innerHTML = `<div style="font-weight:800; margin-bottom:4px;">Gộp ${src.length} đơn của <b>${escapeHtml(Array.from(new Set(src.map(o => o.staffName))).join(', '))}</b>:</div>` +
+    src.map((o, i) => `<div>#${i + 1} 🕒 ${escapeHtml(String(o.time || '').split(' — ')[0])} · ${escapeHtml(o.table || '')} · 👤 ${escapeHtml(o.staffName || '')} · ${o.totalQty || 0} ly · ${fmt(o.totalPrice || 0)}đ · ${escapeHtml(orderPayLabel(o))}</div>`).join('');
   document.getElementById('merge-items-list').innerHTML = orderDetailHtml(m);
+  if(m.prepaid && m.prepaid.length){ document.getElementById('merge-src-list').innerHTML += `<div style="margin-top:6px; padding:6px 8px; background:#e8f5e9; border-radius:8px; font-weight:700; color:#2e7d32;">✅ Gồm ${m.prepaid.length} bill ĐÃ thanh toán (${fmt(m.prepaid.reduce((s,x)=>s+x.totalPrice,0))}đ) — giữ nguyên trong sổ, bill gộp chỉ còn phải thu phần chưa thanh toán và sẽ có ghi chú nổi bật tới khi thu đủ.</div>`; }
   document.getElementById('merge-totals').innerHTML = `<span>🥤 ${m.totalQty} ly — <b>${fmt(m.totalPrice)}đ</b></span><span style="color:var(--good);">💵 Tiền mặt: ${fmt(orderCashAmt(m))}đ</span><span style="color:#2f5fa6;">📱 Chuyển khoản: ${fmt(orderBankAmt(m))}đ</span>`;
   document.getElementById('merge-bill-modal').style.display = 'flex';
 }
@@ -3793,7 +3901,9 @@ function saveMergedBill(){
   const table = document.getElementById('merge-table').value.trim() || 'Mang đi / Khách lẻ';
   const note = document.getElementById('merge-note').value.trim();
   const merged = buildMergedOrder(src, table, note);
-  const ids = src.map(o => o.id);
+  const ids = src.filter(o => !merged.prepaid || isUnpaidOrder(o)).map(o => o.id); // bill đã thanh toán (nếu có) ở lại sổ để quỹ/doanh thu không đổi
+  if(merged.prepaid) src.filter(o => !isUnpaidOrder(o)).forEach(o => { o.mergedInto = merged.id; });
+  (DATA.orders || []).forEach(o => { if(o.mergedInto && ids.indexOf(o.mergedInto) >= 0) o.mergedInto = merged.id; }); // bill đã thu trước nằm dưới bill bị gộp → chuyển sang bill gộp mới
   const list = DATA.orders || [];
   const pos = Math.min.apply(null, ids.map(id => list.findIndex(o => o.id === id)));
   const rest = list.filter(o => ids.indexOf(o.id) < 0);
@@ -3805,7 +3915,7 @@ function saveMergedBill(){
   mergeSelection.clear();
   closeMergeModal();
   renderHistoryOrders();
-  alert(`✅ Đã gộp ${src.length} đơn thành 1 bill: ${merged.totalQty} ly — ${fmt(merged.totalPrice)}đ`);
+  alert(merged.prepaid ? `✅ Đã gộp ${src.length} đơn. Bill còn phải thu: ${fmt(merged.totalPrice)}đ (đã thu trước ${fmt(merged.prepaid.reduce((s,x)=>s+x.totalPrice,0))}đ).` : `✅ Đã gộp ${src.length} đơn thành 1 bill: ${merged.totalQty} ly — ${fmt(merged.totalPrice)}đ`);
 }
 
 let addMoreState = { orderId: null, cat: null, drafts: [] };
@@ -3945,7 +4055,39 @@ function confirmAddMore(){
   const addCost = newItems.reduce((s, i) => s + (i.unitCost || 0) * i.qty, 0);
   const oldTotal = order.totalPrice || 0;
   const addBank = bank ? addPrice : 0, addCash = addPrice - addBank; // đơn chuyển khoản → ly thêm chuyển khoản; còn lại tiền mặt
-  if(isOrderSettled(order)){
+  if(order.dineIn && !isUnpaidOrder(order)){
+    // KHÁCH NGỒI LẠI đã thanh toán, nay gọi thêm: phần ly mới là bill CHƯA thanh toán (bấm "Đã thanh toán" mới ghi nhận tiền).
+    // Bill cũ giữ nguyên trong sổ (tiền đã nằm trong quỹ) và được gộp hiển thị vào bill mới như phần "đã thanh toán trước".
+    const _n2 = getVietnamTimeNow();
+    const _t2 = `${String(_n2.getHours()).padStart(2,'0')}:${String(_n2.getMinutes()).padStart(2,'0')}:${String(_n2.getSeconds()).padStart(2,'0')} — ${String(_n2.getDate()).padStart(2,'0')}/${String(_n2.getMonth()+1).padStart(2,'0')}/${_n2.getFullYear()}`;
+    const exMethod = bank ? 'Chuyển khoản' : 'Tiền mặt';
+    const exItems = JSON.parse(JSON.stringify(newItems));
+    exItems.forEach(it => { delete it.bankQty; });
+    const extra = {
+      id: uid('order'), table: order.table, paymentMethod: exMethod, generalNote: order.generalNote || '',
+      items: exItems, totalQty: addQty, totalPrice: addPrice, totalCost: addCost,
+      staffName: order.staffName, dateIso: toVNDateStr(_n2), time: _t2,
+      dineIn: true, unpaid: true,
+      prepaid: (order.prepaid || []).concat([{ id: order.id, table: order.table, staffName: order.staffName, time: order.time, totalQty: order.totalQty || 0, totalPrice: order.totalPrice || 0, payLabel: orderPayLabel(order),
+        items: (order.items || []).map(i => ({ name: i.name, size: i.size, qty: i.qty })) }])
+    };
+    order.mergedInto = extra.id;
+    const _idx = (DATA.orders || []).findIndex(o => o.id === order.id);
+    DATA.orders.splice(Math.max(_idx, 0), 0, extra);
+    if(!_isOwner){
+      const parts = newItems.map(i => `+${i.qty} ${i.name} (${i.size})${(i.toppings || []).length ? ' + ' + i.toppings.map(t => t.name).join(', ') : ''}${i.note ? ' [' + i.note + ']' : ''}`);
+      if(!DATA.notifications) DATA.notifications = [];
+      DATA.notifications.unshift({ id: uid('noti'), type: 'order-edit', orderId: extra.id, orderDate: extra.dateIso, message: `➕ ${CURRENT_USER.name} gọi thêm vào đơn ${order.table} (chưa thanh toán +${fmt(addPrice)}đ): ${parts.join('; ')}`, time: _t2, read: false });
+    }
+    saveDataDirect();
+    closeAddMoreModal();
+    renderHistoryOrders();
+    showToast(`✅ Đã thêm ${addQty} ly (+${fmt(addPrice)}đ) — phần mới CHƯA THANH TOÁN, bấm ✅ ĐÃ THANH TOÁN khi khách trả tiền.`);
+    return;
+  }
+  if(isUnpaidOrder(order)){
+    // khách ngồi lại chưa thanh toán: chưa có tiền trong quỹ → không cộng quỹ
+  } else if(isOrderSettled(order)){
     const why = `Gọi thêm món bàn ${order.table} (${order.dateIso})`;
     if(addCash) logSettledOrderAdjust('order-edit', 'cash', addCash, why, order);
     if(addBank) logSettledOrderAdjust('order-edit', 'bank', addBank, why, order);
@@ -4048,8 +4190,10 @@ function markOrderDebt(id){
   if(!confirm(`Ghi CÔNG NỢ cho đơn "${order.table}" (${fmt(order.totalPrice || 0)}đ)?\n\nKhách còn thiếu tiền nên đơn này sẽ KHÔNG được tính vào doanh thu và quỹ quán.`)) return;
   checkShiftDayRollover();
   const dCash = orderCashAmt(order), dBank = orderBankAmt(order);
-  // Đơn đã lỡ cộng vào quỹ lúc order → trừ ra (giống lúc xóa đơn)
-  if(isOrderSettled(order)){
+  // Đơn đã lỡ cộng vào quỹ lúc order → trừ ra (giống lúc xóa đơn). Đơn ngồi lại chưa thanh toán thì chưa có tiền trong quỹ.
+  if(isUnpaidOrder(order)){
+    order.unpaid = false;
+  } else if(isOrderSettled(order)){
     if(dCash) logSettledOrderAdjust('debt', 'cash', -dCash, `Ghi công nợ bàn ${order.table} (ngày ${order.dateIso})`, order);
     if(dBank) logSettledOrderAdjust('debt', 'bank', -dBank, `Ghi công nợ bàn ${order.table} (ngày ${order.dateIso})`, order);
   } else {
@@ -4127,7 +4271,7 @@ function renderStaffCupsPanel(list){
   live.forEach(o => {
     const k = o.staffName || '(không rõ)';
     const g = by[k] || (by[k] = { cups:0, orders:0, revenue:0, items:{}, days:{} });
-    g.cups += (o.totalQty || 0); g.orders++; g.revenue += isDebtOrder(o) ? 0 : (o.totalPrice || 0);
+    g.cups += (o.totalQty || 0); g.orders++; g.revenue += (isDebtOrder(o) || isUnpaidOrder(o)) ? 0 : (o.totalPrice || 0);
     const d = o.dateIso || '';
     g.days[d] = (g.days[d] || 0) + (o.totalQty || 0);
     (o.items || []).forEach(i => { const key = `${i.name} (${i.size})`; g.items[key] = (g.items[key] || 0) + (i.qty || 0); });
@@ -4135,11 +4279,12 @@ function renderStaffCupsPanel(list){
   const names = Object.keys(by).sort((a, b) => by[b].cups - by[a].cups);
   const total = names.reduce((s, n) => s + by[n].cups, 0);
   const multiDay = new Set(live.map(o => o.dateIso)).size > 1;
+  const _openSet = new Set(Array.prototype.map.call(box.querySelectorAll('details[open]'), d => d.getAttribute('data-k')));
   box.innerHTML = `<div style="font-weight:800; font-size:13px; color:var(--accent); margin-bottom:6px;">🥤 Số ly bán theo từng người bán — tổng ${total} ly</div>` + names.map(n => {
     const g = by[n];
     const itemsHtml = Object.keys(g.items).sort((a, b) => g.items[b] - g.items[a]).map(k => `<div style="display:flex; justify-content:space-between; gap:10px;"><span>• ${escapeHtml(k)}</span><b>${g.items[k]} ly</b></div>`).join('');
     const daysHtml = multiDay ? `<div style="margin-top:6px; padding-top:6px; border-top:1px dashed #e6d9bd;"><div style="font-weight:700; margin-bottom:2px;">Theo ngày:</div>` + Object.keys(g.days).sort().map(d => `<div style="display:flex; justify-content:space-between; gap:10px;"><span>${escapeHtml(d)}</span><b>${g.days[d]} ly</b></div>`).join('') + `</div>` : '';
-    return `<details style="background:#fffdf8; border:1.5px solid var(--line); border-radius:10px; padding:8px 10px; margin-bottom:6px;">
+    return `<details data-k="${escapeHtml(n)}" ${_openSet.has(n) ? 'open' : ''} style="background:#fffdf8; border:1.5px solid var(--line); border-radius:10px; padding:8px 10px; margin-bottom:6px;">
       <summary style="cursor:pointer; font-weight:800; font-size:13px;">👤 ${escapeHtml(n)} — <span style="color:var(--good);">${g.cups} ly</span> <span style="font-weight:600; color:var(--muted); font-size:12px;">· ${g.orders} đơn · ${fmt(g.revenue)}đ</span></summary>
       <div style="font-size:12px; margin-top:8px;">${itemsHtml}${daysHtml}</div>
     </details>`;
@@ -4225,37 +4370,6 @@ function deleteOrder(id){
   saveDataDirect();
   renderHistoryOrders();
   alert('✅ Đã xóa hóa đơn!');
-}
-
-/* ============ NHÂN VIÊN ĐỔI HÌNH THỨC THANH TOÁN (tiền mặt <-> chuyển khoản) + BÁO CHỦ QUÁN QUA CHUÔNG ============ */
-function staffChangePayment(id){
-  if(!CURRENT_USER || CURRENT_USER.role === 'owner') return;
-  const order = (DATA.orders || []).find(o => o.id === id);
-  if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
-  if(isDebtOrder(order)){ alert('⚠️ Đơn đang ghi công nợ nên không thao tác được. Chủ quán bấm "Khách đã trả nợ" ở khung dưới cùng trước nhé.'); return; }
-  if(isCancelledOrder(order)){ alert('⚠️ Đơn đã hủy / đang yêu cầu hủy nên không đổi được.'); return; }
-  if(isMixedOrder(order)){ alert('⚠️ Đơn này đã chia thanh toán theo từng ly, vui lòng báo chủ quán chỉnh.'); return; }
-  checkShiftDayRollover();
-  if(getOrderShiftDay(order) !== getShiftDayStr()){ alert('⚠️ Chỉ đổi được đơn của ngày làm việc hôm nay. Đơn cũ vui lòng báo chủ quán.'); return; }
-  const oldIsBank = isBankOrder(order);
-  const oldLbl = oldIsBank ? 'Chuyển khoản' : 'Tiền mặt';
-  const newLbl = oldIsBank ? 'Tiền mặt' : 'Chuyển khoản';
-  if(!confirm(`Đổi hình thức thanh toán đơn "${order.table}" (${fmt(order.totalPrice || 0)}đ)\ntừ ${oldLbl} → ${newLbl}?\n\nChủ quán sẽ nhận được thông báo.`)) return;
-  const total = order.totalPrice || 0;
-  logCashFundOnly('order-edit', oldIsBank ? 'shiftBank' : 'shiftCash', -total, `NV đổi hình thức TT (Bàn ${order.table}): hoàn ${oldLbl}`, order.id);
-  order.paymentMethod = newLbl;
-  logCashFundOnly('order-edit', oldIsBank ? 'shiftCash' : 'shiftBank', total, `NV đổi hình thức TT (Bàn ${order.table}): ghi nhận ${newLbl}`, order.id);
-  const nowVN = getVietnamTimeNow();
-  const timeStr = `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')}:${String(nowVN.getSeconds()).padStart(2,'0')} — ${String(nowVN.getDate()).padStart(2,'0')}/${String(nowVN.getMonth()+1).padStart(2,'0')}/${nowVN.getFullYear()}`;
-  order.editedAt = new Date().toISOString();
-  if(!order.paymentChanges) order.paymentChanges = [];
-  order.paymentChanges.push({ by: CURRENT_USER.name, from: oldLbl, to: newLbl, at: timeStr });
-  if(!DATA.notifications) DATA.notifications = [];
-  DATA.notifications.unshift({ id: uid('noti'), type: 'pay-change', orderId: order.id, orderDate: order.dateIso, message: `💱 ${CURRENT_USER.name} đổi hình thức thanh toán đơn ${order.table} (${fmt(total)}đ): ${oldLbl} → ${newLbl}`, time: timeStr, read: false });
-  refreshDiscrepanciesForOrder(order);
-  saveDataDirect();
-  renderHistoryOrders();
-  showToast(`✅ Đã đổi đơn ${escapeHtml(order.table)} sang ${newLbl}. Chủ quán đã được báo.`);
 }
 
 let editingOrderId = null, editOrderDraftItems = null;
@@ -4477,7 +4591,8 @@ document.getElementById('btn-save-edit-order').addEventListener('click', ()=>{
   const oldTotal = order.totalPrice || 0;
   const wasCancelled = isCancelledOrder(order);
   const settledOrder = isOrderSettled(order);
-  if(!settledOrder){
+  const unpaidOrder = isUnpaidOrder(order); // khách ngồi lại chưa thanh toán: không đụng quỹ
+  if(!settledOrder && !unpaidOrder){
     if(oldCashAmt) logCashFundOnly('order-edit', 'shiftCash', -oldCashAmt, `Hoàn tác hóa đơn cũ (Bàn ${order.table}) - tiền mặt`, order.id);
     if(oldBankAmt) logCashFundOnly('order-edit', 'shiftBank', -oldBankAmt, `Hoàn tác hóa đơn cũ (Bàn ${order.table}) - chuyển khoản`, order.id);
   }
@@ -4488,7 +4603,9 @@ document.getElementById('btn-save-edit-order').addEventListener('click', ()=>{
   order.editedAt = new Date().toISOString();
   const newCashAmt = orderCashAmt(order), newBankAmt = orderBankAmt(order);
   let fundMsg = '';
-  if(!settledOrder){
+  if(unpaidOrder){
+    // chưa thanh toán → chưa ghi quỹ
+  } else if(!settledOrder){
     if(newCashAmt) logCashFundOnly('order-edit', 'shiftCash', newCashAmt, `Cập nhật hóa đơn (Bàn ${order.table}) - tiền mặt`, order.id);
     if(newBankAmt) logCashFundOnly('order-edit', 'shiftBank', newBankAmt, `Cập nhật hóa đơn (Bàn ${order.table}) - chuyển khoản`, order.id);
   } else if(!wasCancelled){
@@ -5199,6 +5316,8 @@ function saveAttendanceCfg(){
 
 /* ============ FIX CHECKOUT: Nút Ra Ca ============ */
 document.getElementById('btn-clock-out').addEventListener('click', ()=>{
+  const _pend = (DATA && DATA.orders || []).filter(o => isUnpaidOrder(o) && !isCancelledOrder(o) && o.staffName === CURRENT_USER.name);
+  if(_pend.length && !confirm(`⚠️ Bạn còn ${_pend.length} bill khách ngồi lại CHƯA THANH TOÁN (${fmt(_pend.reduce((s,o)=>s+(o.totalPrice||0),0))}đ).\n\nCác bill này chưa được tính vào quỹ ca. Vẫn tiếp tục kết ca?`)) return;
   const todayStr = toVNDateStr(getVietnamTimeNow());
   const staffName = CURRENT_USER.name;
   const shiftDay = getShiftDayStr();
@@ -5254,7 +5373,7 @@ function getTodayZMoney() { if (!DATA || !DATA.shiftCashFund) return 0; return D
 function getCheckoutFormula() {
   if (!DATA.config) DATA.config = {};
   if (!DATA.config.checkoutFormula || !DATA.config.checkoutFormula.left || !DATA.config.checkoutFormula.right) {
-    DATA.config.checkoutFormula = { left: "X1 + Y1 + Z", right: "X2 + Y2" };
+    DATA.config.checkoutFormula = { left: "X1 + Y1 + Z", right: "X2 + Y1" };
   }
   return DATA.config.checkoutFormula;
 }
@@ -5280,29 +5399,31 @@ function updateFormulaPreview() {
 }
 
 function resetCheckoutFormula() {
-  if (!confirm('Đặt lại công thức mặc định?\n\nX1 + Y1 + Z = X2 + Y2')) return;
+  if (!confirm('Đặt lại công thức mặc định?\n\nX1 + Y1 + Z = X2 + Y1')) return;
   document.getElementById('formula-left-input').value = "X1 + Y1 + Z";
-  document.getElementById('formula-right-input').value = "X2 + Y2";
+  document.getElementById('formula-right-input').value = "X2 + Y1";
   updateFormulaPreview();
 }
 
+function normalizeFormulaExpr(expr) {
+  return String(expr || '').toUpperCase().replace(/\s+/g, ' ').trim();
+}
 function validateFormula(expr) {
-  const cleaned = expr.replace(/\s/g, '');
-  if (cleaned.length === 0) return false;
-  // Chỉ cho phép: X1, X2, Y1, Y2, Z, +, -, *, /, (, ), số, dấu chấm
-  if (!/^[X1X2Y1Y2Z0-9+\-*/().]+$/.test(cleaned)) return false;
-  // Không cho 2 biến liền nhau không dấu
-  if (/[XYZ][XYZ]/.test(cleaned)) return false;
-  if (/[XYZ][0-9]/.test(cleaned)) return false;
-  if (/[0-9][XYZ]/.test(cleaned)) return false;
-  // Phải có ít nhất 1 biến
-  if (!/[XYZ]/.test(cleaned)) return false;
-  return true;
+  const e = normalizeFormulaExpr(expr);
+  if (!e) return false;
+  const m = e.replace(/X1|X2|Y1|Y2|Z/g, 'V');
+  if (!/V/.test(m)) return false;                       // phải có ít nhất 1 biến
+  if (!/^[V0-9+\-*\/().\s]+$/.test(m)) return false;     // chỉ cho phép biến, số và + - * / ( )
+  if (/V\s*V|V\s*[0-9.]|[0-9.]\s*V/.test(m)) return false; // 2 biến/số dính nhau không có phép tính
+  try {
+    const r = Function('"use strict"; return (' + m.replace(/V/g, '1') + ')')();
+    return typeof r === 'number' && isFinite(r);
+  } catch (err) { return false; }
 }
 
 function evaluateFormulaSide(expr, values) {
   if (!expr) return 0;
-  let e = expr;
+  let e = normalizeFormulaExpr(expr);
   // Thứ tự thay: Y2, Y1, X2, X1, Z (tránh X1 thay trước X2)
   e = e.replace(/Y2/g, '(' + (values.Y2 || 0) + ')');
   e = e.replace(/Y1/g, '(' + (values.Y1 || 0) + ')');
@@ -5319,16 +5440,15 @@ function evaluateFormulaSide(expr, values) {
 }
 
 function saveCheckoutFormula() {
-  const left = document.getElementById('formula-left-input').value.trim();
-  const right = document.getElementById('formula-right-input').value.trim();
+  const left = normalizeFormulaExpr(document.getElementById('formula-left-input').value);
+  const right = normalizeFormulaExpr(document.getElementById('formula-right-input').value);
   if (!left || !right) { alert('⚠️ Vui lòng nhập đầy đủ 2 vế!'); return; }
-  if (!validateFormula(left)) { alert('❌ Vế trái không hợp lệ!\nChỉ dùng: X1, Y1, Z, X2, Y2, +, -, *, /, (, ), số'); return; }
-  if (!validateFormula(right)) { alert('❌ Vế phải không hợp lệ!\nChỉ dùng: X1, Y1, Z, X2, Y2, +, -, *, /, (, ), số'); return; }
+  if (!validateFormula(left)) { alert('❌ Vế trái không hợp lệ!\nChỉ dùng: X1, Y1, Z, X2, Y2, +, -, *, /, (, ), số.\nVí dụ: X1 + Y1 + Z'); return; }
+  if (!validateFormula(right)) { alert('❌ Vế phải không hợp lệ!\nChỉ dùng: X1, Y1, Z, X2, Y2, +, -, *, /, (, ), số.\nVí dụ: X1 + Y1 + Z'); return; }
   // Test với giá trị mẫu
   const testValues = { X1: 100000, Y1: 50000, Z: 200000, X2: 300000, Y2: 50000 };
   const vtTest = evaluateFormulaSide(left, testValues);
   const vpTest = evaluateFormulaSide(right, testValues);
-  if (vtTest === 0 && vpTest === 0) { alert('❌ Công thức không hợp lệ!'); return; }
   const secPin = (DATA && DATA.config && DATA.config.securityPin) ? DATA.config.securityPin : '9999';
   const code = prompt('🔒 Nhập Mã PIN Cấp Hai để lưu công thức:');
   if (code === null) return;
@@ -6003,7 +6123,7 @@ function exportWeekExcel(){
 
   /* --- Đơn hàng --- */
   const orderRows = [['Ngày ca','Giờ','Bàn / Khách','Nhân viên','Thanh toán','Món','Số ly','Tổng tiền','Tiền mặt','Chuyển khoản','Giá vốn','Ghi chú','Voucher','Trạng thái','Lịch sử đổi thanh toán']];
-  orders.forEach(o => orderRows.push([wkDmy(getOrderShiftDay(o)), o.time || '', o.table || '', o.staffName || '', isMixedOrder(o) ? 'Chia từng ly' : (o.paymentMethod || 'Tiền mặt'), wkItemsText(o), o.totalQty || 0, o.totalPrice || 0, isDebtOrder(o) ? 0 : orderCashAmt(o), isDebtOrder(o) ? 0 : orderBankAmt(o), Math.round(o.totalCost || 0), o.generalNote || '', (o.appliedVoucher && o.appliedVoucher !== 'none') ? o.appliedVoucher : '', isDebtOrder(o) ? 'CÔNG NỢ (chưa thu)' : (o.status || 'Hoàn tất'), (o.paymentChanges || []).map(c => `${c.at}: ${c.from}→${c.to} (${c.by})`).join(' | ')]));
+  orders.forEach(o => orderRows.push([wkDmy(getOrderShiftDay(o)), o.time || '', o.table || '', o.staffName || '', isMixedOrder(o) ? 'Chia từng ly' : (o.paymentMethod || 'Tiền mặt'), wkItemsText(o), o.totalQty || 0, o.totalPrice || 0, (isDebtOrder(o) || isUnpaidOrder(o)) ? 0 : orderCashAmt(o), (isDebtOrder(o) || isUnpaidOrder(o)) ? 0 : orderBankAmt(o), Math.round(o.totalCost || 0), o.generalNote || '', (o.appliedVoucher && o.appliedVoucher !== 'none') ? o.appliedVoucher : '', isDebtOrder(o) ? 'CÔNG NỢ (chưa thu)' : (isUnpaidOrder(o) ? 'KHÁCH NGỒI LẠI - CHƯA THANH TOÁN' : (o.status || 'Hoàn tất')), (o.paymentChanges || []).map(c => `${c.at}: ${c.from}→${c.to} (${c.by})`).join(' | ')]));
   if(orders.length === 0) orderRows.push(['(Kỳ này không có đơn)']);
   addSheet('Đơn hàng', orderRows, [12, 22, 18, 20, 14, 60, 8, 12, 12, 14, 12, 22, 16, 14, 40]);
 
