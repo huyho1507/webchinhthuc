@@ -846,13 +846,41 @@
 
 <!-- ==================== MODAL KIỂM KÊ RA CA (FIXED) ==================== -->
 <div class="modal-overlay" id="order-type-modal" style="display:none;" onclick="if(event.target===this) closeOrderTypeModal()">
-  <div class="modal-card" style="max-width:400px; text-align:center;">
-    <h3 style="margin-top:0; font-size:19px;">Khách dùng tại quán hay mang đi?</h3>
-    <div style="display:flex; flex-direction:column; gap:10px; margin:14px 0;">
-      <button class="btn" style="padding:14px; font-size:16px; background:#e67e22; border-color:#e67e22; color:#fff;" onclick="submitOrderBill(false)">🥡 KHÁCH MANG ĐI<br><span style="font-size:11.5px; font-weight:600;">Thanh toán luôn — tính vào quỹ ngay</span></button>
-      <button class="btn" style="padding:14px; font-size:16px; background:#2f5fa6; border-color:#2f5fa6; color:#fff;" onclick="submitOrderBill(true)">🪑 KHÁCH NGỒI LẠI QUÁN<br><span style="font-size:11.5px; font-weight:600;">Bill chờ ở tab 2 — bấm "Đã thanh toán" mới tính tiền</span></button>
+  <div class="modal-card" style="max-width:420px; text-align:center; max-height:92vh; overflow:auto;">
+    <h3 style="margin:0 0 2px; font-size:18px;">Gửi order bàn</h3>
+    <div id="otm-total" style="font-weight:800; color:var(--good); font-size:20px; margin-bottom:10px;"></div>
+    <div id="otm-step1">
+      <div style="font-size:13px; font-weight:700; color:var(--muted); margin-bottom:6px;">Khách dùng tại quán hay mang đi?</div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin:8px 0;">
+        <button class="btn" style="padding:13px; font-size:16px; background:#e67e22; border-color:#e67e22; color:#fff;" onclick="chooseTakeaway()">🥡 KHÁCH MANG ĐI<br><span style="font-size:11.5px; font-weight:600;">Thanh toán luôn — chọn tiền mặt / chuyển khoản ở bước sau</span></button>
+        <button class="btn" style="padding:13px; font-size:16px; background:#2f5fa6; border-color:#2f5fa6; color:#fff;" onclick="submitOrderBill(true)">🪑 KHÁCH NGỒI LẠI QUÁN<br><span style="font-size:11.5px; font-weight:600;">Ghi "chưa thanh toán" — khách trả xong thì chọn hình thức ở tab 2</span></button>
+      </div>
+      <button class="btn ghost small" onclick="closeOrderTypeModal()">Hủy</button>
     </div>
-    <button class="btn ghost small" onclick="closeOrderTypeModal()">Hủy</button>
+    <div id="otm-step2" style="display:none;">
+      <div style="font-size:13px; font-weight:800; color:#c2410c; margin-bottom:6px;">🥡 Khách mang đi — thanh toán bằng:</div>
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <button type="button" id="otm-cash" class="btn" style="flex:1; padding:11px 6px;" onclick="setOtmPay('Tiền mặt')">💵 Tiền mặt</button>
+        <button type="button" id="otm-bank" class="btn ghost" style="flex:1; padding:11px 6px;" onclick="setOtmPay('Chuyển khoản')">📱 Chuyển khoản</button>
+      </div>
+      <div id="otm-qr" style="display:none; margin-bottom:10px;"></div>
+      <button class="btn" id="otm-confirm" style="width:100%; padding:13px; font-size:16px; background:#e67e22; border-color:#e67e22; color:#fff; margin:8px 0;" onclick="submitOrderBill(false)">✅ ĐÃ THU TIỀN MẶT — GỬI ORDER</button>
+      <button class="btn ghost small" onclick="backToOrderType()">◀ Quay lại</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="order-pay-modal" style="display:none;" onclick="if(event.target===this) closeOrderPayModal()">
+  <div class="modal-card" style="max-width:420px; text-align:center; max-height:92vh; overflow:auto;">
+    <h3 style="margin:0 0 2px; font-size:18px;">Thu tiền khách ngồi lại</h3>
+    <div id="opm-title" style="font-size:13px; color:var(--muted); font-weight:700;"></div>
+    <div id="opm-total" style="font-weight:800; color:var(--good); font-size:22px; margin:4px 0 10px;"></div>
+    <div style="display:flex; gap:8px; margin-bottom:8px;">
+      <button type="button" id="opm-cash" class="btn" style="flex:1; padding:11px 6px;" onclick="setOpmPay('Tiền mặt')">💵 Tiền mặt</button>
+      <button type="button" id="opm-bank" class="btn ghost" style="flex:1; padding:11px 6px;" onclick="setOpmPay('Chuyển khoản')">📱 Chuyển khoản</button>
+    </div>
+    <div id="opm-qr" style="display:none; margin-bottom:10px;"></div>
+    <button class="btn" id="opm-confirm" style="width:100%; padding:13px; font-size:16px; background:#2e9e5b; border-color:#2e9e5b; color:#fff; margin:8px 0;" onclick="confirmOrderPayModal()">✅ XÁC NHẬN ĐÃ THU TIỀN</button>
+    <button class="btn ghost small" onclick="closeOrderPayModal()">Hủy</button>
   </div>
 </div>
 <div class="modal-overlay" id="checkout-cash-modal" style="display:none;">
@@ -1200,9 +1228,9 @@
   </div>
 </div>
 
-<div id="staff-chat-btn" onclick="toggleStaffChatPanel()" style="display:none; position:fixed; bottom:30px; right:30px; z-index:3000; background:linear-gradient(135deg,#e67e22,#c2410c); color:#fff; border-radius:50px; padding:14px 22px; cursor:pointer; box-shadow:0 6px 20px rgba(230,126,34,0.5); font-weight:800; font-size:14px; align-items:center; gap:8px;">
-  💬 Chat khách
-  <span id="staff-chat-badge" style="background:#fff; color:#c2410c; border-radius:999px; padding:2px 8px; font-weight:900; font-size:12px; display:none;">0</span>
+<div id="staff-chat-btn" title="Chat khách — chạm để mở, giữ và kéo để di chuyển" style="display:none; position:fixed; left:auto; top:auto; right:14px; bottom:90px; width:60px; height:60px; z-index:3000; background:linear-gradient(135deg,#e67e22,#c2410c); color:#fff; border-radius:50%; cursor:grab; box-shadow:0 6px 20px rgba(230,126,34,0.55); align-items:center; justify-content:center; font-size:28px; touch-action:none; user-select:none; -webkit-user-select:none;">
+  <span style="pointer-events:none;">💬</span>
+  <span id="staff-chat-badge" style="pointer-events:none; position:absolute; top:-4px; right:-4px; background:#e11d48; color:#fff; border:2px solid #fff; border-radius:999px; min-width:22px; height:22px; padding:0 5px; box-sizing:border-box; font-weight:900; font-size:12px; line-height:18px; text-align:center; display:none;">0</span>
 </div>
 
 <div id="staff-chat-panel" style="display:none; position:fixed; bottom:100px; right:30px; width:400px; max-width:calc(100vw - 40px); height:560px; background:#fffdf8; border:3px solid var(--line); border-radius:20px; box-shadow:0 12px 40px rgba(0,0,0,0.25); z-index:3001; flex-direction:column; overflow:hidden;">
@@ -1313,7 +1341,7 @@
         </div>
         <div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-            <div><label style="font-size:11px; font-weight:700; color:var(--muted);">💳 Thanh Toán:</label><select id="order-payment-method" style="margin-top:3px; font-weight:700;"><option value="Tiền mặt">💵 Tiền mặt</option><option value="Chuyển khoản">📱 Chuyển khoản</option></select></div>
+            <div style="display:none;"><label style="font-size:11px; font-weight:700; color:var(--muted);">💳 Thanh Toán:</label><select id="order-payment-method" style="margin-top:3px; font-weight:700;"><option value="Tiền mặt">💵 Tiền mặt</option><option value="Chuyển khoản">📱 Chuyển khoản</option></select></div>
             <div><label style="font-size:11px; font-weight:700; color:var(--muted);">📝 Ghi chú:</label><input type="text" id="order-general-note" placeholder="Mang về..." style="margin-top:3px;"></div>
           </div>
           <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:700; margin-bottom:4px;"><span>Tổng số ly:</span><span id="bill-total-qty">0 ly</span></div>
@@ -1579,6 +1607,22 @@
         </div>
       </div>
       
+      <div class="card" style="margin-top:14px;">
+        <h2>📱 Mã QR Chuyển Khoản Của Quán</h2>
+        <p style="font-size:12.5px; color:var(--muted); margin:-2px 0 12px;">Khi khách chọn chuyển khoản, app hiện mã QR có sẵn số tiền (VietQR, cần có mạng). Nếu chưa nhập ngân hàng / STK, có thể tải ảnh mã QR của quán lên để dùng thay.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Ngân hàng:</label><select id="qr-bank-select" onchange="markDirty('settings')"></select></div>
+          <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Số tài khoản:</label><input type="text" id="qr-acc-input" inputmode="numeric" placeholder="VD: 0123456789" oninput="markDirty('settings')"></div>
+        </div>
+        <div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Tên chủ tài khoản (viết hoa không dấu):</label><input type="text" id="qr-name-input" placeholder="NGUYEN VAN A" oninput="markDirty('settings')"></div>
+        <div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Hoặc tải ảnh mã QR của quán (dự phòng):</label><input type="file" id="qr-img-file" accept="image/*" onchange="qrPickImage(this)"><div id="qr-img-preview" style="margin-top:6px;"></div></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn success" onclick="saveBankQrSettings()">💾 Lưu mã QR</button>
+          <button class="btn ghost" onclick="qrTestPreview()">👁️ Xem thử (10.000đ)</button>
+          <button class="btn ghost" onclick="qrClearImage()">🗑️ Xóa ảnh QR đã tải</button>
+        </div>
+        <div id="qr-test-box" style="text-align:center; margin-top:12px;"></div>
+      </div>
       <div class="card" style="margin-top:14px;">
         <h2>📸 Chấm Công Bằng Ảnh &amp; Vị Trí</h2>
         <p style="font-size:12.5px; color:var(--muted); margin:-2px 0 12px;">Khi vào ca, nhân viên phải chụp selfie bằng camera trực tiếp (không chọn ảnh có sẵn). Ảnh được đóng dấu giờ theo máy chủ Firebase cùng khoảng cách tới quán, và tự xóa sau 45 ngày.</p>
@@ -2026,6 +2070,47 @@ function startLiveClock() {
 }
 
 /* ============ FIX #5: SAVE DATA ============ */
+/* ═══════════════════════════════════════════════════════════
+   🔄 ĐỒNG BỘ AN TOÀN (chống mất đơn khi 2 thiết bị / app khách ghi cùng lúc)
+   - Chỉ ghi các mục dữ liệu THỰC SỰ thay đổi (không ghi đè cả cục mỗi lần lưu).
+   - Danh sách đơn được GỘP theo id trong 1 transaction: đơn mới do máy khác / app khách vừa thêm không bị ghi đè mất.
+   - Lưu thất bại thì báo rõ lý do (trước đây im lặng rồi dữ liệu tự quay về bản server).
+   ═══════════════════════════════════════════════════════════ */
+let _syncedJson = {};      // key cấp 1 -> JSON lần đồng bộ gần nhất với server
+let _syncedOrders = {};    // id đơn -> JSON lần đồng bộ gần nhất với server
+let _lastSaveErrAt = 0;
+function ordersToArray(v){ return Array.isArray(v) ? v.filter(Boolean) : (v && typeof v === 'object' ? Object.keys(v).map(function(k){ return v[k]; }).filter(Boolean) : []); }
+function noteSynced(val){
+  try{
+    _syncedJson = {};
+    Object.keys(val || {}).forEach(function(k){ _syncedJson[k] = JSON.stringify(val[k]); });
+    _syncedOrders = {};
+    ordersToArray(val && val.orders).forEach(function(o){ if(o && o.id) _syncedOrders[o.id] = JSON.stringify(o); });
+  }catch(e){ _syncedJson = {}; _syncedOrders = {}; }
+}
+function mergeOrdersForSave(remote, local){
+  const rem = ordersToArray(remote), loc = ordersToArray(local);
+  const locIds = {}; loc.forEach(function(o){ if(o && o.id) locIds[o.id] = 1; });
+  const remMap = {}; rem.forEach(function(o){ if(o && o.id) remMap[o.id] = o; });
+  // Đơn có trên server mà máy này CHƯA TỪNG thấy → đơn mới từ máy khác / app khách → giữ lại
+  const fresh = rem.filter(function(o){ return o && o.id && !locIds[o.id] && !(o.id in _syncedOrders); });
+  const out = [];
+  loc.forEach(function(o){
+    const r = remMap[o.id];
+    const untouched = (o.id in _syncedOrders) && JSON.stringify(o) === _syncedOrders[o.id];
+    if(untouched && r){ out.push(r); }          // máy này không sửa đơn này → lấy bản mới nhất trên server (giữ chỉnh sửa của máy khác)
+    else if(untouched && !r){ /* máy khác đã xóa/gộp đơn này, máy này không đụng tới → không "hồi sinh" */ }
+    else out.push(o);                           // máy này đã sửa / tạo mới đơn này
+  });
+  return fresh.concat(out);
+}
+function reportSaveError(err){
+  console.error('Lỗi lưu Firebase:', err);
+  const now = Date.now();
+  if(now - _lastSaveErrAt < 15000) return;
+  _lastSaveErrAt = now;
+  try{ showToast('❌ <b>LƯU LÊN MÁY CHỦ THẤT BẠI</b> — ' + escapeHtml(String((err && (err.code || err.message)) || err || 'lỗi không rõ')) + '<br>Đừng tắt app, hãy kiểm tra mạng rồi thử lại. Đơn mới có thể chưa được lưu!'); }catch(e){}
+}
 function saveDataDirect(){
     // ═══════════════════════════════════════════════════════════
     // 🛡️ LỚP BẢO VỆ 1: KHÓA GHI KHI DATA LÀ BACKUP CŨ
@@ -2083,10 +2168,29 @@ function saveDataDirect(){
     delete dataToSave.menuViews; // bộ đếm khách do web oder ghi, admin không ghi đè
 
     if (useFirebase && db) {
-        db.ref('meoxam_data').update(dataToSave).catch(err => {
-            console.error('Lỗi lưu Firebase:', err);
-            try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave)); }catch(e){}
+        // Chỉ gửi những mục đã thay đổi so với lần đồng bộ trước
+        const changed = {}; let nChanged = 0;
+        Object.keys(dataToSave).forEach(function(k){
+            const j = JSON.stringify(dataToSave[k]);
+            if(_syncedJson[k] !== j){ changed[k] = dataToSave[k]; nChanged++; _syncedJson[k] = j; }
         });
+        const localOrders = changed.orders;
+        delete changed.orders;
+        if(Object.keys(changed).length){
+            db.ref('meoxam_data').update(changed).catch(function(err){
+                Object.keys(changed).forEach(function(k){ delete _syncedJson[k]; }); // lần lưu sau sẽ thử lại mục này
+                reportSaveError(err);
+                try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave)); }catch(e){}
+            });
+        }
+        if(localOrders !== undefined){
+            db.ref('meoxam_data/orders').transaction(function(remote){
+                const merged = mergeOrdersForSave(remote, localOrders);
+                return merged.length ? merged : null;
+            }, function(err, committed){
+                if(err || !committed){ delete _syncedJson.orders; reportSaveError(err || 'Giao dịch lưu đơn không được xác nhận'); }
+            }, false);
+        }
     } else {
         try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave)); }catch(e){}
     }
@@ -2162,6 +2266,7 @@ function loadData(){
                 const isValidRemoteDataQuick = val && Array.isArray(val.products) && Array.isArray(val.ingredients) && Array.isArray(val.users) && val.products.length > 0;
                 if(isValidRemoteDataQuick){
                     window.DATA_IS_STALE = false;
+                    noteSynced(val);
                     const preservedCustomers = (DATA && DATA.customers && DATA.customers.length) ? DATA.customers : [];
                     DATA = val;
                     DATA.customers = preservedCustomers;
@@ -2183,6 +2288,7 @@ function loadData(){
           }
         }
         previousAttendanceCount = val.attendance ? val.attendance.length : 0;
+        noteSynced(val);
         const preservedCustomers = (DATA && DATA.customers && DATA.customers.length) ? DATA.customers : [];
         DATA = val;
         DATA.customers = preservedCustomers;
@@ -2425,6 +2531,7 @@ function orderBankAmt(o){
 }
 function orderCashAmt(o){ return o ? (o.totalPrice || 0) - orderBankAmt(o) : 0; }
 function orderPayLabel(o){
+  if(isUnpaidOrder(o)) return '⏳ Chưa thu tiền';
   if(isMixedOrder(o)) return `Tiền mặt ${fmt(orderCashAmt(o))}đ + CK ${fmt(orderBankAmt(o))}đ`;
   return (o && o.paymentMethod) || 'Tiền mặt';
 }
@@ -3499,16 +3606,88 @@ function updateBillQty(idx, delta){
 document.getElementById('btn-submit-order').addEventListener('click', ()=>{
   if(!DATA) { loadData(); return; }
   if(getCurrentUserBill().length === 0){ alert('⚠️ Vui lòng chọn món!'); return; }
-  document.getElementById('order-type-modal').style.display = 'flex';
+  openOrderTypeModal();
 });
+/* ===== MÃ QR CHUYỂN KHOẢN CỦA QUÁN ===== */
+const QR_BANKS = [['VCB','Vietcombank'],['MB','MB Bank'],['TCB','Techcombank'],['ACB','ACB'],['BIDV','BIDV'],['ICB','VietinBank'],['VPB','VPBank'],['TPB','TPBank'],['STB','Sacombank'],['VIB','VIB'],['HDB','HDBank'],['SHB','SHB'],['OCB','OCB'],['MSB','MSB'],['SEAB','SeABank'],['EIB','Eximbank'],['LPB','LPBank'],['VBA','Agribank'],['NAB','Nam A Bank'],['CAKE','Cake by VPBank'],['TIMO','Timo'],['MOMO','Ví MoMo']];
+function stripVN(t){ return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^A-Za-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 25); }
+function qrInfo(table){ const t = stripVN(table || ''); if(!t) return 'Order'; return /^ban /i.test(t) ? t : ('Ban ' + t); }
+function getBankQrCfg(){ return (DATA && DATA.config && DATA.config.bankQr) || {}; }
+function qrImgFallback(img){
+  const c = getBankQrCfg(); img.onerror = null;
+  if(c.img){ img.src = c.img; }
+  else { const d = document.createElement('div'); d.style.cssText = 'padding:10px; font-size:12.5px; color:#b3261e; font-weight:700;'; d.textContent = 'Không tải được mã QR (kiểm tra mạng). Dùng số tài khoản bên dưới để chuyển khoản.'; img.replaceWith(d); }
+}
+function bankQrHtml(amount, info){
+  const c = getBankQrCfg(), amt = Math.round(amount || 0);
+  const head = '<div style="font-weight:800; font-size:15px; color:#2f5fa6; margin-bottom:6px;">📱 Số tiền cần chuyển: ' + fmt(amt) + 'đ</div>';
+  if(c.bank && c.acc){
+    const url = 'https://img.vietqr.io/image/' + encodeURIComponent(c.bank) + '-' + encodeURIComponent(c.acc) + '-compact2.png?amount=' + amt + '&addInfo=' + encodeURIComponent(stripVN(info || 'Thanh toan')) + (c.name ? '&accountName=' + encodeURIComponent(c.name) : '');
+    const bn = (QR_BANKS.find(b => b[0] === c.bank) || [c.bank, c.bank])[1];
+    return head + '<img src="' + url + '" alt="QR thanh toán" style="width:240px; max-width:100%; border-radius:12px; background:#fff; border:1.5px solid var(--line);" onerror="qrImgFallback(this)">'
+      + '<div style="font-size:12.5px; margin-top:4px; line-height:1.5;">' + escapeHtml(bn) + ' · STK <b>' + escapeHtml(c.acc) + '</b>' + (c.name ? '<br>' + escapeHtml(c.name) : '') + '</div>';
+  }
+  if(c.img) return head + '<img src="' + c.img + '" alt="QR thanh toán" style="width:240px; max-width:100%; border-radius:12px; background:#fff; border:1.5px solid var(--line);"><div style="font-size:12px; color:var(--muted); margin-top:4px;">Khách nhập số tiền ' + fmt(amt) + 'đ khi chuyển.</div>';
+  return head + '<div style="padding:10px; border-radius:10px; background:#fff4e5; color:#b45309; font-size:12.5px; font-weight:700;">⚠️ Quán chưa cài mã QR. Chủ quán vào tab Cài đặt → "Mã QR chuyển khoản" để cài.</div>';
+}
+/* ===== Cửa sổ gửi order (tab 1): chọn tiền mặt / chuyển khoản cho khách MANG ĐI ===== */
+function otmTotal(){ return getCurrentUserBill().reduce((s, i) => s + (i.unitPrice || 0) * (i.qty || 0), 0); }
+function paintPayToggle(prefix, method){
+  const bank = method === 'Chuyển khoản';
+  document.getElementById(prefix + '-cash').className = 'btn' + (bank ? ' ghost' : '');
+  document.getElementById(prefix + '-bank').className = 'btn' + (bank ? '' : ' ghost');
+}
+function openOrderTypeModal(){
+  document.getElementById('order-payment-method').value = 'Tiền mặt';
+  document.getElementById('otm-total').textContent = 'Tổng: ' + fmt(otmTotal()) + 'đ';
+  document.getElementById('otm-step1').style.display = 'block';
+  document.getElementById('otm-step2').style.display = 'none';
+  document.getElementById('order-type-modal').style.display = 'flex';
+}
+function chooseTakeaway(){
+  document.getElementById('otm-step1').style.display = 'none';
+  document.getElementById('otm-step2').style.display = 'block';
+  setOtmPay('Tiền mặt');
+}
+function backToOrderType(){ openOrderTypeModal(); }
+function setOtmPay(method){
+  document.getElementById('order-payment-method').value = method;
+  paintPayToggle('otm', method);
+  const box = document.getElementById('otm-qr');
+  const bank = method === 'Chuyển khoản';
+  if(bank){ box.style.display = 'block'; box.innerHTML = bankQrHtml(otmTotal(), qrInfo(document.getElementById('table-number').value)); }
+  else { box.style.display = 'none'; box.innerHTML = ''; }
+  document.getElementById('otm-confirm').textContent = bank ? '✅ ĐÃ NHẬN CHUYỂN KHOẢN — GỬI ORDER' : '✅ ĐÃ THU TIỀN MẶT — GỬI ORDER';
+}
 function closeOrderTypeModal(){ document.getElementById('order-type-modal').style.display = 'none'; }
+/* ===== Cửa sổ thu tiền khách ngồi lại (tab 2) ===== */
+let _payOrderId = null, _payMethod = 'Tiền mặt';
+function openOrderPayModal(order){
+  _payOrderId = order.id;
+  _payMethod = isBankOrder(order) ? 'Chuyển khoản' : 'Tiền mặt';
+  document.getElementById('opm-title').textContent = '🪑 ' + (order.table || 'Khách ngồi lại') + ' · ' + (order.totalQty || 0) + ' ly' + (order.prepaid && order.prepaid.length ? ' (chỉ phần còn phải thu)' : '');
+  document.getElementById('opm-total').textContent = fmt(order.totalPrice || 0) + 'đ';
+  document.getElementById('order-pay-modal').style.display = 'flex';
+  setOpmPay(_payMethod);
+}
+function setOpmPay(method){
+  _payMethod = method;
+  paintPayToggle('opm', method);
+  const order = (DATA.orders || []).find(o => o.id === _payOrderId);
+  const box = document.getElementById('opm-qr');
+  if(method === 'Chuyển khoản' && order){ box.style.display = 'block'; box.innerHTML = bankQrHtml(order.totalPrice || 0, qrInfo(order.table)); }
+  else { box.style.display = 'none'; box.innerHTML = ''; }
+  document.getElementById('opm-confirm').textContent = method === 'Chuyển khoản' ? '✅ ĐÃ NHẬN CHUYỂN KHOẢN' : '✅ ĐÃ THU TIỀN MẶT';
+}
+function closeOrderPayModal(){ document.getElementById('order-pay-modal').style.display = 'none'; _payOrderId = null; }
+function confirmOrderPayModal(){ const id = _payOrderId, m = _payMethod; closeOrderPayModal(); if(id) finalizeOrderPaid(id, m); }
 function submitOrderBill(dineIn){
   closeOrderTypeModal();
   if(!DATA) { loadData(); return; }
   const currentBill = getCurrentUserBill();
   if(currentBill.length === 0){ alert('⚠️ Vui lòng chọn món!'); return; }
   const tableName = document.getElementById('table-number').value.trim() || (dineIn ? 'Khách ngồi lại' : 'Mang đi / Khách lẻ');
-  const paymentMethod = document.getElementById('order-payment-method').value;
+  const paymentMethod = dineIn ? 'Tiền mặt' : document.getElementById('order-payment-method').value; // ngồi lại: chưa biết hình thức, chọn lúc thu tiền ở tab 2
   const generalNote = document.getElementById('order-general-note').value.trim();
   const nowVN = getVietnamTimeNow();
   const totalQty = currentBill.reduce((s, i)=>s+i.qty, 0);
@@ -3674,7 +3853,7 @@ function renderHistoryOrders(){
       ${isCancelRequest ? '<div style="position:absolute; top:-8px; right:12px; background:#000; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">YÊU CẦU HỦY</div>' : ''}
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; font-weight:800; font-size:14px; margin-bottom:4px;">
         <span style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0;">${canMergeOrder(o) ? `<input type="checkbox" class="merge-check" title="Chọn để gộp bill" ${mergeSelection.has(o.id) ? 'checked' : ''} onchange="toggleMergeSelect('${o.id}', this.checked)">` : ''}📍 ${escapeHtml(o.table)} <span style="font-size:11px; background:${payBg}; color:${payColor}; border:1px solid ${payColor}; padding:2px 6px; border-radius:6px; margin-left:6px;">${isMixed ? '💵+📱' : (isBank ? '📱' : '💵')} ${isMixed ? 'Chia từng ly' : escapeHtml(o.paymentMethod || 'Tiền mặt')}</span></span>
-        <span style="color:${payColor}; white-space:nowrap;">${isMixed ? 'Tổng' : (isBank ? 'DT Chuyển khoản' : 'DT Tiền mặt')}: ${fmt(o.totalPrice)}đ</span>
+        <span style="color:${payColor}; white-space:nowrap;">${isUnpaid ? 'Chưa thu' : (isMixed ? 'Tổng' : (isBank ? 'DT Chuyển khoản' : 'DT Tiền mặt'))}: ${fmt(o.totalPrice)}đ</span>
       </div>
       <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
         👤 NV: <b>${escapeHtml(o.staffName)}</b> | 🕒 ${o.time} | 🥤 ${o.totalQty} ly
@@ -3721,11 +3900,21 @@ function isMine0(o){ return !!(CURRENT_USER && o && o.staffName === CURRENT_USER
 /* Khách ngồi lại: bấm "Đã thanh toán" → lúc này mới tính vào doanh thu + quỹ (tiền mặt / chuyển khoản trong ca) */
 function markOrderPaid(id){
   if(!CURRENT_USER){ alert('⚠️ Vui lòng đăng nhập!'); return; }
+  const _o = (DATA.orders || []).find(o => o.id === id);
+  if(!_o || !isUnpaidOrder(_o)){ renderHistoryOrders(); return; }
+  if(CURRENT_USER.role !== 'owner' && _o.staffName !== CURRENT_USER.name){ alert('⚠️ Chỉ người tạo bill hoặc chủ quán mới xác nhận thanh toán được.'); return; }
+  if(isCancelledOrder(_o) || isDebtOrder(_o)){ alert('⚠️ Đơn này đang hủy / công nợ nên không xác nhận thanh toán được.'); return; }
+  openOrderPayModal(_o);
+}
+function finalizeOrderPaid(id, method){
+  if(!CURRENT_USER){ alert('⚠️ Vui lòng đăng nhập!'); return; }
   const order = (DATA.orders || []).find(o => o.id === id);
   if(!order || !isUnpaidOrder(order)){ renderHistoryOrders(); return; }
   if(CURRENT_USER.role !== 'owner' && order.staffName !== CURRENT_USER.name){ alert('⚠️ Chỉ người tạo bill hoặc chủ quán mới xác nhận thanh toán được.'); return; }
   if(isCancelledOrder(order) || isDebtOrder(order)){ alert('⚠️ Đơn này đang hủy / công nợ nên không xác nhận thanh toán được.'); return; }
-  if(!confirm(`Xác nhận khách ĐÃ THANH TOÁN đơn "${order.table}"?\n\n💰 ${fmt(order.totalPrice || 0)}đ — ${orderPayLabel(order)}\n\nTiền sẽ được tính vào quỹ ca ngay bây giờ. (Sai hình thức thanh toán? Bấm Hủy rồi dùng ✏️ Chỉnh đơn để đổi trước.)`)) return;
+  // Chốt hình thức thu tiền khách đã chọn (đơn chia từng ly cũ được gộp về 1 hình thức)
+  order.paymentMethod = (method === 'Chuyển khoản') ? 'Chuyển khoản' : 'Tiền mặt';
+  (order.items || []).forEach(i => { delete i.bankQty; });
   checkShiftDayRollover();
   const nowVN = getVietnamTimeNow();
   const timeStr = `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')}:${String(nowVN.getSeconds()).padStart(2,'0')} — ${String(nowVN.getDate()).padStart(2,'0')}/${String(nowVN.getMonth()+1).padStart(2,'0')}/${nowVN.getFullYear()}`;
@@ -3740,7 +3929,7 @@ function markOrderPaid(id){
   try{ recalculateShiftFundFromOrders(); }catch(e){ console.error(e); }
   saveDataDirect();
   renderHistoryOrders();
-  showToast(`✅ Đã thanh toán ${fmt(order.totalPrice || 0)}đ — đã tính vào quỹ ca.`);
+  showToast(`✅ Đã thu ${fmt(order.totalPrice || 0)}đ (${order.paymentMethod}) — đã tính vào quỹ ca.`);
 }
 
 /* ============ CHI TIẾT MÓN / GỘP BILL / ĐƠN HỦY / GỌI THÊM MÓN ============ */
@@ -4297,6 +4486,7 @@ function deleteOrder(id){
   if(code !== secPin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
   const order = (DATA.orders || []).find(o => o.id === id);
   if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
+  try{ rememberChatMeta([id]); }catch(e){} // giữ tên khách ở hộp thư dù đơn bị xóa
   checkShiftDayRollover();
   if(!isNonRevenueOrder(order)){
     const dCash = orderCashAmt(order), dBank = orderBankAmt(order);
@@ -6465,6 +6655,7 @@ function renderSettingsTab(){
     document.getElementById('security-pin-setting-input').value = DATA.config.securityPin || '9999';
     document.getElementById('level3-pin-setting-input').value = DATA.config.level3Pin || '2578';
     renderAttendanceCfg();
+    try{ renderQrSettings(); }catch(e){ console.error(e); }
     const tbody = document.getElementById('staff-accounts-tbody');
     tbody.innerHTML = (DATA.users || []).map((u, idx)=>`
       <tr>
@@ -6504,6 +6695,62 @@ document.getElementById('btn-save-settings-tab').addEventListener('click', ()=>{
     if(saveWithSecurity()){ dirtyTabs['settings'] = false; renderSettingsTab(); renderLoginDropdown(); applyRolePermissions(); }
   }
 });
+
+/* ===== Cài đặt mã QR (tab Cài đặt - chủ quán) ===== */
+let _qrImgTemp = null;
+function renderQrSettings(){
+  const c = getBankQrCfg();
+  const sel = document.getElementById('qr-bank-select');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— Chọn ngân hàng —</option>' + QR_BANKS.map(b => '<option value="' + b[0] + '"' + (c.bank === b[0] ? ' selected' : '') + '>' + b[1] + '</option>').join('');
+  document.getElementById('qr-acc-input').value = c.acc || '';
+  document.getElementById('qr-name-input').value = c.name || '';
+  _qrImgTemp = null;
+  const img = c.img;
+  document.getElementById('qr-img-preview').innerHTML = img ? '<img src="' + img + '" style="width:120px; border-radius:8px; border:1.5px solid var(--line);">' : '<span style="font-size:12px; color:var(--muted);">Chưa có ảnh QR tải lên.</span>';
+}
+function qrPickImage(inp){
+  const f = inp.files && inp.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = function(){
+    const im = new Image();
+    im.onload = function(){
+      const max = 600, k = Math.min(1, max / Math.max(im.width, im.height));
+      const cv = document.createElement('canvas'); cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k);
+      cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+      _qrImgTemp = cv.toDataURL('image/png');
+      document.getElementById('qr-img-preview').innerHTML = '<img src="' + _qrImgTemp + '" style="width:120px; border-radius:8px; border:1.5px solid var(--line);"><div style="font-size:11.5px; color:#b45309;">Bấm "Lưu mã QR" để áp dụng.</div>';
+      markDirty('settings');
+    };
+    im.src = r.result;
+  };
+  r.readAsDataURL(f);
+}
+function qrClearImage(){
+  if(!confirm('Xóa ảnh QR đã tải lên?')) return;
+  _qrImgTemp = ''; document.getElementById('qr-img-preview').innerHTML = '<span style="font-size:12px; color:var(--muted);">Sẽ xóa ảnh khi bấm "Lưu mã QR".</span>'; markDirty('settings');
+}
+function saveBankQrSettings(){
+  if(!CURRENT_USER || CURRENT_USER.role !== 'owner'){ alert('⚠️ Chỉ chủ quán mới đổi được mã QR.'); return; }
+  const bank = document.getElementById('qr-bank-select').value;
+  const acc = document.getElementById('qr-acc-input').value.replace(/\s+/g, '');
+  const name = stripVN(document.getElementById('qr-name-input').value).toUpperCase();
+  if((bank && !acc) || (!bank && acc)){ alert('⚠️ Nhập đủ cả Ngân hàng và Số tài khoản (hoặc để trống cả hai nếu chỉ dùng ảnh QR).'); return; }
+  if(acc && !/^[0-9]{6,20}$/.test(acc)){ alert('⚠️ Số tài khoản chỉ gồm 6–20 chữ số.'); return; }
+  const old = getBankQrCfg();
+  const img = (_qrImgTemp === null) ? (old.img || '') : _qrImgTemp;
+  const prev = DATA.config.bankQr;
+  DATA.config.bankQr = { bank: bank, acc: acc, name: name, img: img };
+  if(saveWithSecurity()){ renderQrSettings(); } else { DATA.config.bankQr = prev; }
+}
+function qrTestPreview(){
+  const bank = document.getElementById('qr-bank-select').value, acc = document.getElementById('qr-acc-input').value.replace(/\s+/g, '');
+  const name = stripVN(document.getElementById('qr-name-input').value).toUpperCase();
+  const prev = DATA.config.bankQr;
+  DATA.config.bankQr = { bank: bank, acc: acc, name: name, img: (_qrImgTemp === null) ? ((prev && prev.img) || '') : _qrImgTemp };
+  document.getElementById('qr-test-box').innerHTML = bankQrHtml(10000, 'Thu nghiem');
+  DATA.config.bankQr = prev; // chỉ xem thử, chưa lưu
+}
 function updateStaffUser(idx, field, val){ DATA.users[idx][field] = val; DATA.users[idx].name = getFormattedUserDisplayName(DATA.users[idx]); }
 document.getElementById('btn-add-staff-account').addEventListener('click', ()=>{
   const alias = prompt('Nhập Biệt danh nhân viên:', 'Bé Mới');
@@ -6738,12 +6985,76 @@ function removeProductImage(productId) {
 
 let ALL_CHATS = {};
 let staffChatActiveOrderId = null;
+/* ===== CHAT KHÁCH: nhớ tên/thông tin khách kể cả khi đơn bị xóa + hiển thị ngày cho tin cũ ===== */
+function chatMetaFromOrder(o){
+  const table = o.table || '';
+  const m = table.match(/App:\s*([^-]+?)\s*-/);
+  return { name: m ? m[1].trim() : (o.customerPhone || 'Khách'), table: table, status: o.status || '', date: o.dateIso || '', total: o.totalPrice || 0 };
+}
+function rememberChatMeta(ids){
+  if(!DATA) return false;
+  let changed = false;
+  (ids || []).forEach(function(oid){
+    if(!ALL_CHATS[oid]) return;
+    const o = (DATA.orders || []).find(x => x.id === oid);
+    if(!o) return;
+    const meta = chatMetaFromOrder(o);
+    if(!DATA.chatMeta) DATA.chatMeta = {};
+    const old = DATA.chatMeta[oid];
+    if(!old || old.name !== meta.name || old.table !== meta.table || old.status !== meta.status){ DATA.chatMeta[oid] = meta; changed = true; }
+  });
+  return changed;
+}
+let _chatMetaTimer = null;
+function rememberAllChatMetaSoon(){
+  if(!DATA || _chatMetaTimer) return;
+  _chatMetaTimer = setTimeout(function(){
+    _chatMetaTimer = null;
+    try{ if(rememberChatMeta(Object.keys(ALL_CHATS))) saveDataDirect(); }catch(e){ console.error(e); }
+  }, 1500);
+}
+function chatInfoFor(oid){
+  const o = (DATA.orders || []).find(x => x.id === oid);
+  if(o){ const m = chatMetaFromOrder(o); return { name: m.name, table: m.table, status: o.status || '', deleted: false }; }
+  const meta = DATA.chatMeta && DATA.chatMeta[oid];
+  if(meta) return { name: meta.name, table: meta.table, status: meta.status || '', deleted: true };
+  // Đơn cũ đã xóa từ trước khi có tính năng này: thử tìm tên khách trong nhật ký quỹ / thông báo còn lưu
+  const pool = [];
+  (DATA.cashFundLogs || []).forEach(l => { if(l.refId === oid && l.reason) pool.push(l.reason); });
+  (DATA.notifications || []).forEach(n => { if(n.orderId === oid && n.message) pool.push(n.message); });
+  const msgs = ALL_CHATS[oid] || {};
+  Object.keys(msgs).forEach(k => { const mm = msgs[k]; ['customerName', 'name', 'customer'].forEach(f => { if(mm && mm[f]) pool.push('App: ' + mm[f] + ' -'); }); });
+  for(let i = 0; i < pool.length; i++){
+    const m = pool[i].match(/App:\s*([^-]+?)\s*-/);
+    if(m){ const t = (pool[i].match(/App:[^\n]*/) || [''])[0]; return { name: m[1].trim(), table: t, status: '', deleted: true }; }
+  }
+  return { name: 'Khách (Đơn cũ/đã xóa)', table: '', status: '', deleted: true };
+}
+function chatVnDate(ts){ const d = new Date(ts); return new Date(d.getTime() + (d.getTimezoneOffset() + 420) * 60000); }
+function chatDayKey(ts){ const v = chatVnDate(ts); return v.getFullYear() + '-' + String(v.getMonth() + 1).padStart(2, '0') + '-' + String(v.getDate()).padStart(2, '0'); }
+function chatTimeLabel(m){
+  const ts = m && m.timestamp;
+  if(!ts) return (m && m.time) || '';
+  const v = chatVnDate(ts), now = chatVnDate(Date.now());
+  const hm = String(v.getHours()).padStart(2, '0') + ':' + String(v.getMinutes()).padStart(2, '0');
+  if(chatDayKey(ts) === chatDayKey(Date.now())) return hm;
+  const dm = String(v.getDate()).padStart(2, '0') + '/' + String(v.getMonth() + 1).padStart(2, '0');
+  return (v.getFullYear() !== now.getFullYear() ? dm + '/' + v.getFullYear() : dm) + ' ' + hm;
+}
+function chatDayLabel(ts){
+  const v = chatVnDate(ts);
+  const today = chatDayKey(Date.now()), yest = chatDayKey(Date.now() - 86400000), k = chatDayKey(ts);
+  const dm = String(v.getDate()).padStart(2, '0') + '/' + String(v.getMonth() + 1).padStart(2, '0') + '/' + v.getFullYear();
+  return k === today ? 'Hôm nay · ' + dm : (k === yest ? 'Hôm qua · ' + dm : dm);
+}
+
 let staffChatUnread = {};
 
 function initStaffChat() {
   if(!useFirebase || !db) return;
   db.ref('meoxam_data/chats').on('value', snap => {
     ALL_CHATS = snap.val() || {};
+    rememberAllChatMetaSoon();
     let totalUnread = 0;
     Object.keys(ALL_CHATS).forEach(oid => {
       const msgs = ALL_CHATS[oid];
@@ -6773,6 +7084,55 @@ function initStaffChat() {
   });
 }
 
+
+/* ===== Bong bóng chat kéo thả (như Messenger): chạm = mở, giữ & kéo = di chuyển, thả ra tự hít vào mép trái/phải ===== */
+(function(){
+  const btn = document.getElementById('staff-chat-btn');
+  if(!btn) return;
+  const KEY = 'meoxam_chat_bubble_pos', SIZE = 60, GAP = 8;
+  let pos = { side: 'right', top: null };
+  try{ const sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if(sv && (sv.side === 'left' || sv.side === 'right')) pos = sv; }catch(e){}
+  function clampTop(t){ return Math.max(GAP, Math.min(window.innerHeight - SIZE - GAP, t)); }
+  function place(animate){
+    const top = clampTop(pos.top === null ? window.innerHeight - SIZE - 90 : pos.top);
+    btn.style.transition = animate ? 'left .2s ease, top .2s ease' : 'none';
+    btn.style.right = 'auto'; btn.style.bottom = 'auto';
+    btn.style.left = (pos.side === 'left' ? GAP : window.innerWidth - SIZE - GAP) + 'px';
+    btn.style.top = top + 'px';
+  }
+  place(false);
+  window.addEventListener('resize', function(){ place(false); });
+  let dragging = false, moved = false, sx = 0, sy = 0, bx = 0, by = 0, pid = null;
+  btn.addEventListener('pointerdown', function(e){
+    dragging = true; moved = false; pid = e.pointerId;
+    sx = e.clientX; sy = e.clientY;
+    const r = btn.getBoundingClientRect(); bx = r.left; by = r.top;
+    try{ btn.setPointerCapture(pid); }catch(err){}
+    btn.style.transition = 'none'; btn.style.cursor = 'grabbing';
+  });
+  btn.addEventListener('pointermove', function(e){
+    if(!dragging) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if(!moved && Math.abs(dx) + Math.abs(dy) < 7) return;
+    moved = true;
+    btn.style.left = Math.max(GAP, Math.min(window.innerWidth - SIZE - GAP, bx + dx)) + 'px';
+    btn.style.top = clampTop(by + dy) + 'px';
+    e.preventDefault();
+  });
+  function end(e){
+    if(!dragging) return;
+    dragging = false; btn.style.cursor = 'grab';
+    try{ btn.releasePointerCapture(pid); }catch(err){}
+    if(moved){
+      const r = btn.getBoundingClientRect();
+      pos = { side: (r.left + SIZE / 2 < window.innerWidth / 2) ? 'left' : 'right', top: clampTop(r.top) };
+      try{ localStorage.setItem(KEY, JSON.stringify(pos)); }catch(err){}
+      place(true);
+    } else if(e && e.type === 'pointerup'){ toggleStaffChatPanel(); }
+  }
+  btn.addEventListener('pointerup', end);
+  btn.addEventListener('pointercancel', end);
+})();
 function toggleStaffChatPanel() {
   const panel = document.getElementById('staff-chat-panel');
   if(panel.style.display === 'flex') {
@@ -6804,27 +7164,19 @@ function renderStaffChatList() {
     const keys = Object.keys(msgs).sort((a,b) => (msgs[a].timestamp||0) - (msgs[b].timestamp||0));
     const lastMsg = msgs[keys[keys.length - 1]];
     const unread = staffChatUnread[oid];
-    const o = (DATA.orders || []).find(x => x.id === oid);
-    let custName = 'Khách (Đơn cũ/đã xóa)';
-    let tableStr = '';
+    const info = chatInfoFor(oid);
+    const custName = info.name;
+    const tableStr = info.table || '';
     let badgeHtml = '';
-    if (o) {
-        tableStr = o.table || '';
-        const m = tableStr.match(/App:\s*([^-]+?)\s*-/);
-        if(m) custName = m[1].trim();
-        else custName = o.customerPhone || 'Khách';
-        if(o.status === 'Đã hủy' || o.status === 'Yêu cầu hủy') {
-            badgeHtml = '<span style="background:#b3261e; color:#fff; border-radius:4px; padding:1px 4px; font-size:9px; margin-left:4px;">ĐÃ HỦY</span>';
-        } else if(o.status === 'Hoàn thành') {
-            badgeHtml = '<span style="background:#1e7d3c; color:#fff; border-radius:4px; padding:1px 4px; font-size:9px; margin-left:4px;">HOÀN THÀNH</span>';
-        }
-    }
+    if(info.status === 'Đã hủy' || info.status === 'Yêu cầu hủy') badgeHtml = '<span style="background:#b3261e; color:#fff; border-radius:4px; padding:1px 4px; font-size:9px; margin-left:4px;">ĐÃ HỦY</span>';
+    else if(info.status === 'Hoàn thành') badgeHtml = '<span style="background:#1e7d3c; color:#fff; border-radius:4px; padding:1px 4px; font-size:9px; margin-left:4px;">HOÀN THÀNH</span>';
+    if(info.deleted) badgeHtml += '<span style="background:#6b7280; color:#fff; border-radius:4px; padding:1px 4px; font-size:9px; margin-left:4px;">ĐƠN ĐÃ XÓA</span>';
     return `
       <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
           <div onclick="openStaffChatConv('${oid}')" style="flex:1; cursor:pointer; padding:10px 12px; border:1.5px solid ${unread ? '#e67e22' : '#e4ded0'}; background:${unread ? '#fff9f0' : '#fff'}; border-radius:12px; overflow:hidden;">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
               <b style="font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">👤 ${escapeHtml(custName)} ${badgeHtml} ${unread ? '<span style="background:#e67e22; color:#fff; border-radius:8px; padding:1px 6px; font-size:10px; margin-left:4px;">MỚI</span>' : ''}</b>
-              <span style="font-size:11px; color:var(--muted); white-space:nowrap;">${lastMsg.time || ''}</span>
+              <span style="font-size:11px; color:var(--muted); white-space:nowrap;">${chatTimeLabel(lastMsg)}</span>
             </div>
             <div style="font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
               ${lastMsg.sender === 'customer' ? '' : '<b>Bạn:</b> '}${escapeHtml(lastMsg.text || '')}
@@ -6859,28 +7211,24 @@ function closeStaffChatConv() {
 function renderStaffChatMessages(orderId) {
   const wrap = document.getElementById('staff-chat-messages');
   const titleEl = document.getElementById('staff-chat-title');
-  const order = (DATA.orders || []).find(o => o.id === orderId);
-  if(order) {
-    let custName = 'Khách';
-    const m = (order.table || '').match(/App:\s*([^-]+?)\s*-/);
-    if(m) custName = m[1].trim();
-    titleEl.innerHTML = `💬 ${custName} <span style="font-size:10px; font-weight:normal; color:var(--muted); display:block;">${order.table || ''}</span>`;
-  } else {
-    titleEl.textContent = `💬 Khách (Đơn cũ/đã xóa)`;
-  }
+  const info = chatInfoFor(orderId);
+  titleEl.innerHTML = '💬 ' + escapeHtml(info.name) + (info.deleted ? ' <span style="font-size:9px; background:#6b7280; color:#fff; border-radius:4px; padding:1px 4px;">ĐƠN ĐÃ XÓA</span>' : '') + (info.table ? '<span style="font-size:10px; font-weight:normal; color:var(--muted); display:block;">' + escapeHtml(info.table) + '</span>' : '');
   const msgs = ALL_CHATS[orderId] || {};
   const keys = Object.keys(msgs).sort((a,b) => (msgs[a].timestamp||0) - (msgs[b].timestamp||0));
   if(keys.length === 0) {
     wrap.innerHTML = '<p style="text-align:center; color:var(--muted); font-size:13px; padding:20px;">Chưa có tin nhắn.</p>';
     return;
   }
+  let _lastDay = '';
   wrap.innerHTML = keys.map(k => {
     const m = msgs[k];
     const isStaff = m.sender === 'staff';
-    return `
+    let sep = '';
+    if(m.timestamp){ const dk = chatDayKey(m.timestamp); if(dk !== _lastDay){ _lastDay = dk; sep = '<div style="align-self:center; font-size:11px; font-weight:800; color:var(--muted); background:#efe9db; border-radius:999px; padding:2px 10px;">' + chatDayLabel(m.timestamp) + '</div>'; } }
+    return sep + `
       <div style="max-width:80%; padding:10px 14px; border-radius:16px; font-size:13px; line-height:1.4; ${isStaff ? 'align-self:flex-end; background:#2ecc71; color:#fff; border-bottom-right-radius:4px;' : 'align-self:flex-start; background:#fff; color:#0f0f0f; border:1px solid #dcd5c2; border-bottom-left-radius:4px;'}">
         ${!isStaff ? '<b>Khách:</b> ' : '<b>Bạn:</b> '}${escapeHtml(m.text || '')}
-        <div style="font-size:10px; opacity:0.7; margin-top:4px; text-align:${isStaff?'right':'left'};">${m.time || ''}</div>
+        <div style="font-size:10px; opacity:0.7; margin-top:4px; text-align:${isStaff?'right':'left'};">${chatTimeLabel(m)}</div>
       </div>
     `;
   }).join('');
