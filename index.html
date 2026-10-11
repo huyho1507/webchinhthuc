@@ -1664,7 +1664,7 @@
         <div style="border:1.5px solid var(--line); border-radius:12px; overflow:hidden;">
             <table style="width:100%; text-align:center; font-size:12px;">
                 <thead style="background:#f4fbf5;">
-                    <tr><th style="padding: 8px;">Tên Phần Thưởng</th><th style="padding: 8px;">Mức giảm (% hoặc VNĐ)</th><th style="padding: 8px;">Tỷ Lệ Trúng (Trọng số)</th><th style="padding: 8px;">Xóa</th></tr>
+                    <tr><th style="padding: 8px;">Tên Phần Thưởng</th><th style="padding: 8px;">Mức giảm</th><th style="padding: 8px;">Đơn vị</th><th style="padding: 8px;">Tỷ Lệ Trúng (Trọng số)</th><th style="padding: 8px;">Xóa</th></tr>
                 </thead>
                 <tbody id="wheel-config-tbody"></tbody>
             </table>
@@ -1922,7 +1922,7 @@ const FIREBASE_CONFIG = {
   projectId: "tra-sua-meo-xam",
   storageBucket: "tra-sua-meo-xam.firebasestorage.app",
   messagingSenderId: "822227863579",
-  appId: "1:822227863579:web:09f4ac451d2dd51bd250be"
+  appId: "1:822227863579:web:693f650cb68d1849d250be"
 };
 let db = null;
 let messaging = null;
@@ -2375,8 +2375,9 @@ function loadCustomersFromFirebase() {
     if(!DATA) DATA = seedData();
     DATA.customers = Object.keys(customersObj).map(phone => {
       const c = customersObj[phone];
-      const ledger = c.ticketLedger || [];
-      const vouchers = c.vouchers || [];
+      const toArr = x => Array.isArray(x) ? x.filter(Boolean) : (x && typeof x === 'object' ? Object.values(x) : []);
+      const ledger = toArr(c.ticketLedger);
+      const vouchers = toArr(c.vouchers);
       const lastSeen = Math.max(c.lastSeen || 0, c.lastLoginTime || 0);
       return {
         phone: phone,
@@ -2384,7 +2385,8 @@ function loadCustomersFromFirebase() {
         address: c.address || '',
         deliveryPhone: c.deliveryPhone || c.phone || phone,       // ← FIX: thêm fallback
         pin: c.pin || '',
-        ticketCount: (c.ticketCount !== undefined) ? c.ticketCount : ledger.filter(t => t.status === 'unused').length,  // ← FIX: ưu tiên Firebase
+        // ĐỒNG BỘ: có sổ ticket thì đếm theo sổ (cùng nguồn với danh sách chi tiết); không có thì lấy số đếm Web Order ghi (ticketCount hoặc tickets)
+        ticketCount: ledger.length ? ledger.filter(t => t.status === 'unused').length : (c.ticketCount ?? c.tickets ?? 0),
         ticketLedger: ledger,
         voucherCount: vouchers.filter(v => !v.used && !v.revoked).length,
         vouchers: vouchers,
@@ -4536,6 +4538,7 @@ function deleteOrder(id){
       return db.ref(`meoxam_data/customers/${customerPhone}`).update({
         ticketLedger: keptLedger,
         tickets: unusedCount,
+        ticketCount: unusedCount,
         vouchers: vouchers,
         spinHistory: spinHistory
       });
@@ -6840,8 +6843,8 @@ function renderCustomersList() {
         <div style="font-size:10.5px; color:var(--muted);">🕒 Vào lần cuối: ${lastSeenStr}</div>
       </div>
       <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-        <span class="ticket-badge">🎟️ ${c.ticketCount || 0}</span>
-        <span class="voucher-badge">🎫 ${c.voucherCount || 0}</span>
+        ${customerTicketBadgeHtml(c)}
+        ${customerVoucherChipsHtml(c)}
         <span class="rank-badge">💰 ${fmt(c.totalSpent || 0)}đ</span>
       </div>
       <div style="display:flex; gap:4px; flex-wrap:wrap;">
@@ -6851,6 +6854,30 @@ function renderCustomersList() {
       </div>
     </div>
   `;}).join('');
+}
+function ticketSourceLabel(t) {
+  if (!t) return 'Khác';
+  if (t.source === 'owner_gift') return 'Chủ tặng';
+  if (t.sourceOrderId) return 'Mua hàng';
+  return 'Khác';
+}
+function customerTicketBadgeHtml(c) {
+  const left = (c.ticketLedger || []).filter(t => t.status === 'unused');
+  const total = c.ticketCount || 0;
+  if (!left.length) return `<span class="ticket-badge">🎟️ ${total}</span>`;
+  const g = {};
+  left.forEach(t => { const k = ticketSourceLabel(t); g[k] = (g[k] || 0) + 1; });
+  const detail = Object.keys(g).map(k => `${k} ${g[k]}`).join(' · ');
+  return `<span class="ticket-badge" title="Ticket còn lại theo nguồn">🎟️ ${total} <span style="font-weight:600; font-size:10.5px; opacity:.85;">(${escapeHtml(detail)})</span></span>`;
+}
+function customerVoucherChipsHtml(c) {
+  const live = (c.vouchers || []).filter(v => !v.used && !v.revoked);
+  const usedN = (c.vouchers || []).filter(v => v.used).length;
+  if (!live.length) return `<span class="voucher-badge" style="opacity:.6;">🎫 0${usedN ? ` <span style="font-weight:600; font-size:10.5px;">(đã dùng ${usedN})</span>` : ''}</span>`;
+  const g = {};
+  live.forEach(v => { const k = v.name || 'Voucher'; g[k] = (g[k] || 0) + 1; });
+  const chips = Object.keys(g).map(k => `<span class="voucher-badge">🎫 ${escapeHtml(k)}${g[k] > 1 ? ' ×' + g[k] : ''}</span>`).join('');
+  return chips + (usedN ? `<span style="font-size:10.5px; color:var(--muted);">đã dùng ${usedN}</span>` : '');
 }
 function forceRefreshCustomerList() {
   lastCustomerRenderTs = 0;
@@ -6896,6 +6923,7 @@ document.getElementById('btn-confirm-gift-ticket').addEventListener('click', () 
     const unusedCount = ledger.filter(t => t.status === 'unused').length;
     return db.ref(`meoxam_data/customers/${customerPhone}`).update({
       tickets: unusedCount,
+      ticketCount: unusedCount,
       ticketLedger: ledger
     });
   }).then(() => {
@@ -6907,7 +6935,7 @@ function openCustomerDetailModal(customerPhone) {
   const c = (DATA.customers || []).find(x => x.phone === customerPhone);
   if (!c) return;
   const vouchersList = (c.vouchers || []).map(v => `  • ${v.name} ${v.used ? '(đã dùng)' : ''} ${v.revoked ? '(ĐÃ THU HỒI' + (v.revokedReason ? ' — ' + v.revokedReason : '') + ')' : ''}`).join('\n');
-  const ledgerList = (c.ticketLedger || []).map(t => `  • ${t.source} ${t.status === 'unused' ? '(còn)' : '(đã dùng)'}`).join('\n');
+  const ledgerList = (c.ticketLedger || []).map(t => `  • ${ticketSourceLabel(t)}${t.reason && t.source === 'owner_gift' ? ' — ' + t.reason : ''} ${t.status === 'unused' ? '(còn)' : '(đã dùng)'}`).join('\n');
   alert(`👤 THÔNG TIN KHÁCH HÀNG
 ━━━━━━━━━━━━━━━━━━━━━
 Tên: ${c.realName}
@@ -7304,6 +7332,12 @@ window.renderWheelConfig = function() {
                     oninput="DATA.config.wheel_config[${index}].discountValue = parseFloat(this.value) || 0">
             </td>
             <td style="padding:6px;">
+                <select onchange="DATA.config.wheel_config[${index}].discountType = this.value">
+                    <option value="percent" ${(item.discountType || ((item.discountValue || 0) > 100 ? 'vnd' : 'percent')) === 'percent' ? 'selected' : ''}>%</option>
+                    <option value="vnd" ${(item.discountType || ((item.discountValue || 0) > 100 ? 'vnd' : 'percent')) === 'vnd' ? 'selected' : ''}>VNĐ</option>
+                </select>
+            </td>
+            <td style="padding:6px;">
                 <input type="number" value="${item.weight || 0}" style="width:70px; text-align:center;"
                     oninput="DATA.config.wheel_config[${index}].weight = parseFloat(this.value) || 0; updateWheelChances();">
                 <br><span class="wheel-chance" data-idx="${index}" style="font-size:11px; color:var(--accent); font-weight:800;">${chance}% thực tế</span>
@@ -7332,6 +7366,7 @@ window.safeAddWheelItem = function() {
         id: 'w_' + Date.now(),
         name: 'Phần thưởng mới',
         discountValue: 5,
+        discountType: 'percent',
         weight: 10
     });
     renderWheelConfig();
