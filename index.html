@@ -413,6 +413,14 @@
   #staff-chat-btn{ padding:7px 12px !important; font-size:12px !important; bottom:12px !important; right:12px !important; gap:5px !important; }
   #staff-chat-messages{ padding:8px !important; gap:6px !important; }
   @media (max-width:480px){ #staff-chat-panel{ width:calc(100vw - 24px) !important; height:min(340px,52vh) !important; } }
+  /* Panel chat bung ra từ bong bóng (như Messenger) */
+  #staff-chat-btn{ z-index:3002 !important; }
+  #staff-chat-panel{
+    transform:scale(.04); opacity:0; pointer-events:none;
+    transition:transform .30s cubic-bezier(.2,.95,.3,1.08), opacity .16s ease;
+    will-change:transform, opacity;
+  }
+  #staff-chat-panel.open{ transform:scale(1); opacity:1; pointer-events:auto; }
   /* Chi tiết đơn + gộp bill */
   .order-detail-box{ margin-top:6px; font-size:12px; }
   .order-detail-box summary{ cursor:pointer; font-weight:800; color:var(--accent); padding:2px 0; }
@@ -7145,6 +7153,7 @@ function initStaffChat() {
     moved = true;
     btn.style.left = Math.max(GAP, Math.min(window.innerWidth - SIZE - GAP, bx + dx)) + 'px';
     btn.style.top = clampTop(by + dy) + 'px';
+    if(window.positionStaffChatPanel) positionStaffChatPanel();
     e.preventDefault();
   });
   function end(e){
@@ -7156,19 +7165,66 @@ function initStaffChat() {
       pos = { side: (r.left + SIZE / 2 < window.innerWidth / 2) ? 'left' : 'right', top: clampTop(r.top) };
       try{ localStorage.setItem(KEY, JSON.stringify(pos)); }catch(err){}
       place(true);
+      if(window.followStaffChatBubble) followStaffChatBubble(260);
     } else if(e && e.type === 'pointerup'){ toggleStaffChatPanel(); }
   }
   btn.addEventListener('pointerup', end);
   btn.addEventListener('pointercancel', end);
 })();
+/* Đặt panel ngay cạnh bong bóng (trên hoặc dưới, cùng phía trái/phải) và lấy tâm bong bóng làm gốc hiệu ứng phóng to */
+function positionStaffChatPanel() {
+  const panel = document.getElementById('staff-chat-panel');
+  const btn = document.getElementById('staff-chat-btn');
+  if(!panel || !btn) return;
+  const M = 8, G = 10;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const b = btn.getBoundingClientRect();
+  panel.style.setProperty('max-height', 'none', 'important');
+  const pw = panel.offsetWidth, natH = panel.offsetHeight;
+  const spaceAbove = b.top - G - M, spaceBelow = vh - b.bottom - G - M;
+  let placeAbove = spaceAbove >= natH ? true : (spaceBelow >= natH ? false : spaceAbove >= spaceBelow);
+  const avail = Math.max(160, placeAbove ? spaceAbove : spaceBelow);
+  const ph = Math.min(natH, avail);
+  panel.style.setProperty('max-height', ph + 'px', 'important');
+  let left = (b.left + b.width / 2 < vw / 2) ? b.left : b.right - pw;
+  left = Math.max(M, Math.min(vw - pw - M, left));
+  const top = placeAbove ? b.top - G - ph : b.bottom + G;
+  panel.style.setProperty('left', left + 'px', 'important');
+  panel.style.setProperty('top', top + 'px', 'important');
+  panel.style.setProperty('right', 'auto', 'important');
+  panel.style.setProperty('bottom', 'auto', 'important');
+  const cx = b.left + b.width / 2 - left, cy = b.top + b.height / 2 - top;
+  panel.style.transformOrigin = cx + 'px ' + cy + 'px';
+}
+/* Panel bám theo bong bóng trong khi kéo / hít mép (chạy rAF trong ms mili-giây) */
+let _staffChatFollowRaf = 0;
+function followStaffChatBubble(ms) {
+  const panel = document.getElementById('staff-chat-panel');
+  if(!panel || !panel.classList.contains('open')) return;
+  const end = Date.now() + (ms || 0);
+  cancelAnimationFrame(_staffChatFollowRaf);
+  (function loop(){
+    positionStaffChatPanel();
+    if(Date.now() < end && panel.classList.contains('open')) _staffChatFollowRaf = requestAnimationFrame(loop);
+  })();
+}
+window.addEventListener('resize', function(){ followStaffChatBubble(0); });
+
+let _staffChatCloseTimer = null;
 function toggleStaffChatPanel() {
   const panel = document.getElementById('staff-chat-panel');
-  if(panel.style.display === 'flex') {
-    panel.style.display = 'none';
+  if(!panel) return;
+  clearTimeout(_staffChatCloseTimer);
+  if(panel.classList.contains('open')) {
+    panel.classList.remove('open');                       // thu nhỏ về lại bong bóng
+    _staffChatCloseTimer = setTimeout(function(){ panel.style.display = 'none'; }, 320);
   } else {
     panel.style.display = 'flex';
     if(staffChatActiveOrderId) renderStaffChatMessages(staffChatActiveOrderId);
     else renderStaffChatList();
+    positionStaffChatPanel();
+    void panel.offsetWidth;                               // ép trình duyệt vẽ trạng thái đầu rồi mới chạy hiệu ứng
+    panel.classList.add('open');
   }
 }
 
