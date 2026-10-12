@@ -1388,6 +1388,11 @@
       <div id="merge-bar"></div>
       <div id="history-order-list"></div>
     </div>
+    <div class="card" id="app-orders-card" style="border:2.5px solid #e0b020; background:linear-gradient(180deg,#fff9d9,#fffdf8);">
+      <h2>📱 Đơn Từ App — Chờ Hoàn Thành <span id="app-orders-count" style="font-size:13px; color:#b45309; font-weight:800;"></span></h2>
+      <p style="font-size:12px; color:var(--muted); margin:-4px 0 10px;">Tất cả đơn khách tự order trên app mà <b>chưa bấm Hoàn thành</b> (hiện mọi ngày, không phụ thuộc bộ lọc). Bấm <b>✅ Hoàn thành</b> khi đã giao xong — đơn sẽ tự biến mất khỏi khung này.</p>
+      <div id="app-order-list"></div>
+    </div>
     <div class="card" id="cancelled-orders-card">
       <h2>🚫 Đơn Hủy / Yêu Cầu Hủy / 📕 Công Nợ <span id="cancelled-orders-count" style="font-size:13px; color:var(--muted); font-weight:700;"></span></h2>
       <p style="font-size:12px; color:var(--muted); margin:-4px 0 10px;">Gồm: đơn khách từ app đang yêu cầu hủy, đơn đã hủy, đơn chủ quán đã xóa và <b>đơn công nợ</b> (khách còn thiếu tiền — không tính vào doanh thu/quỹ) (theo bộ lọc ngày ở trên). Đơn xóa từ nay về sau mới được lưu lại tại đây.</p>
@@ -3799,7 +3804,7 @@ function renderHistoryOrders(){
   const _allShown = filtered;                       // gồm cả đơn khách ngồi lại chưa thanh toán (hiện trong danh sách nhưng KHÔNG tính doanh thu)
   filtered = filtered.filter(o => !isUnpaidOrder(o));
   const _unpaidAll = (DATA.orders || []).filter(o => isUnpaidOrder(o) && !isCancelledOrder(o) && !isDebtOrder(o));
-  try{ pruneMergeSelection(); renderMergeBar(); renderCancelledOrdersBox(); }catch(e){ console.error(e); }
+  try{ pruneMergeSelection(); renderMergeBar(); renderAppOrdersBox(); renderCancelledOrdersBox(); }catch(e){ console.error(e); }
   document.getElementById('stat-orders-count').textContent = filtered.length;
   document.getElementById('stat-cups-count').textContent = filtered.reduce((s, o) => s + (o.totalQty||0), 0) + ' ly';
   document.getElementById('stat-revenue').textContent = fmt(filtered.reduce((s, o) => s + (o.totalPrice||0), 0)) + 'đ';
@@ -4333,6 +4338,52 @@ function applyHistoryDateFilterTo(list){
   if(selMonth) return list.filter(o => o.dateIso && o.dateIso.startsWith(selMonth));
   if(dateFrom && dateTo) return list.filter(o => o.dateIso && o.dateIso >= dateFrom && o.dateIso <= dateTo);
   return list;
+}
+function renderAppOrdersBox(){
+  const wrap = document.getElementById('app-order-list'); if(!wrap) return;
+  const all = DATA.orders || [];
+  const list = all.filter(o => o && isWebLikeOrder(o) && !isCompletedOrder(o) && !isCancelledOrder(o) && !isDebtOrder(o)
+      && !(o.mergedInto && all.some(x => x.id === o.mergedInto)));
+  list.sort((a, b) => (getOrderTs(b) || 0) - (getOrderTs(a) || 0));
+  const cnt = document.getElementById('app-orders-count');
+  if(cnt) cnt.textContent = list.length ? `(${list.length} đơn đang chờ)` : '';
+  if(!list.length){ wrap.innerHTML = '<p style="font-size:13px; color:var(--good); text-align:center; padding:14px 0; font-weight:700;">✅ Không có đơn app nào đang chờ hoàn thành.</p>'; return; }
+  const _openDet = new Set(Array.prototype.map.call(wrap.querySelectorAll('details.order-detail-box[open]'), d => d.getAttribute('data-k')));
+  const isOwnerNow = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
+  wrap.innerHTML = list.map(o => {
+    const isUnpaid = isUnpaidOrder(o);
+    const isMixed = isMixedOrder(o);
+    const staffCanEdit = canStaffEditOrder(o);
+    const isMine = !!(CURRENT_USER && o.staffName === CURRENT_USER.name);
+    const canPrint = (isOwnerNow || isMine) && printerEnabled();
+    const canPay = isUnpaid && !!CURRENT_USER && (isOwnerNow || isMine0(o));
+    return `
+    <div style="background:#fff5cc; border:2px solid #e0b020; border-left:6px solid #e67e22; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
+      ${isUnpaid ? '<div style="position:absolute; top:-8px; right:12px; background:#e67e22; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px;">🪑 NGỒI LẠI · CHƯA THANH TOÁN</div>' : '<div style="position:absolute; top:-8px; right:12px; background:#e67e22; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px;">⏳ CHỜ HOÀN THÀNH</div>'}
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; font-weight:800; font-size:14px; margin-bottom:4px;">
+        <span>📍 ${escapeHtml(o.table || '')}</span>
+        <span style="white-space:nowrap; color:#b45309;">${fmt(o.totalPrice || 0)}đ</span>
+      </div>
+      <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
+        👤 ${escapeHtml(o.staffName || '')} | 🕒 ${escapeHtml(o.time || '')} | 🥤 ${o.totalQty || 0} ly | 💳 ${escapeHtml(orderPayLabel(o))}
+        ${o.appliedVoucher && o.appliedVoucher !== 'none' ? `<br>✨ <b>Voucher:</b> ${escapeHtml(o.appliedVoucher)}` : ''}
+        ${o.generalNote ? `<br>📝 <b>Ghi chú:</b> ${escapeHtml(o.generalNote)}` : ''}
+      </div>
+      <div style="font-size:12px; background:#fffaf0; border:1px dashed #e6d9bd; padding:8px 10px; border-radius:8px;">
+        ${(o.items || []).map(i => `• <b>${escapeHtml(i.name)}</b> (${escapeHtml(i.size || '')}) x ${i.qty} — ${fmt((i.unitPrice || 0) * (i.qty || 1))}đ${(i.toppings && i.toppings.length) ? `<br>&nbsp;&nbsp;➕ ${i.toppings.map(t => escapeHtml(t.name)).join(', ')}` : ''}${i.note ? `<br>&nbsp;&nbsp;📝 <i>${escapeHtml(i.note)}</i>` : ''}`).join('<br>')}
+      </div>
+      ${orderDetailsBlock(o)}
+      <div class="order-actions">
+        ${CURRENT_USER ? `<button class="btn small" style="background:#2e9e5b; color:#fff; border-color:#2e9e5b; font-size:14px; padding:8px 16px;" onclick="completeOrder('${o.id}')">✅ Hoàn thành</button>` : ''}
+        ${canPrint ? `<button class="btn small ghost" onclick="printOrderById('${o.id}')">🖨️ In lại bill</button>` : ''}
+        ${(isOwnerNow || staffCanEdit) ? `<button class="btn small ghost" onclick="openEditOrderModal('${o.id}')">✏️ Chỉnh đơn</button>
+        <button class="btn small" style="background:#e67e22; color:#fff; border-color:#e67e22;" onclick="addMoreToOrder('${o.id}')">➕ Gọi thêm món</button>` : ''}
+        ${isOwnerNow ? `<button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="deleteOrder('${o.id}')">🗑️ Xóa đơn</button>` : ''}
+      </div>
+      ${canPay ? `<button class="btn" style="width:100%; margin-top:10px; padding:12px; font-size:15px; background:#2e9e5b; border-color:#2e9e5b; color:#fff;" onclick="markOrderPaid('${o.id}')">✅ ĐÃ THANH TOÁN (${fmt(o.totalPrice || 0)}đ)</button>` : ''}
+    </div>`;
+  }).join('');
+  _openDet.forEach(k => { const d = wrap.querySelector('details.order-detail-box[data-k="' + k + '"]'); if(d) d.open = true; });
 }
 function renderCancelledOrdersBox(){
   const wrap = document.getElementById('cancelled-order-list'); if(!wrap) return;
