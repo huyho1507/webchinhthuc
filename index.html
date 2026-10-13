@@ -2576,6 +2576,23 @@ function isCancelledOrder(o){ return !!o && (o.status === 'Đã hủy' || o.stat
 function isDebtOrder(o){ return !!o && o.debt === true; }
 /* ===== KHÁCH NGỒI LẠI QUÁN: đơn chưa thanh toán → KHÔNG tính vào doanh thu / quỹ ca cho tới khi bấm "Đã thanh toán" ===== */
 function isUnpaidOrder(o){ return !!o && o.unpaid === true; }
+/* ===== THU TIỀN HỘ: bill ngồi lại của A, A đã ra ca → nhân viên B thu được.
+   Doanh số / số ly / KPI vẫn tính cho A (o.staffName); TIỀN nằm trong két của B nên quỹ ca + kiểm kê của B (o.collectedBy). ===== */
+function orderCashOwner(o){ return (o && (o.collectedBy || o.staffName)) || ''; }
+function isStaffClockedInByName(name){
+  const rec = ((DATA && DATA.attendance) || []).find(a => a.staffName === name && (a.type === 'Vào ca làm' || a.type === 'Ra ca làm'));
+  return !!rec && rec.type === 'Vào ca làm';
+}
+/* Ai được bấm "Đã thanh toán" cho bill chưa thu: chủ quán, người tạo bill, hoặc nhân viên khác KHI người tạo bill đã ra ca */
+function canCollectUnpaid(o){
+  if(!CURRENT_USER || !o) return false;
+  if(CURRENT_USER.role === 'owner') return true;
+  if(o.staffName === CURRENT_USER.name) return true;
+  return !isStaffClockedInByName(o.staffName);
+}
+function paidOnBehalfTag(o){
+  return (o && o.collectedBy && o.collectedBy !== o.staffName) ? ` · 🤝 <b>${escapeHtml(o.collectedBy)}</b> thu hộ cho <b>${escapeHtml(o.staffName || '')}</b> (doanh số tính cho ${escapeHtml(o.staffName || '')})` : '';
+}
 function isNonRevenueOrder(o){ return isCancelledOrder(o) || isDebtOrder(o) || isUnpaidOrder(o); }
 function isOrderSettled(o){ const d = getOrderShiftDay(o); return !!d && d < getShiftDayStr(); }
 /* Mốc thời gian (cùng hệ với nowVN.getTime()) của 1 đơn, đọc từ chuỗi giờ "HH:MM:SS — DD/MM/YYYY". Không đọc được → null */
@@ -2588,7 +2605,7 @@ function getOrderTs(o){
 function getStaffOrderTotals(staffName, opts){
   let cash = 0, bank = 0;
   (DATA.orders || []).forEach(o => {
-    if(o.staffName !== staffName || isNonRevenueOrder(o)) return;
+    if(orderCashOwner(o) !== staffName || isNonRevenueOrder(o)) return;
     const match = opts.shiftDay ? (getOrderShiftDay(o) === opts.shiftDay) : (o.dateIso === opts.dateStr);
     if(!match) return;
     if(opts.sinceTs){ const ts = getOrderTs(o); if(ts !== null && ts <= opts.sinceTs) return; } // chỉ tính đơn SAU lúc ca trước kết ca
@@ -2937,7 +2954,7 @@ function renderCashFundTab(){
 function logSettledOrderAdjust(source, fund, amount, reason, order){
   logCashFundChange(source, fund, amount, reason, order.id);
   const l = DATA.cashFundLogs[0];
-  if(l){ l.orderShiftDay = getOrderShiftDay(order); l.orderStaff = order.staffName || ''; }
+  if(l){ l.orderShiftDay = getOrderShiftDay(order); l.orderStaff = orderCashOwner(order); }
 }
 function getLogShiftDay(l){
   const m = /\((\d{2})\/(\d{2})\/(\d{4})\)/.exec(l.time || '');
@@ -2978,7 +2995,7 @@ function discLabel(a){
 }
 function refreshDiscrepanciesForOrder(order){
   if(!order || !DATA.attendance) return;
-  DATA.attendance.filter(r => r.type === 'Ra ca làm' && r.countedCash !== undefined && r.staffName === order.staffName).forEach(rec => {
+  DATA.attendance.filter(r => r.type === 'Ra ca làm' && r.countedCash !== undefined && r.staffName === orderCashOwner(order)).forEach(rec => {
     const same = rec.shiftDay ? (rec.shiftDay === getOrderShiftDay(order)) : (rec.dateStr === order.dateIso);
     if(!same) return;
     const existing = DATA.attendance.find(a => a.isDiscrepancy && findCheckoutRecForDiff(a) === rec);
@@ -3872,7 +3889,7 @@ function renderHistoryOrders(){
     const staffCanEdit = canStaffEditOrder(o);
     const lastPayChange = (o.paymentChanges && o.paymentChanges.length) ? o.paymentChanges[o.paymentChanges.length - 1] : null;
     const isUnpaid = isUnpaidOrder(o);
-    const canPay = isUnpaid && !!CURRENT_USER && (isOwnerNow || isMine0(o)) && !isCancelledOrder(o);
+    const canPay = isUnpaid && canCollectUnpaid(o) && !isCancelledOrder(o);
     const isCompleted = isCompletedOrder(o);
     const canComplete = !!CURRENT_USER && isWebOrder && !isCancelRequest && !isCancelledOrder(o) && !isCompleted;
     // Quyền: chỉ NGƯỜI TẠO BILL (trong ngày làm việc) hoặc CHỦ QUÁN mới sửa / thêm món / công nợ / in lại. Bill của người khác chỉ xem nội dung.
@@ -3893,7 +3910,7 @@ function renderHistoryOrders(){
       <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
         👤 NV: <b>${escapeHtml(o.staffName)}</b> | 🕒 ${o.time} | 🥤 ${o.totalQty} ly
         ${isMixed ? `<br>💵 <b>Tiền mặt:</b> ${fmt(orderCashAmt(o))}đ &nbsp;|&nbsp; 📱 <b>Chuyển khoản:</b> ${fmt(orderBankAmt(o))}đ` : ''}
-        ${(o.dineIn && !isUnpaid && o.orderTime) ? `<br>🪑 <b>Khách ngồi lại</b> · đặt lúc ${escapeHtml(o.orderTime)} · 💰 thanh toán lúc ${escapeHtml(o.paidTime || '')} (${escapeHtml(o.paidBy || '')})` : ''}
+        ${(o.dineIn && !isUnpaid && o.orderTime) ? `<br>🪑 <b>Khách ngồi lại</b> · đặt lúc ${escapeHtml(o.orderTime)} · 💰 thanh toán lúc ${escapeHtml(o.paidTime || '')} (${escapeHtml(o.paidBy || '')})${paidOnBehalfTag(o)}` : ''}
         ${isCompleted ? `<br>✅ <b>Hoàn thành:</b> ${escapeHtml(o.completedTime || '')} (${escapeHtml(o.completedBy || '')})` : ''}
         ${lastPayChange ? `<br>💱 <b>Đã đổi hình thức TT:</b> ${escapeHtml(lastPayChange.from)} → ${escapeHtml(lastPayChange.to)} (${escapeHtml(lastPayChange.by)})` : ''}
         ${o.mergedFrom && o.mergedFrom.length ? `<br>🔗 <b>Bill gộp từ ${o.mergedFrom.length} đơn</b> (${o.mergedFrom.map(m => escapeHtml(String(m.time || '').split(' — ')[0])).join(', ')})` : ''}
@@ -3925,7 +3942,7 @@ function renderHistoryOrders(){
         <button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="deleteOrder('${o.id}')">🗑️ Xóa đơn</button>` : ''}
       </div>` : ''}
       ${canPay ? `<button class="btn" style="width:100%; margin-top:10px; padding:12px; font-size:15px; background:#2e9e5b; border-color:#2e9e5b; color:#fff;" onclick="markOrderPaid('${o.id}')">✅ ĐÃ THANH TOÁN (${fmt(o.totalPrice || 0)}đ)</button>` : ''}
-      ${(isUnpaid && !canPay) ? `<div style="margin-top:8px; font-size:12px; color:#b45309; font-weight:700; text-align:center;">⏳ Chờ ${escapeHtml(o.staffName || '')} hoặc chủ quán xác nhận thanh toán</div>` : ''}
+      ${(isUnpaid && !canPay) ? `<div style="margin-top:8px; font-size:12px; color:#b45309; font-weight:700; text-align:center;">⏳ Chờ ${escapeHtml(o.staffName || '')} (đang trong ca) hoặc chủ quán xác nhận thanh toán</div>` : ''}
     </div>
   `;}).join('') + (_listShown.length > _listCut.length ? `<button class="btn ghost" style="width:100%; margin:6px 0 10px;" onclick="window.__histLimit = (window.__histLimit || 60) + 60; renderHistoryOrders();">⬇️ Hiện thêm bill (đang hiện ${_listCut.length}/${_listShown.length})</button>` : '');
   _openDet.forEach(k => { const d = wrap.querySelector('details.order-detail-box[data-k="' + k + '"]'); if(d) d.open = true; });
@@ -3937,7 +3954,7 @@ function markOrderPaid(id){
   if(!CURRENT_USER){ alert('⚠️ Vui lòng đăng nhập!'); return; }
   const _o = (DATA.orders || []).find(o => o.id === id);
   if(!_o || !isUnpaidOrder(_o)){ renderHistoryOrders(); return; }
-  if(CURRENT_USER.role !== 'owner' && _o.staffName !== CURRENT_USER.name){ alert('⚠️ Chỉ người tạo bill hoặc chủ quán mới xác nhận thanh toán được.'); return; }
+  if(!canCollectUnpaid(_o)){ alert('⚠️ Bill này của ' + (_o.staffName || 'nhân viên khác') + ' đang trong ca. Chỉ người tạo bill hoặc chủ quán thu được (nhân viên khác chỉ thu hộ khi người tạo bill đã ra ca).'); return; }
   if(isCancelledOrder(_o) || isDebtOrder(_o)){ alert('⚠️ Đơn này đang hủy / công nợ nên không xác nhận thanh toán được.'); return; }
   openOrderPayModal(_o);
 }
@@ -3945,7 +3962,7 @@ function finalizeOrderPaid(id, method){
   if(!CURRENT_USER){ alert('⚠️ Vui lòng đăng nhập!'); return; }
   const order = (DATA.orders || []).find(o => o.id === id);
   if(!order || !isUnpaidOrder(order)){ renderHistoryOrders(); return; }
-  if(CURRENT_USER.role !== 'owner' && order.staffName !== CURRENT_USER.name){ alert('⚠️ Chỉ người tạo bill hoặc chủ quán mới xác nhận thanh toán được.'); return; }
+  if(!canCollectUnpaid(order)){ alert('⚠️ Bill này của ' + (order.staffName || 'nhân viên khác') + ' đang trong ca. Chỉ người tạo bill hoặc chủ quán thu được (nhân viên khác chỉ thu hộ khi người tạo bill đã ra ca).'); return; }
   if(isCancelledOrder(order) || isDebtOrder(order)){ alert('⚠️ Đơn này đang hủy / công nợ nên không xác nhận thanh toán được.'); return; }
   // Chốt hình thức thu tiền khách đã chọn (đơn chia từng ly cũ được gộp về 1 hình thức)
   order.paymentMethod = (method === 'Chuyển khoản') ? 'Chuyển khoản' : 'Tiền mặt';
@@ -3957,6 +3974,9 @@ function finalizeOrderPaid(id, method){
   order.orderTime = order.time; order.orderDateIso = order.dateIso;
   order.time = timeStr; order.dateIso = toVNDateStr(nowVN);
   order.unpaid = false; order.paidAt = Date.now(); order.paidTime = timeStr; order.paidBy = getFormattedUserDisplayName(CURRENT_USER);
+  // Thu hộ: nhân viên khác (không phải chủ quán) thu bill của người đã ra ca → doanh số vẫn của người tạo bill, tiền tính vào két + kiểm kê của người thu
+  if(CURRENT_USER.role !== 'owner' && order.staffName && order.staffName !== CURRENT_USER.name){ order.collectedBy = CURRENT_USER.name; order.paidOnBehalf = true; }
+  else { delete order.collectedBy; delete order.paidOnBehalf; }
   const dCash = orderCashAmt(order), dBank = orderBankAmt(order);
   if(dCash) logCashFundOnly('order', 'shiftCash', dCash, `Khách ngồi lại thanh toán bàn ${order.table} - tiền mặt`, order.id);
   if(dBank) logCashFundOnly('order', 'shiftBank', dBank, `Khách ngồi lại thanh toán bàn ${order.table} - chuyển khoản`, order.id);
@@ -3964,7 +3984,7 @@ function finalizeOrderPaid(id, method){
   try{ recalculateShiftFundFromOrders(); }catch(e){ console.error(e); }
   saveDataDirect();
   renderHistoryOrders();
-  showToast(`✅ Đã thu ${fmt(order.totalPrice || 0)}đ (${order.paymentMethod}) — đã tính vào quỹ ca.`);
+  showToast(order.collectedBy ? `✅ Đã thu hộ ${order.staffName} ${fmt(order.totalPrice || 0)}đ (${order.paymentMethod}) — tiền tính vào quỹ ca của bạn, doanh số tính cho ${order.staffName}.` : `✅ Đã thu ${fmt(order.totalPrice || 0)}đ (${order.paymentMethod}) — đã tính vào quỹ ca.`);
 }
 
 /* ============ CHI TIẾT MÓN / GỘP BILL / ĐƠN HỦY / GỌI THÊM MÓN ============ */
@@ -4376,7 +4396,7 @@ function renderAppOrdersBox(){
     const staffCanEdit = canStaffEditOrder(o);
     const isMine = !!(CURRENT_USER && o.staffName === CURRENT_USER.name);
     const canPrint = (isOwnerNow || isMine) && printerEnabled();
-    const canPay = isUnpaid && !!CURRENT_USER && (isOwnerNow || isMine0(o));
+    const canPay = isUnpaid && canCollectUnpaid(o);
     return `
     <div style="background:#fff5cc; border:2px solid #e0b020; border-left:6px solid #e67e22; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
       ${isUnpaid ? '<div style="position:absolute; top:-8px; right:12px; background:#e67e22; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px;">🪑 NGỒI LẠI · CHƯA THANH TOÁN</div>' : '<div style="position:absolute; top:-8px; right:12px; background:#e67e22; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px;">⏳ CHỜ HOÀN THÀNH</div>'}
@@ -5589,7 +5609,7 @@ function saveAttendanceCfg(){
 /* ============ FIX CHECKOUT: Nút Ra Ca ============ */
 document.getElementById('btn-clock-out').addEventListener('click', ()=>{
   const _pend = (DATA && DATA.orders || []).filter(o => isUnpaidOrder(o) && !isCancelledOrder(o) && o.staffName === CURRENT_USER.name);
-  if(_pend.length && !confirm(`⚠️ Bạn còn ${_pend.length} bill khách ngồi lại CHƯA THANH TOÁN (${fmt(_pend.reduce((s,o)=>s+(o.totalPrice||0),0))}đ).\n\nCác bill này chưa được tính vào quỹ ca. Vẫn tiếp tục kết ca?`)) return;
+  if(_pend.length && !confirm(`⚠️ Bạn còn ${_pend.length} bill khách ngồi lại CHƯA THANH TOÁN (${fmt(_pend.reduce((s,o)=>s+(o.totalPrice||0),0))}đ).\n\nCác bill này chưa được tính vào quỹ ca của bạn. Sau khi bạn kết ca, nhân viên ca sau vẫn thu hộ được (doanh số vẫn tính cho bạn, tiền tính vào quỹ của người thu). Vẫn tiếp tục kết ca?`)) return;
   const todayStr = toVNDateStr(getVietnamTimeNow());
   const staffName = CURRENT_USER.name;
   const shiftDay = getShiftDayStr();
