@@ -82,14 +82,15 @@
   .bell-btn { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; position: relative; transition: all 0.15s ease; }
   .bell-btn:hover { background: var(--soft); }
   .bell-badge { position: absolute; top: -5px; right: -5px; background: var(--bad); color: #fff; border-radius: 99px; padding: 2px 6px; font-size: 10px; font-weight: 900; border: 1.5px solid #fff; min-width: 18px; text-align: center; display: none; }
-  .noti-dropdown { position: absolute; top: 48px; right: 0; width: 320px; background: var(--card); border: 2.5px solid var(--line); border-radius: 16px; box-shadow: 6px 6px 0px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 1000; overflow: hidden; animation: slideDownNoti 0.2s ease; }
+  .noti-dropdown { position: absolute; top: 48px; right: 0; width: min(300px, calc(100vw - 16px)); background: var(--card); border: 2.5px solid var(--line); border-radius: 16px; box-shadow: 6px 6px 0px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 1000; overflow: hidden; animation: slideDownNoti 0.2s ease; }
   @keyframes slideDownNoti { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-  .noti-header { padding: 10px 14px; background: var(--soft); border-bottom: 1.5px solid var(--line); font-weight: 800; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
-  .noti-body { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; }
-  .noti-item { padding: 10px 12px; border-bottom: 1px solid #efe9d8; font-size: 12px; cursor: pointer; transition: background 0.15s; }
+  .noti-header { padding: 7px 12px; background: var(--soft); border-bottom: 1.5px solid var(--line); font-weight: 800; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .noti-body { max-height: min(300px, 60vh); overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; display: flex; flex-direction: column; }
+  .noti-item { padding: 6px 10px; border-bottom: 1px solid #efe9d8; font-size: 11.5px; line-height: 1.3; cursor: pointer; transition: background 0.15s; }
   .noti-item:hover { background: #fffdf8; }
   .noti-item.unread { background: #fff8eb; font-weight: 600; }
-  .noti-item .noti-time { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .noti-item .noti-time { font-size: 9.5px; color: var(--muted); margin-top: 1px; }
+  .noti-item .noti-msg { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
   .login-screen, .modal-overlay{ position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,15,15,0.4); backdrop-filter:blur(3px); z-index:999; display:flex; align-items:center; justify-content:center; padding:20px; }
   .login-screen{ background:var(--paper); backdrop-filter:none; }
   .login-card, .modal-card{ background:var(--card); border:3px solid var(--line); border-radius:24px; padding:24px; width:100%; max-width:420px; box-shadow:6px 6px 0px var(--line); }
@@ -421,6 +422,21 @@
     will-change:transform, opacity;
   }
   #staff-chat-panel.open{ transform:scale(1); opacity:1; pointer-events:auto; }
+  /* ===== Hộp thư khách: bong bóng chat gọn + thanh kéo giãn khung (chế độ thường) ===== */
+  .sc-msg{ flex:none; max-width:88%; padding:5px 9px; border-radius:12px; font-size:12.5px; line-height:1.35; word-break:break-word; overflow-wrap:anywhere; }
+  .sc-msg .sc-txt{ white-space:pre-wrap; }
+  .sc-msg .sc-time{ font-size:9.5px; opacity:.65; margin-left:8px; white-space:nowrap; vertical-align:baseline; }
+  .sc-me{ align-self:flex-end; background:#2ecc71; color:#fff; border-bottom-right-radius:4px; }
+  .sc-cus{ align-self:flex-start; background:#fff; color:#0f0f0f; border:1px solid #dcd5c2; border-bottom-left-radius:4px; }
+  .sc-day{ align-self:center; flex:none; font-size:10.5px; font-weight:800; color:var(--muted); background:#efe9db; border-radius:999px; padding:1px 9px; }
+  .sc-more{ align-self:center; flex:none; font-size:11px; font-weight:800; color:var(--accent); background:#fff; border:1px solid #dcd5c2; border-radius:999px; padding:3px 12px; cursor:pointer; }
+  #staff-chat-grip{ flex:none; height:14px; display:flex; align-items:center; justify-content:center; cursor:ns-resize; touch-action:none; background:var(--soft); }
+  #staff-chat-grip i{ display:block; width:38px; height:4px; border-radius:99px; background:#c3bba5; }
+  #staff-chat-panel[data-v="below"] #staff-chat-grip{ order:99; }
+  #staff-chat-input{ min-width:0; }
+  /* Chế độ nhẹ: giữ nguyên cỡ khung, không có thanh kéo/nút mở rộng */
+  html.lite #staff-chat-grip, html.lite #staff-chat-expand{ display:none !important; }
+  html.lite #staff-chat-messages{ gap:4px !important; }
   /* Chi tiết đơn + gộp bill */
   .order-detail-box{ margin-top:6px; font-size:12px; }
   .order-detail-box summary{ cursor:pointer; font-weight:800; color:var(--accent); padding:2px 0; }
@@ -1242,18 +1258,22 @@
 </div>
 
 <div id="staff-chat-panel" style="display:none; position:fixed; bottom:100px; right:30px; width:400px; max-width:calc(100vw - 40px); height:560px; background:#fffdf8; border:3px solid var(--line); border-radius:20px; box-shadow:0 12px 40px rgba(0,0,0,0.25); z-index:3001; flex-direction:column; overflow:hidden;">
-  <div style="background:var(--soft); padding:12px 16px; border-bottom:2px solid var(--line); display:flex; justify-content:space-between; align-items:center;">
-    <b style="font-size:14px;">💬 Hộp Thư Khách Hàng</b>
-    <span style="cursor:pointer; font-size:20px; color:var(--bad); font-weight:900;" onclick="toggleStaffChatPanel()">✕</span>
+  <div id="staff-chat-grip" title="Kéo để phóng to / thu nhỏ khung chat"><i></i></div>
+  <div style="flex:none; background:var(--soft); padding:7px 12px; border-bottom:2px solid var(--line); display:flex; justify-content:space-between; align-items:center;">
+    <b style="font-size:13px;">💬 Hộp Thư Khách Hàng</b>
+    <span style="display:flex; align-items:center; gap:12px;">
+      <span id="staff-chat-expand" title="Mở rộng / thu nhỏ" style="cursor:pointer; font-size:16px; font-weight:900; color:var(--ink);" onclick="toggleStaffChatExpand()">⤢</span>
+      <span style="cursor:pointer; font-size:18px; color:var(--bad); font-weight:900; line-height:1;" onclick="toggleStaffChatPanel()">✕</span>
+    </span>
   </div>
-  <div id="staff-chat-list" style="flex:1; overflow-y:auto; padding:8px; background:#fdfbf7;"></div>
-  <div id="staff-chat-conv" style="display:none; flex:1; flex-direction:column; border-top:2px solid var(--line);">
-    <div style="padding:8px 12px; background:#fff9f0; border-bottom:1.5px dashed #e6c9a0; font-size:12.5px; font-weight:700; display:flex; justify-content:space-between; align-items:center;">
-      <span id="staff-chat-title">---</span>
-      <button class="btn small ghost" onclick="closeStaffChatConv()">◀ Danh sách</button>
+  <div id="staff-chat-list" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:8px; background:#fdfbf7;"></div>
+  <div id="staff-chat-conv" style="display:none; flex:1; min-height:0; overflow:hidden; flex-direction:column; border-top:2px solid var(--line);">
+    <div style="flex:none; padding:5px 10px; background:#fff9f0; border-bottom:1.5px dashed #e6c9a0; font-size:12px; font-weight:700; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+      <span id="staff-chat-title" style="min-width:0;">---</span>
+      <button class="btn small ghost" style="flex:none; width:auto !important; height:auto !important; min-width:0 !important; padding:3px 9px !important; font-size:11px !important; border-radius:999px !important;" onclick="closeStaffChatConv()">◀ Danh sách</button>
     </div>
-    <div id="staff-chat-messages" style="flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px;"></div>
-    <div style="padding:10px; border-top:2px solid var(--line); display:flex; gap:8px; background:#fff;">
+    <div id="staff-chat-messages" style="flex:1 1 0; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:8px; display:flex; flex-direction:column; gap:6px;"></div>
+    <div style="flex:none; padding:6px 8px; border-top:2px solid var(--line); display:flex; gap:6px; background:#fff;">
       <input type="text" id="staff-chat-input" placeholder="Nhập tin nhắn..." style="flex:1; border:1.5px solid #cfc7b2; border-radius:12px; padding:8px 12px; font-size:13px;" onkeypress="if(event.key==='Enter') sendStaffChatMessage()">
       <button class="btn small success" onclick="sendStaffChatMessage()">Gửi</button>
     </div>
@@ -6642,9 +6662,35 @@ function renderNotifications() {
   const listWrap = document.getElementById('noti-list-body');
   if (!listWrap) return;
   if (DATA.notifications.length === 0) { listWrap.innerHTML = '<div style="padding:16px; text-align:center; font-size:12px; color:var(--muted);">Không có thông báo nào</div>'; return; }
-  listWrap.innerHTML = DATA.notifications.map(n => `<div class="noti-item ${n.read ? '' : 'unread'}" onclick="clickNotificationItem('${n.id}', '${n.ingName}')"><div>${escapeHtml(n.message)}</div><div class="noti-time">🕒 ${n.time}</div></div>`).join('');
+  const NOTI_SHOW_MAX = 40;
+  const compactMsg = (t) => String(t == null ? '' : t).replace(/(\d{1,2}:\d{2}):\d{2}/g, '$1').replace(/\s*[—-]\s*\d{1,2}\/\d{1,2}\/\d{4}/g, '');
+  const compactTime = (t) => { const m = String(t == null ? '' : t).match(/(\d{1,2}:\d{2})(?::\d{2})?\s*[—-]?\s*(\d{1,2}\/\d{1,2})(?:\/\d{4})?/); return m ? (m[2] + ' · ' + m[1]) : String(t == null ? '' : t); };
+  listWrap.innerHTML = DATA.notifications.slice(0, NOTI_SHOW_MAX).map(n => `<div class="noti-item ${n.read ? '' : 'unread'}" onclick="clickNotificationItem('${n.id}', '${n.ingName}')"><div class="noti-msg">${escapeHtml(compactMsg(n.message))}</div><div class="noti-time">🕒 ${escapeHtml(compactTime(n.time))}</div></div>`).join('') + (DATA.notifications.length > NOTI_SHOW_MAX ? `<div style="padding:5px; text-align:center; font-size:10px; color:var(--muted);">Chỉ hiện ${NOTI_SHOW_MAX} thông báo mới nhất</div>` : '');
 }
-document.getElementById('btn-toggle-noti').addEventListener('click', (e) => { e.stopPropagation(); const menu = document.getElementById('noti-dropdown-menu'); if (menu) menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex'; });
+document.getElementById('btn-toggle-noti').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const menu = document.getElementById('noti-dropdown-menu');
+  if (!menu) return;
+  if (menu.style.display === 'flex') { menu.style.display = 'none'; return; }
+  menu.style.display = 'flex';
+  fitNotiDropdown();
+});
+// Giữ bảng thông báo nằm gọn trong màn hình (máy POS Sunmi / điện thoại nhỏ): chỉnh lệch ngang + giới hạn chiều cao theo chỗ còn trống
+function fitNotiDropdown() {
+  const menu = document.getElementById('noti-dropdown-menu'), body = document.getElementById('noti-list-body');
+  if (!menu) return;
+  menu.style.right = '0px';
+  const vw = document.documentElement.clientWidth || window.innerWidth, vh = window.innerHeight, M = 8;
+  let r = menu.getBoundingClientRect();
+  if (r.left < M) menu.style.right = (r.left - M) + 'px';
+  else if (r.right > vw - M) menu.style.right = (r.right - (vw - M)) + 'px';
+  r = menu.getBoundingClientRect();
+  if (body) {
+    const head = menu.firstElementChild ? menu.firstElementChild.offsetHeight : 34;
+    body.style.maxHeight = Math.max(110, Math.min(300, vh - r.top - head - 14)) + 'px';
+  }
+}
+window.addEventListener('resize', () => { const m = document.getElementById('noti-dropdown-menu'); if (m && m.style.display === 'flex') fitNotiDropdown(); });
 document.addEventListener('click', (e) => { const container = document.getElementById('noti-bell-container'); const menu = document.getElementById('noti-dropdown-menu'); if (container && menu && !container.contains(e.target)) menu.style.display = 'none'; });
 function markAllNotificationsAsRead() { if (!DATA || !DATA.notifications) return; DATA.notifications.forEach(n => n.read = true); saveDataDirect(); renderNotifications(); }
 function clickNotificationItem(notiId, ingName) {
@@ -7136,33 +7182,46 @@ function chatDayLabel(ts){
 }
 
 let staffChatUnread = {};
+let staffChatSeen = (function(){ try { return JSON.parse(localStorage.getItem('meoxam_chat_seen') || '{}') || {}; } catch(e) { return {}; } })();
+function saveStaffChatSeen() { try { localStorage.setItem('meoxam_chat_seen', JSON.stringify(staffChatSeen)); } catch(e) {} }
+// Đánh dấu cuộc chat đã xem: nhớ khóa tin nhắn cuối của khách để lần sau không báo "mới" lại
+function markStaffChatSeen(oid) {
+  const msgs = (typeof ALL_CHATS !== 'undefined' && ALL_CHATS && ALL_CHATS[oid]) || {};
+  const keys = Object.keys(msgs).sort((a,b) => (msgs[a].timestamp||0) - (msgs[b].timestamp||0));
+  let lastCustomerKey = null;
+  keys.forEach(k => { if(msgs[k].sender === 'customer') lastCustomerKey = k; });
+  if(lastCustomerKey && staffChatSeen[oid] !== lastCustomerKey) { staffChatSeen[oid] = lastCustomerKey; saveStaffChatSeen(); }
+  delete staffChatUnread[oid];
+}
+function updateStaffChatBadge() {
+  const badge = document.getElementById('staff-chat-badge');
+  if(!badge) return;
+  const n = Object.keys(staffChatUnread).length;
+  if(n > 0) { badge.textContent = n; badge.style.display = 'inline-block'; }
+  else badge.style.display = 'none';
+}
 
 function initStaffChat() {
   if(!useFirebase || !db) return;
   db.ref('meoxam_data/chats').on('value', snap => {
     ALL_CHATS = snap.val() || {};
     rememberAllChatMetaSoon();
-    let totalUnread = 0;
+    // Chưa đọc = tin cuối của khách chưa được nhân viên XEM (mở hộp thư) và chưa có ai trả lời sau đó.
+    // Trạng thái "đã xem" nhớ theo từng máy (localStorage) nên không bật lại mỗi khi có dữ liệu mới về.
+    staffChatUnread = {};
     Object.keys(ALL_CHATS).forEach(oid => {
-      const msgs = ALL_CHATS[oid];
+      const msgs = ALL_CHATS[oid] || {};
       const keys = Object.keys(msgs).sort((a,b) => (msgs[a].timestamp||0) - (msgs[b].timestamp||0));
-      let lastStaffIdx = -1, lastCustomerIdx = -1;
+      let lastStaffIdx = -1, lastCustomerIdx = -1, lastCustomerKey = null;
       keys.forEach((k, i) => {
         if(msgs[k].sender === 'staff') lastStaffIdx = i;
-        if(msgs[k].sender === 'customer') lastCustomerIdx = i;
+        if(msgs[k].sender === 'customer') { lastCustomerIdx = i; lastCustomerKey = k; }
       });
-      if(lastCustomerIdx > lastStaffIdx) {
-        staffChatUnread[oid] = true;
-        totalUnread++;
-      }
+      if(lastCustomerIdx > lastStaffIdx && staffChatSeen[oid] !== lastCustomerKey) staffChatUnread[oid] = true;
     });
     const btn = document.getElementById('staff-chat-btn');
-    const badge = document.getElementById('staff-chat-badge');
     if(btn) btn.style.display = 'flex';
-    if(badge) {
-      if(totalUnread > 0) { badge.textContent = totalUnread; badge.style.display = 'inline-block'; }
-      else badge.style.display = 'none';
-    }
+    updateStaffChatBadge();
     const panel = document.getElementById('staff-chat-panel');
     if(panel && panel.style.display === 'flex') {
       if(staffChatActiveOrderId) renderStaffChatMessages(staffChatActiveOrderId);
@@ -7230,10 +7289,14 @@ function positionStaffChatPanel() {
   const M = 8, G = 10;
   const vw = window.innerWidth, vh = window.innerHeight;
   const b = btn.getBoundingClientRect();
+  applyStaffChatSize();
   panel.style.setProperty('max-height', 'none', 'important');
   const pw = panel.offsetWidth, natH = panel.offsetHeight;
   const spaceAbove = b.top - G - M, spaceBelow = vh - b.bottom - G - M;
   let placeAbove = spaceAbove >= natH ? true : (spaceBelow >= natH ? false : spaceAbove >= spaceBelow);
+  if(window._scLock) placeAbove = window._scLock.above;                                        // đang kéo giãn: giữ nguyên phía đặt khung
+  panel.dataset.v = placeAbove ? 'above' : 'below';
+  panel.dataset.h = (b.left + b.width / 2 < vw / 2) ? 'right' : 'left';                         // hướng khung giãn ra theo chiều ngang
   const avail = Math.max(160, placeAbove ? spaceAbove : spaceBelow);
   const ph = Math.min(natH, avail);
   panel.style.setProperty('max-height', ph + 'px', 'important');
@@ -7261,6 +7324,60 @@ function followStaffChatBubble(ms) {
 }
 window.addEventListener('resize', function(){ followStaffChatBubble(0); });
 
+/* ===== Kéo giãn khung chat (chỉ chế độ thường; chế độ nhẹ giữ cỡ cố định) ===== */
+function getStaffChatSize() { try { return JSON.parse(localStorage.getItem('meoxam_chat_size') || 'null'); } catch(e) { return null; } }
+function applyStaffChatSize() {
+  const panel = document.getElementById('staff-chat-panel');
+  if(!panel || window._scDragging) return;
+  const lite = document.documentElement.classList.contains('lite');
+  const sz = lite ? null : getStaffChatSize();
+  if(sz && sz.w && sz.h) {
+    panel.style.setProperty('width', Math.max(260, Math.min(sz.w, window.innerWidth - 16)) + 'px', 'important');
+    panel.style.setProperty('height', Math.max(220, Math.min(sz.h, window.innerHeight - 16)) + 'px', 'important');
+  } else {
+    panel.style.removeProperty('width'); panel.style.removeProperty('height');
+  }
+  const ex = document.getElementById('staff-chat-expand');
+  if(ex) ex.textContent = (sz && sz.w) ? '⤡' : '⤢';
+}
+function toggleStaffChatExpand() {
+  if(document.documentElement.classList.contains('lite')) return;
+  if(getStaffChatSize()) { try { localStorage.removeItem('meoxam_chat_size'); } catch(e) {} }
+  else { try { localStorage.setItem('meoxam_chat_size', JSON.stringify({ w: Math.min(520, window.innerWidth - 16), h: Math.round(window.innerHeight * 0.82) })); } catch(e) {} }
+  positionStaffChatPanel();
+}
+(function bindStaffChatResize(){
+  const grip = document.getElementById('staff-chat-grip'), panel = document.getElementById('staff-chat-panel');
+  if(!grip || !panel) return;
+  let st = null;
+  grip.addEventListener('pointerdown', e => {
+    if(document.documentElement.classList.contains('lite')) return;
+    e.preventDefault();
+    st = { x: e.clientX, y: e.clientY, w: panel.offsetWidth, h: panel.offsetHeight, above: panel.dataset.v !== 'below', growLeft: panel.dataset.h === 'left', id: e.pointerId };
+    window._scLock = { above: st.above }; window._scDragging = true;
+    try { grip.setPointerCapture(e.pointerId); } catch(err) {}
+  });
+  grip.addEventListener('pointermove', e => {
+    if(!st || e.pointerId !== st.id) return;
+    const dx = e.clientX - st.x, dy = e.clientY - st.y;
+    const w = Math.max(260, Math.min(window.innerWidth - 16, 640, st.w + (st.growLeft ? -dx : dx)));
+    const h = Math.max(220, Math.min(window.innerHeight - 16, st.h + (st.above ? -dy : dy)));
+    panel.style.setProperty('width', w + 'px', 'important'); panel.style.setProperty('height', h + 'px', 'important');
+    positionStaffChatPanel();
+  });
+  function end(e) {
+    if(!st || (e && e.pointerId !== st.id)) return;
+    const w = parseInt(panel.style.width, 10), h = parseInt(panel.style.height, 10);
+    st = null; window._scLock = null; window._scDragging = false;
+    try { grip.releasePointerCapture(e.pointerId); } catch(err) {}
+    if(w && h) { try { localStorage.setItem('meoxam_chat_size', JSON.stringify({ w, h })); } catch(err) {} }
+    positionStaffChatPanel();
+  }
+  grip.addEventListener('pointerup', end);
+  grip.addEventListener('pointercancel', end);
+})();
+
+
 let _staffChatCloseTimer = null;
 function toggleStaffChatPanel() {
   const panel = document.getElementById('staff-chat-panel');
@@ -7271,7 +7388,7 @@ function toggleStaffChatPanel() {
     _staffChatCloseTimer = setTimeout(function(){ panel.style.display = 'none'; }, 320);
   } else {
     panel.style.display = 'flex';
-    if(staffChatActiveOrderId) renderStaffChatMessages(staffChatActiveOrderId);
+    if(staffChatActiveOrderId) { const w1 = document.getElementById('staff-chat-messages'); if(w1) w1.dataset.sig = ''; renderStaffChatMessages(staffChatActiveOrderId); }
     else renderStaffChatList();
     positionStaffChatPanel();
     void panel.offsetWidth;                               // ép trình duyệt vẽ trạng thái đầu rồi mới chạy hiệu ứng
@@ -7326,16 +7443,15 @@ function renderStaffChatList() {
 
 function openStaffChatConv(orderId) {
   staffChatActiveOrderId = orderId;
-  delete staffChatUnread[orderId];
+  staffChatShowCount = 0;
+  { const w0 = document.getElementById('staff-chat-messages'); if(w0) w0.dataset.sig = ''; }
+  markStaffChatSeen(orderId);
   const listEl = document.getElementById('staff-chat-list');
   const convEl = document.getElementById('staff-chat-conv');
   listEl.style.display = 'none';
   convEl.style.display = 'flex';
   renderStaffChatMessages(orderId);
-  const badge = document.getElementById('staff-chat-badge');
-  const remaining = Object.keys(staffChatUnread).length;
-  if(remaining > 0) { badge.textContent = remaining; badge.style.display = 'inline-block'; }
-  else badge.style.display = 'none';
+  updateStaffChatBadge();
 }
 
 function closeStaffChatConv() {
@@ -7343,31 +7459,42 @@ function closeStaffChatConv() {
   renderStaffChatList();
 }
 
-function renderStaffChatMessages(orderId) {
+let staffChatShowCount = 0;
+function staffChatLimit() { return document.documentElement.classList.contains('lite') ? 30 : 100; }   // chế độ nhẹ: chỉ vẽ 30 tin gần nhất
+function staffChatShowMore() { staffChatShowCount += 50; if(staffChatActiveOrderId) renderStaffChatMessages(staffChatActiveOrderId, 'more'); }
+
+function renderStaffChatMessages(orderId, force) {
+  markStaffChatSeen(orderId);
+  updateStaffChatBadge();
   const wrap = document.getElementById('staff-chat-messages');
   const titleEl = document.getElementById('staff-chat-title');
   const info = chatInfoFor(orderId);
   titleEl.innerHTML = '💬 ' + escapeHtml(info.name) + (info.deleted ? ' <span style="font-size:9px; background:#6b7280; color:#fff; border-radius:4px; padding:1px 4px;">ĐƠN ĐÃ XÓA</span>' : '') + (info.table ? '<span style="font-size:10px; font-weight:normal; color:var(--muted); display:block;">' + escapeHtml(info.table) + '</span>' : '');
   const msgs = ALL_CHATS[orderId] || {};
   const keys = Object.keys(msgs).sort((a,b) => (msgs[a].timestamp||0) - (msgs[b].timestamp||0));
+  if(!staffChatShowCount) staffChatShowCount = staffChatLimit();
+  // Không đổi gì (Firebase đẩy dữ liệu của chat khác về) thì khỏi vẽ lại -> mượt hơn, nhất là máy POS
+  const sig = orderId + '|' + keys.length + '|' + (keys[keys.length - 1] || '') + '|' + staffChatShowCount;
+  if(!force && wrap.dataset.sig === sig) return;
+  const firstRender = !wrap.dataset.sig || wrap.dataset.oid !== orderId;
+  const prevH = wrap.scrollHeight, prevTop = wrap.scrollTop;
+  const nearBottom = (prevH - wrap.clientHeight - prevTop) < 80;
+  wrap.dataset.sig = sig; wrap.dataset.oid = orderId;
   if(keys.length === 0) {
-    wrap.innerHTML = '<p style="text-align:center; color:var(--muted); font-size:13px; padding:20px;">Chưa có tin nhắn.</p>';
+    wrap.innerHTML = '<p style="text-align:center; color:var(--muted); font-size:12px; padding:14px;">Chưa có tin nhắn.</p>';
     return;
   }
+  const shown = keys.slice(Math.max(0, keys.length - staffChatShowCount));
+  let html = keys.length > shown.length ? '<button class="sc-more" onclick="staffChatShowMore()">▲ Xem thêm tin cũ (' + (keys.length - shown.length) + ')</button>' : '';
   let _lastDay = '';
-  wrap.innerHTML = keys.map(k => {
+  shown.forEach(k => {
     const m = msgs[k];
-    const isStaff = m.sender === 'staff';
-    let sep = '';
-    if(m.timestamp){ const dk = chatDayKey(m.timestamp); if(dk !== _lastDay){ _lastDay = dk; sep = '<div style="align-self:center; font-size:11px; font-weight:800; color:var(--muted); background:#efe9db; border-radius:999px; padding:2px 10px;">' + chatDayLabel(m.timestamp) + '</div>'; } }
-    return sep + `
-      <div style="max-width:80%; padding:10px 14px; border-radius:16px; font-size:13px; line-height:1.4; ${isStaff ? 'align-self:flex-end; background:#2ecc71; color:#fff; border-bottom-right-radius:4px;' : 'align-self:flex-start; background:#fff; color:#0f0f0f; border:1px solid #dcd5c2; border-bottom-left-radius:4px;'}">
-        ${!isStaff ? '<b>Khách:</b> ' : '<b>Bạn:</b> '}${escapeHtml(m.text || '')}
-        <div style="font-size:10px; opacity:0.7; margin-top:4px; text-align:${isStaff?'right':'left'};">${chatTimeLabel(m)}</div>
-      </div>
-    `;
-  }).join('');
-  wrap.scrollTop = wrap.scrollHeight;
+    if(m.timestamp){ const dk = chatDayKey(m.timestamp); if(dk !== _lastDay){ _lastDay = dk; html += '<div class="sc-day">' + chatDayLabel(m.timestamp) + '</div>'; } }
+    html += '<div class="sc-msg ' + (m.sender === 'staff' ? 'sc-me' : 'sc-cus') + '"><span class="sc-txt">' + escapeHtml(m.text || '') + '</span><span class="sc-time">' + chatTimeLabel(m) + '</span></div>';
+  });
+  wrap.innerHTML = html;
+  if(firstRender || nearBottom) wrap.scrollTop = wrap.scrollHeight;                           // đang đọc tin cũ thì không giật xuống đáy
+  else if(force === 'more') wrap.scrollTop = prevTop + (wrap.scrollHeight - prevH);
 }
 
 function sendStaffChatMessage() {
