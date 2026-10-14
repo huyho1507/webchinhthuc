@@ -1132,12 +1132,12 @@
     <div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Chọn Nhân Viên:</label><select id="modal-shift-staff" style="margin-top:4px; font-weight:700;"></select></div>
     <div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Tên Ca:</label><input type="text" id="modal-shift-name" value="Ca Sáng" style="margin-top:4px; font-weight:700;"></div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-      <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Từ:</label><input type="time" id="modal-shift-time-start" value="08:00" style="margin-top:4px; font-weight:700;" onchange="calculateShiftModalHours()"></div>
-      <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Đến:</label><input type="time" id="modal-shift-time-end" value="13:00" style="margin-top:4px; font-weight:700;" onchange="calculateShiftModalHours()"></div>
+      <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Từ:</label><input type="time" id="modal-shift-time-start" value="11:00" style="margin-top:4px; font-weight:700;" onchange="calculateShiftModalHours()"></div>
+      <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Đến:</label><input type="time" id="modal-shift-time-end" value="16:00" style="margin-top:4px; font-weight:700;" onchange="calculateShiftModalHours()"></div>
     </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+    <div style="margin-bottom:10px;">
       <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Số Giờ:</label><input type="number" id="modal-shift-hours" class="num" step="0.5" value="5" style="margin-top:4px; font-weight:700;"></div>
-      <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Đơn Giá (đ/h):</label><input type="number" id="modal-shift-rate" min="0" step="1000" value="25000" style="margin-top:4px; font-weight:700; text-align:right;"></div>
+      
     </div>
     <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn ghost" style="flex:1;" id="btn-close-shift-modal">Hủy</button><button class="btn success" style="flex:1.5;" id="btn-save-calendar-shift">LƯU CA</button></div>
   </div>
@@ -6191,7 +6191,7 @@ document.getElementById('btn-export-excel').addEventListener('click', () => {
   alert('✅ Đã xuất Excel!');
 });
 function calculateShiftModalHours(){ const start = document.getElementById('modal-shift-time-start').value; const end = document.getElementById('modal-shift-time-end').value; if(start && end){ const [sh, sm] = start.split(':').map(Number); const [eh, em] = end.split(':').map(Number); let diff = (eh * 60 + em) - (sh * 60 + sm); if(diff < 0) diff += 24 * 60; const hours = Math.round((diff / 60) * 10) / 10; document.getElementById('modal-shift-hours').value = hours > 0 ? hours : 5; } }
-function openShiftModal(dateStr){ selectedModalDateStr = dateStr; document.getElementById('modal-shift-date-label').textContent = `Ngày: ${dateStr}`; document.getElementById('modal-shift-staff').innerHTML = (DATA.users || []).map(u => `<option value="${escapeHtml(getFormattedUserDisplayName(u))}">${escapeHtml(getFormattedUserDisplayName(u))}</option>`).join(''); document.getElementById('modal-shift-time-start').value = '08:00'; document.getElementById('modal-shift-time-end').value = '13:00'; calculateShiftModalHours(); document.getElementById('modal-shift-rate').value = 25000; document.getElementById('shift-modal').style.display = 'flex'; }
+function openShiftModal(dateStr){ selectedModalDateStr = dateStr; document.getElementById('modal-shift-date-label').textContent = `Ngày: ${dateStr}`; document.getElementById('modal-shift-staff').innerHTML = (DATA.users || []).map(u => `<option value="${escapeHtml(getFormattedUserDisplayName(u))}">${escapeHtml(getFormattedUserDisplayName(u))}</option>`).join(''); document.getElementById('modal-shift-time-start').value = '11:00'; document.getElementById('modal-shift-time-end').value = '16:00'; calculateShiftModalHours(); document.getElementById('shift-modal').style.display = 'flex'; }
 document.getElementById('btn-close-shift-modal').addEventListener('click', ()=>{ document.getElementById('shift-modal').style.display = 'none'; });
 document.getElementById('btn-save-calendar-shift').addEventListener('click', ()=>{
   const staffName = document.getElementById('modal-shift-staff').value;
@@ -6200,7 +6200,7 @@ document.getElementById('btn-save-calendar-shift').addEventListener('click', ()=
   const end = document.getElementById('modal-shift-time-end').value;
   const timeframe = `${start} - ${end}`;
   const hours = parseFloat(document.getElementById('modal-shift-hours').value) || 5;
-  const rate = parseFloat(document.getElementById('modal-shift-rate').value) || 25000;
+  const _su = (DATA.users || []).find(u => getFormattedUserDisplayName(u) === staffName); const rate = _su ? (parseFloat(_su.hourlyRate) || 25000) : 25000;
   if(!DATA.monthlySchedules) DATA.monthlySchedules = [];
   DATA.monthlySchedules.push({ id: uid('mshift'), date: selectedModalDateStr, name: staffName, shift: shiftText, timeframe, hours, rate });
   saveDataDirect();
