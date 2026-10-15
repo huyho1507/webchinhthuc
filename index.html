@@ -1697,11 +1697,13 @@
         <div style="border:1.5px solid var(--line); border-radius:12px; overflow:hidden;">
             <table style="width:100%; text-align:center; font-size:12px;">
                 <thead style="background:#f4fbf5;">
-                    <tr><th style="padding: 8px;">Tên Phần Thưởng</th><th style="padding: 8px;">Mức giảm</th><th style="padding: 8px;">Đơn vị</th><th style="padding: 8px;">Tỷ Lệ Trúng (Trọng số)</th><th style="padding: 8px;">Xóa</th></tr>
+                    <tr><th style="padding: 8px;">Tên Phần Thưởng</th><th style="padding: 8px;">Mức giảm</th><th style="padding: 8px;">Đơn vị</th><th style="padding: 8px;">Tỷ lệ trúng (%)</th><th style="padding: 8px;">Xóa</th></tr>
                 </thead>
                 <tbody id="wheel-config-tbody"></tbody>
             </table>
         </div>
+        <div id="wheel-probability-summary" style="margin-top:8px; padding:9px 11px; border-radius:9px; background:#f4fbf5; font-size:12px; font-weight:700;"></div>
+        <div style="font-size:11px; color:var(--muted); margin-top:5px;">Mỗi giải có thưởng dùng đúng phần trăm bạn nhập; phần còn lại tự động là “Chúc may mắn” (không trúng). Tổng tỷ lệ giải có thưởng không được vượt 100%.</div>
         <div style="display:flex; gap:10px; margin-top:14px;">
             <button class="btn small ghost" onclick="safeAddWheelItem()">+ Thêm Phần Thưởng Mới</button>
             <button class="btn success small" onclick="safeSaveWheelConfig()">💾 Lưu Cấu Hình Vòng Quay</button>
@@ -2253,7 +2255,7 @@ function seedData(){
     ownerPin: '6868', securityPin: '9999', level3Pin: '2578', ownerAlias: 'Chủ Quán', ownerRealName: 'Quản Lý', ownerEmoji: '👑',
     rent: 4000000, electricity: 1000000, water: 0, haohut: 300000, other: 1000000,
     initialInvest: 50000000, expansionCost: 0, depositMoney: 8000000, manualStaffSalary: 6000000, ingredientCostTotal: 3000000,
-    ticketSpinRate: 10, ticketRewardAmount: 1, voucherDiscountRate: 5
+    ticketSpinRate: 10, ticketRewardAmount: 1, voucherDiscountRate: 5, notifyVoucherWins: true
   };
   const users = [
     { id: 'u_1', name: 'Nhân viên Ánh', alias: 'Bé Ánh', realName: 'Nguyễn Thị Ánh', emoji: '🐱', pin: '1111', hourlyRate: 25000 },
@@ -2427,6 +2429,7 @@ function loadCustomersFromFirebase() {
         createdAt: c.createdAt || c.lastLoginTime || 0,           // ← FIX: đọc `createdAt` trước
         lastSeen: lastSeen,
         nextFreeTicketTime: c.nextFreeTicketTime || 0,
+        notifyVoucherWins: c.notifyVoucherWins !== undefined ? c.notifyVoucherWins !== false : (!DATA.config || DATA.config.notifyVoucherWins !== false),
         spinHistory: c.spinHistory || [],
         usedVoucherLog: c.usedVoucherLog || {}
       };
@@ -6975,7 +6978,8 @@ function renderCustomersList() {
       <div style="display:flex; gap:4px; flex-wrap:wrap;">
         <button class="btn small ghost" onclick="openGiftTicketModal('${c.phone}')" title="Tặng ticket">🎁 Tặng</button>
         <button class="btn small ghost" onclick="openCustomerDetailModal('${c.phone}')" title="Xem chi tiết">👁️</button>
-        <button class="btn small danger" onclick="resetCustomerPin('${c.phone}')" title="Reset PIN">🔑</button>
+        <button class="btn small danger" onclick="resetCustomerPin('${c.phone}')" title="Reset PIN khách">🔑</button>
+        <button class="btn small ${c.notifyVoucherWins !== false ? 'success' : 'ghost'}" onclick="toggleCustomerVoucherWinNotice('${c.phone}')" title="${c.notifyVoucherWins !== false ? 'Tắt' : 'Bật'} thông báo trúng quà cho tài khoản này">${c.notifyVoucherWins !== false ? '🔕 Tắt thông báo' : '🔔 Bật thông báo'}</button>
       </div>
     </div>
   `;}).join('');
@@ -7089,6 +7093,25 @@ function resetCustomerPin(customerPhone) {
   db.ref(`meoxam_data/customers/${customerPhone}`).update({ pin: newPin })
     .then(() => { alert(`✅ Đã reset PIN cho khách "${c.realName}". PIN mới: ${newPin}`); })
     .catch(err => { alert('❌ Lỗi: ' + err.message); });
+}
+
+function toggleCustomerVoucherWinNotice(customerPhone) {
+  const c = (DATA.customers || []).find(x => x.phone === customerPhone);
+  if (!c) return;
+  const previous = c.notifyVoucherWins !== false;
+  const next = !previous;
+  c.notifyVoucherWins = next;
+  renderCustomersList();
+  if (useFirebase && db) {
+    db.ref(`meoxam_data/customers/${customerPhone}`).update({ notifyVoucherWins: next })
+      .catch(err => {
+        c.notifyVoucherWins = previous;
+        renderCustomersList();
+        alert('❌ Không lưu được cài đặt thông báo cho khách: ' + err.message);
+      });
+  } else {
+    saveDataDirect();
+  }
 }
 
 function renderImageTab() {
@@ -7571,9 +7594,10 @@ window.renderWheelConfig = function() {
             { id: 'w7', name: '1 Ly Free',    discountValue: 100, weight: 1  }
         ];
     }
-    let totalWeight = DATA.config.wheel_config.reduce((s, it) => s + (parseFloat(it.weight) || 0), 0) || 1;
+    syncWheelProbabilityWeights();
     tbody.innerHTML = DATA.config.wheel_config.map((item, index) => {
-        const chance = ((parseFloat(item.weight) || 0) / totalWeight * 100).toFixed(1);
+        const chance = (parseFloat(item.weight) || 0).toFixed(2).replace(/\.00$/, '');
+        const isWinningItem = (parseFloat(item.discountValue) || 0) > 0;
         const safeName = (item.name || '').replace(/"/g, '&quot;');
         return `
         <tr>
@@ -7583,7 +7607,7 @@ window.renderWheelConfig = function() {
             </td>
             <td style="padding:6px;">
                 <input type="number" value="${item.discountValue || 0}"
-                    oninput="DATA.config.wheel_config[${index}].discountValue = parseFloat(this.value) || 0">
+                    oninput="DATA.config.wheel_config[${index}].discountValue = parseFloat(this.value) || 0; updateWheelChances();">
             </td>
             <td style="padding:6px;">
                 <select onchange="DATA.config.wheel_config[${index}].discountType = this.value">
@@ -7592,9 +7616,9 @@ window.renderWheelConfig = function() {
                 </select>
             </td>
             <td style="padding:6px;">
-                <input type="number" value="${item.weight || 0}" style="width:70px; text-align:center;"
+                <input class="wheel-percent-input" type="number" min="0" max="100" step="0.01" value="${chance}" data-idx="${index}" ${isWinningItem ? '' : 'disabled'} style="width:78px; text-align:center;"
                     oninput="DATA.config.wheel_config[${index}].weight = parseFloat(this.value) || 0; updateWheelChances();">
-                <br><span class="wheel-chance" data-idx="${index}" style="font-size:11px; color:var(--accent); font-weight:800;">${chance}% thực tế</span>
+                <br><span class="wheel-chance" data-idx="${index}" style="font-size:11px; color:var(--accent); font-weight:800;">${chance}% ${isWinningItem ? 'xác suất' : 'không trúng'}</span>
             </td>
             <td style="padding:6px;">
                 <button class="icon-btn danger" onclick="safeDeleteWheelItem(${index})">✕</button>
@@ -7603,15 +7627,44 @@ window.renderWheelConfig = function() {
     }).join('');
 };
 
-/* Cập nhật % thực tế tại chỗ khi gõ trọng số — KHÔNG dựng lại bảng nên bàn phím không bị ngắt */
+/* Xác suất giải thưởng là phần trăm tuyệt đối; các mục 0 đồng chia phần còn lại. */
+window.syncWheelProbabilityWeights = function() {
+    if (!DATA.config) DATA.config = {};
+    if (!Array.isArray(DATA.config.wheel_config)) DATA.config.wheel_config = [];
+    const list = DATA.config.wheel_config;
+    if (!list.some(it => (parseFloat(it.discountValue) || 0) <= 0)) {
+        list.push({ id: 'wheel_no_win', name: 'Chúc may mắn', discountValue: 0, discountType: 'percent', weight: 0 });
+    }
+    const winningItems = list.filter(it => (parseFloat(it.discountValue) || 0) > 0);
+    const losingItems = list.filter(it => (parseFloat(it.discountValue) || 0) <= 0);
+    const winningTotal = winningItems.reduce((sum, it) => sum + Math.max(0, parseFloat(it.weight) || 0), 0);
+    const remaining = Math.max(0, 100 - winningTotal);
+    const perLosingItem = losingItems.length ? remaining / losingItems.length : 0;
+    losingItems.forEach(it => { it.weight = perLosingItem; });
+    return { winningTotal, remaining };
+};
+
+/* Cập nhật tại chỗ, không dựng lại bảng để con trỏ nhập không bị ngắt. */
 window.updateWheelChances = function() {
     const list = (DATA && DATA.config && DATA.config.wheel_config) || [];
-    const total = list.reduce((s, it) => s + (parseFloat(it.weight) || 0), 0) || 1;
+    const info = syncWheelProbabilityWeights();
     document.querySelectorAll('#wheel-config-tbody .wheel-chance').forEach(function(sp){
-        const it = list[parseInt(sp.getAttribute('data-idx'), 10)];
+        const index = parseInt(sp.getAttribute('data-idx'), 10);
+        const it = list[index];
         if (!it) return;
-        sp.textContent = ((parseFloat(it.weight) || 0) / total * 100).toFixed(1) + '% thực tế';
+        const winning = (parseFloat(it.discountValue) || 0) > 0;
+        const pct = (parseFloat(it.weight) || 0).toFixed(2).replace(/\.00$/, '');
+        sp.textContent = pct + '% ' + (winning ? 'xác suất' : 'không trúng');
+        const input = document.querySelector('#wheel-config-tbody .wheel-percent-input[data-idx="' + index + '"]');
+        if (input) { input.disabled = !winning; input.value = pct; }
     });
+    const summary = document.getElementById('wheel-probability-summary');
+    if (summary) {
+        const over = info.winningTotal > 100;
+        summary.style.background = over ? '#fff0ef' : '#f4fbf5';
+        summary.style.color = over ? '#b3261e' : 'var(--ink)';
+        summary.textContent = 'Tổng tỷ lệ trúng: ' + info.winningTotal.toFixed(2).replace(/\.00$/, '') + '% · Không trúng: ' + info.remaining.toFixed(2).replace(/\.00$/, '') + '%' + (over ? ' — Vượt 100%, vui lòng giảm tỷ lệ trước khi lưu.' : '');
+    }
 };
 
 window.safeAddWheelItem = function() {
@@ -7638,6 +7691,14 @@ window.safeSaveWheelConfig = function() {
     const rewardAmtInp = document.getElementById('cfg-ticket-reward-amount');
     if (spinRateInp) DATA.config.ticketSpinRate = parseFloat(spinRateInp.value) || 0;
     if (rewardAmtInp) DATA.config.ticketRewardAmount = parseInt(rewardAmtInp.value) || 1;
+    const list = (DATA && DATA.config && DATA.config.wheel_config) || [];
+    const badRate = list.find(it => {
+        const rate = parseFloat(it.weight);
+        return (parseFloat(it.discountValue) || 0) > 0 && (!Number.isFinite(rate) || rate < 0 || rate > 100);
+    });
+    const info = syncWheelProbabilityWeights();
+    if (badRate) { alert('❌ Mỗi tỷ lệ trúng phải nằm trong khoảng 0–100%.'); return; }
+    if (info.winningTotal > 100) { alert('❌ Tổng tỷ lệ các giải có thưởng đang là ' + info.winningTotal.toFixed(2) + '%, vượt 100%. Hãy giảm tỷ lệ trước khi lưu.'); return; }
     const secPin = (DATA && DATA.config && DATA.config.securityPin) ? DATA.config.securityPin : '9999';
     const code = prompt('🔒 Nhập Mã PIN Cấp Hai để lưu cấu hình vòng quay:');
     if (code === null) return;
