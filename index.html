@@ -218,7 +218,7 @@
   .cash-count-table { width:100%; border-collapse:collapse; font-size:13px; }
   .customer-search-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: var(--soft); padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--line); margin-bottom: 12px; }
   .customer-search-bar input { flex: 1; min-width: 150px; }
-  .customer-row { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-bottom:1px solid #e4ded0; gap:8px; flex-wrap:wrap; content-visibility:auto; contain-intrinsic-size:auto 70px; }
+  .customer-row { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-bottom:1px solid #e4ded0; gap:8px; flex-wrap:wrap; }
   .customer-row:hover { background:#fffdf8; }
   .ticket-badge { background:#fff3e0; border:1px solid #ffb74d; border-radius:8px; padding:2px 8px; font-size:11.5px; font-weight:800; color:#e65100; }
   .voucher-badge { background:#e8f5e9; border:1px solid #81c784; border-radius:8px; padding:2px 8px; font-size:11.5px; font-weight:800; color:#2e7d32; }
@@ -437,19 +437,6 @@
   /* Chế độ nhẹ: giữ nguyên cỡ khung, không có thanh kéo/nút mở rộng */
   html.lite #staff-chat-grip, html.lite #staff-chat-expand{ display:none !important; }
   html.lite #staff-chat-messages{ gap:4px !important; }
-  /* ===== Hộp thư gộp theo khách: nút online + trạng thái đơn ===== */
-  .sc-item{ display:flex; align-items:center; gap:6px; margin-bottom:8px; contain:content; }
-  .sc-card{ flex:1; min-width:0; cursor:pointer; padding:9px 11px; border:1.5px solid #e4ded0; background:#fff; border-radius:12px; overflow:hidden; }
-  .sc-card.unread{ border-color:#e67e22; background:#fff9f0; }
-  .sc-head{ display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:3px; }
-  .sc-name{ font-size:13.5px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
-  .sc-tags{ display:flex; gap:5px; align-items:center; flex-wrap:wrap; margin-bottom:3px; }
-  .sc-pill{ display:inline-block; border-radius:999px; padding:1px 8px; font-size:10px; font-weight:800; color:#fff; white-space:nowrap; line-height:1.5; }
-  .sc-on{ background:#16a34a; } .sc-off{ background:#0f0f0f; }
-  .sc-st-wait{ background:#e67e22; } .sc-st-done{ background:#2563eb; } .sc-st-cancel{ background:#b3261e; }
-  .sc-new{ background:#e11d48; }
-  .sc-last{ font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .sc-sub{ font-size:10.5px; color:var(--accent); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   /* Chi tiết đơn + gộp bill */
   .order-detail-box{ margin-top:6px; font-size:12px; }
   .order-detail-box summary{ cursor:pointer; font-weight:800; color:var(--accent); padding:2px 0; }
@@ -1690,8 +1677,8 @@
           <button class="btn small success" onclick="forceRefreshCustomerList()">🔄 Làm mới</button>
         </div>
         <div class="customer-search-bar">
-          <input type="text" id="customer-search-input" placeholder="🔍 Tìm theo tên, SĐT, địa chỉ..." oninput="customerSearchTerm = this.value; customerShowCount = 0; renderCustomersList();">
-          <select id="customer-sort-select" style="max-width:200px;" onchange="customerSortMode = this.value; customerShowCount = 0; renderCustomersList();">
+          <input type="text" id="customer-search-input" placeholder="🔍 Tìm theo tên, SĐT, địa chỉ..." oninput="customerSearchTerm = this.value; renderCustomersList();">
+          <select id="customer-sort-select" style="max-width:200px;" onchange="customerSortMode = this.value; renderCustomersList();">
             <option value="created_desc">📅 Mới tạo nhất</option>
             <option value="created_asc">📅 Cũ nhất</option>
             <option value="spent_desc">💰 Ủng hộ nhiều nhất</option>
@@ -2030,30 +2017,6 @@ let customerSortMode = 'created_desc';
 let customersListenerRegistered = false;
 let lastCustomerRenderTs = 0;
 let lastCustomerPhonesKey = '';
-/* Online = còn nhịp tim (lastSeen) trong 3 phút VÀ chưa đăng xuất (loggedOutAt < lastSeen) */
-function isCustomerOnline(c, now){
-  if(!c || !c.lastSeen) return false;
-  if(c.loggedOutAt && c.loggedOutAt >= c.lastSeen) return false;
-  return ((now || Date.now()) - c.lastSeen) < 180000;
-}
-let _lastOnlineKey = '';
-function customerOnlineKey(){
-  const now = Date.now(); let k = '';
-  const arr = (DATA && DATA.customers) || [];
-  for(let i = 0; i < arr.length; i++){ if(isCustomerOnline(arr[i], now)) k += arr[i].phone + ','; }
-  return k;
-}
-/* trả về true nếu tập khách đang online vừa thay đổi (chỉ khi đó mới phải vẽ lại) */
-function refreshCustomerOnlineUI(){
-  const k = customerOnlineKey();
-  const changed = k !== _lastOnlineKey;
-  _lastOnlineKey = k;
-  if(changed) renderOnlineCustomersBar();
-  return changed;
-}
-let customerShowCount = 0;
-function customerListCap(){ return isLiteMode() ? 40 : 120; }
-function customerShowMore(){ customerShowCount += 60; renderCustomersList(); }
 window.__CHECKOUT_X1 = 0;
 window.__CHECKOUT_Y1 = 0;
 
@@ -2293,7 +2256,7 @@ function seedData(){
     ownerPin: '6868', securityPin: '9999', level3Pin: '2578', ownerAlias: 'Chủ Quán', ownerRealName: 'Quản Lý', ownerEmoji: '👑',
     rent: 4000000, electricity: 1000000, water: 0, haohut: 300000, other: 1000000,
     initialInvest: 50000000, expansionCost: 0, depositMoney: 8000000, manualStaffSalary: 6000000, ingredientCostTotal: 3000000,
-    ticketSpinRate: 10, ticketRewardAmount: 1, voucherDiscountRate: 5
+    ticketSpinRate: 10, ticketRewardAmount: 1, voucherDiscountRate: 5, notifyVoucherWins: true
   };
   const users = [
     { id: 'u_1', name: 'Nhân viên Ánh', alias: 'Bé Ánh', realName: 'Nguyễn Thị Ánh', emoji: '🐱', pin: '1111', hourlyRate: 25000 },
@@ -2410,7 +2373,6 @@ function loadData(){
       checkSessionTimeout();
       renderHeaderMoneyBadge();
       renderNotifications();
-      if(typeof staffChatRefreshSoon === 'function') staffChatRefreshSoon();
       if(isInitialLoad) {
         isInitialLoad = false;
         if(CURRENT_USER) applyRolePermissions();
@@ -2444,10 +2406,8 @@ function loadCustomersFromFirebase() {
   if (!useFirebase || !db) return;
   if (customersListenerRegistered) return;
   customersListenerRegistered = true;
-  let _custSnapVal = null, _custSnapTimer = 0;
-  const _processCust = function(){
-    _custSnapTimer = 0;
-    const customersObj = _custSnapVal || {};
+  db.ref('meoxam_data/customers').on('value', snap => {
+    const customersObj = snap.val() || {};
     if(!DATA) DATA = seedData();
     DATA.customers = Object.keys(customersObj).map(phone => {
       const c = customersObj[phone];
@@ -2469,38 +2429,34 @@ function loadCustomersFromFirebase() {
         totalSpent: c.totalSpent || 0,                            // ← FIX: đọc từ Firebase
         createdAt: c.createdAt || c.lastLoginTime || 0,           // ← FIX: đọc `createdAt` trước
         lastSeen: lastSeen,
-        loggedOutAt: c.loggedOutAt || 0,
         nextFreeTicketTime: c.nextFreeTicketTime || 0,
+        notifyVoucherWins: c.notifyVoucherWins !== undefined ? c.notifyVoucherWins !== false : (!DATA.config || DATA.config.notifyVoucherWins !== false),
         spinHistory: c.spinHistory || [],
         usedVoucherLog: c.usedVoucherLog || {}
       };
     });
-    // Tính tổng chi tiêu 1 lượt duyệt đơn (trước đây: mỗi khách lọc lại toàn bộ đơn -> rất nặng)
-    const _spent = {};
-    (DATA.orders || []).forEach(o => {
-      if(o && o.customerPhone && o.status !== 'Đã hủy' && o.status !== 'Yêu cầu hủy' && !o.debt) _spent[o.customerPhone] = (_spent[o.customerPhone] || 0) + (o.totalPrice || 0);
+    (DATA.customers || []).forEach(cust => {
+      const myOrders = (DATA.orders || []).filter(o =>
+        o.customerPhone === cust.phone &&
+        o.status !== 'Đã hủy' && o.status !== 'Yêu cầu hủy' && !o.debt
+      );
+      cust.totalSpent = myOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
     });
-    (DATA.customers || []).forEach(cust => { cust.totalSpent = _spent[cust.phone] || 0; });
-    const onlineChanged = refreshCustomerOnlineUI();
+    renderOnlineCustomersBar();
     const newPhonesKey = DATA.customers.map(c => c.phone).sort().join('|');
     const activeBtn = document.querySelector('nav.tabs button.active');
     const isSettingsTab = activeBtn && activeBtn.dataset.tab === 'settings';
     const listContainer = document.getElementById('customer-list-container');
     if (isSettingsTab && CURRENT_USER && CURRENT_USER.role === 'owner' && listContainer) {
-      if (newPhonesKey !== lastCustomerPhonesKey || onlineChanged) {
+      if (newPhonesKey !== lastCustomerPhonesKey) {
         lastCustomerPhonesKey = newPhonesKey;
         renderCustomersList();
+      } else {
+        updateCustomerBadgesInPlace();
       }
     } else {
       lastCustomerPhonesKey = newPhonesKey;
     }
-    if(onlineChanged && typeof staffChatRefreshSoon === 'function') staffChatRefreshSoon();
-  };
-  db.ref('meoxam_data/customers').on('value', snap => {
-    _custSnapVal = snap.val() || {};
-    if(_custSnapTimer) return;
-    const first = !(DATA && DATA.customers && DATA.customers.length);
-    _custSnapTimer = setTimeout(_processCust, first ? 0 : (isLiteMode() ? 1500 : 500));
   }, err => { console.error('Lỗi tải customers:', err); });
 }
 
@@ -2509,7 +2465,7 @@ function updateCustomerBadgesInPlace() {
   (DATA.customers || []).forEach(c => {
     const row = document.querySelector(`[data-customer-phone="${c.phone}"]`);
     if(!row) return;
-    const isOnline = isCustomerOnline(c, nowMs);
+    const isOnline = c.lastSeen && (nowMs - c.lastSeen) < 3 * 60 * 1000;
     const badge = row.querySelector('.online-badge');
     if(badge) {
       badge.textContent = isOnline ? '🟢 Đang online' : '⚪ Offline';
@@ -2532,14 +2488,13 @@ function renderOnlineCustomersBar() {
     header.parentNode.insertBefore(bar, header.nextSibling);
   }
   const nowMs = Date.now();
-  const onlineList = (DATA.customers || []).filter(c => isCustomerOnline(c, nowMs));
-  if(onlineList.length === 0) { bar.style.display = 'none'; bar._k = ''; return; }
-  const html = `
+  const onlineList = (DATA.customers || []).filter(c => c.lastSeen && (nowMs - c.lastSeen) < 3 * 60 * 1000);
+  if(onlineList.length === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  bar.innerHTML = `
     <span style="color:#1e7d3c; font-size:13px; font-weight:900;">🟢 Khách đang truy cập web Order (${onlineList.length}):</span>
     ${onlineList.map(c => `<span style="background:#2ecc71; color:#fff; border-radius:999px; padding:3px 10px; font-weight:800; font-size:11.5px;">👤 ${escapeHtml(c.realName || c.phone)}</span>`).join('')}
   `;
-  bar.style.display = 'flex';
-  if(bar._k !== html){ bar._k = html; bar.innerHTML = html; }
 }
 
 function ensureFundStructure(){
@@ -7073,24 +7028,15 @@ function renderCustomersList() {
     return;
   }
   const nowMs = Date.now();
-  // Khách đang online được đẩy lên đầu (giữ nguyên thứ tự sắp xếp đã chọn trong từng nhóm)
-  const _on = [], _off = [];
-  for (let i = 0; i < customers.length; i++) (isCustomerOnline(customers[i], nowMs) ? _on : _off).push(customers[i]);
-  customers = _on.concat(_off);
-  if (!customerShowCount) customerShowCount = customerListCap();
-  const _total = customers.length;
-  if (_total > customerShowCount) customers = customers.slice(0, customerShowCount);
-  const _prevTop = wrap.scrollTop;
   wrap.innerHTML = customers.map(c => {
-    const isOnline = isCustomerOnline(c, nowMs);
-    const loggedOut = !isOnline && c.loggedOutAt && c.loggedOutAt >= (c.lastSeen || 0);
+    const isOnline = c.lastSeen && (nowMs - c.lastSeen) < 3 * 60 * 1000;
     const lastSeenStr = c.lastSeen ? new Date(c.lastSeen).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'}) : '---';
     return `
     <div class="customer-row" data-customer-phone="${c.phone}" style="${isOnline ? 'background:#f0fbf5; border-left:4px solid #2ecc71;' : ''}">
       <div style="flex:1; min-width:150px;">
         <div style="font-weight:800; font-size:13.5px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
           👤 ${escapeHtml(c.realName || 'Chưa có tên')}
-          <span class="online-badge" style="background:${isOnline?'#2ecc71':'#e4ded0'}; color:${isOnline?'#fff':'#6b675e'}; border-radius:8px; padding:2px 8px; font-size:10.5px; font-weight:800;">${isOnline?'🟢 Đang online':(loggedOut?'⚫ Đã đăng xuất':'⚪ Offline')}</span>
+          <span class="online-badge" style="background:${isOnline?'#2ecc71':'#e4ded0'}; color:${isOnline?'#fff':'#6b675e'}; border-radius:8px; padding:2px 8px; font-size:10.5px; font-weight:800;">${isOnline?'🟢 Đang online':'⚪ Offline'}</span>
         </div>
         <div style="font-size:11.5px; color:var(--muted);">📞 ${escapeHtml(c.phone || '---')} | 📍 ${escapeHtml(c.address || '---')}</div>
         <div style="font-size:10.5px; color:var(--muted);">🕒 Vào lần cuối: ${lastSeenStr}</div>
@@ -7104,10 +7050,10 @@ function renderCustomersList() {
         <button class="btn small ghost" onclick="openGiftTicketModal('${c.phone}')" title="Tặng ticket">🎁 Tặng</button>
         <button class="btn small ghost" onclick="openCustomerDetailModal('${c.phone}')" title="Xem chi tiết">👁️</button>
         <button class="btn small danger" onclick="resetCustomerPin('${c.phone}')" title="Reset PIN khách">🔑</button>
+        <button class="btn small ${c.notifyVoucherWins !== false ? 'success' : 'ghost'}" onclick="toggleCustomerVoucherWinNotice('${c.phone}')" title="${c.notifyVoucherWins !== false ? 'Tắt' : 'Bật'} thông báo trúng quà cho tài khoản này">${c.notifyVoucherWins !== false ? '🔕 Tắt thông báo' : '🔔 Bật thông báo'}</button>
       </div>
     </div>
-  `;}).join('') + (_total > customers.length ? `<div style="text-align:center; padding:8px;"><button class="btn small ghost" onclick="customerShowMore()">▼ Xem thêm (${_total - customers.length})</button></div>` : '');
-  if (_prevTop) wrap.scrollTop = _prevTop;
+  `;}).join('');
 }
 function ticketSourceLabel(t) {
   if (!t) return 'Khác';
@@ -7220,6 +7166,25 @@ function resetCustomerPin(customerPhone) {
     .catch(err => { alert('❌ Lỗi: ' + err.message); });
 }
 
+function toggleCustomerVoucherWinNotice(customerPhone) {
+  const c = (DATA.customers || []).find(x => x.phone === customerPhone);
+  if (!c) return;
+  const previous = c.notifyVoucherWins !== false;
+  const next = !previous;
+  c.notifyVoucherWins = next;
+  renderCustomersList();
+  if (useFirebase && db) {
+    db.ref(`meoxam_data/customers/${customerPhone}`).update({ notifyVoucherWins: next })
+      .catch(err => {
+        c.notifyVoucherWins = previous;
+        renderCustomersList();
+        alert('❌ Không lưu được cài đặt thông báo cho khách: ' + err.message);
+      });
+  } else {
+    saveDataDirect();
+  }
+}
+
 function renderImageTab() {
   const isOwner = CURRENT_USER && CURRENT_USER.role === 'owner';
   if (!isOwner) return;
@@ -7271,21 +7236,19 @@ let staffChatActiveOrderId = null;
 function chatMetaFromOrder(o){
   const table = o.table || '';
   const m = table.match(/App:\s*([^-]+?)\s*-/);
-  return { name: m ? m[1].trim() : (o.customerPhone || 'Khách'), table: table, status: o.status || '', date: o.dateIso || '', total: o.totalPrice || 0, phone: o.customerPhone || '' };
+  return { name: m ? m[1].trim() : (o.customerPhone || 'Khách'), table: table, status: o.status || '', date: o.dateIso || '', total: o.totalPrice || 0 };
 }
 function rememberChatMeta(ids){
   if(!DATA) return false;
   let changed = false;
-  const om = {};
-  (DATA.orders || []).forEach(function(o){ if(o) om[o.id] = o; });   // 1 lượt duyệt đơn thay vì find() cho từng cuộc chat
   (ids || []).forEach(function(oid){
     if(!ALL_CHATS[oid]) return;
-    const o = om[oid];
+    const o = (DATA.orders || []).find(x => x.id === oid);
     if(!o) return;
     const meta = chatMetaFromOrder(o);
     if(!DATA.chatMeta) DATA.chatMeta = {};
     const old = DATA.chatMeta[oid];
-    if(!old || old.name !== meta.name || old.table !== meta.table || old.status !== meta.status || old.phone !== meta.phone){ DATA.chatMeta[oid] = meta; changed = true; }
+    if(!old || old.name !== meta.name || old.table !== meta.table || old.status !== meta.status){ DATA.chatMeta[oid] = meta; changed = true; }
   });
   return changed;
 }
@@ -7340,77 +7303,17 @@ function chatDayLabel(ts){
   return k === today ? 'Hôm nay · ' + dm : (k === yest ? 'Hôm qua · ' + dm : dm);
 }
 
-let staffChatUnread = {};            // khóa = khóa nhóm (1 khách = 1 nhóm)
+let staffChatUnread = {};
 let staffChatSeen = (function(){ try { return JSON.parse(localStorage.getItem('meoxam_chat_seen') || '{}') || {}; } catch(e) { return {}; } })();
 function saveStaffChatSeen() { try { localStorage.setItem('meoxam_chat_seen', JSON.stringify(staffChatSeen)); } catch(e) {} }
-
-/* ---- Gộp mọi cuộc chat của cùng 1 khách (chat theo đơn + chat theo tài khoản) thành 1 nhóm ---- */
-let CHAT_GROUPS = [], CHAT_GROUP_MAP = {}, CHAT_ID_GROUP = {};
-function chatPhoneOfId(oid, orderById){
-  const s = String(oid);
-  if(s.indexOf('cust_') === 0) return s.slice(5);
-  if(s.indexOf('guest_') === 0) return '';
-  const o = orderById[oid];
-  if(o && o.customerPhone) return String(o.customerPhone);
-  const meta = DATA && DATA.chatMeta && DATA.chatMeta[oid];
-  if(meta && meta.phone) return String(meta.phone);
-  const ms = ALL_CHATS[oid];
-  if(ms){ const ks = Object.keys(ms); for(let i = ks.length - 1, n = 0; i >= 0 && n < 6; i--, n++){ const m = ms[ks[i]]; if(m && m.customerPhone) return String(m.customerPhone); } }
-  return '';
-}
-let _chatCtx = null;   // cache ngắn: chỉ mục đơn + danh sách khách (tránh quét lại liên tục)
-function getChatCtx(force){
-  const now = Date.now();
-  if(!force && _chatCtx && now - _chatCtx.t < 300) return _chatCtx;
-  const byId = {}, lastByPhone = {}, cm = {};
-  const orders = (DATA && DATA.orders) || [];
-  for(let i = 0; i < orders.length; i++){
-    const o = orders[i]; if(!o) continue;
-    byId[o.id] = o;
-    const p = o.customerPhone;
-    if(p){ const t = getOrderTs(o) || 0, cur = lastByPhone[p]; if(!cur || t >= cur.t) lastByPhone[p] = { o: o, t: t }; }
-  }
-  const cs = (DATA && DATA.customers) || [];
-  for(let i = 0; i < cs.length; i++) cm[cs[i].phone] = cs[i];
-  _chatCtx = { t: now, byId: byId, lastByPhone: lastByPhone, cm: cm };
-  return _chatCtx;
-}
-function rebuildChatGroups(){
-  const ctx = getChatCtx(true);
-  const groups = {}, unread = {};
-  Object.keys(ALL_CHATS).forEach(function(oid){
-    const ms = ALL_CHATS[oid]; if(!ms) return;
-    const ks = Object.keys(ms); if(!ks.length) return;
-    const ph = chatPhoneOfId(oid, ctx.byId);
-    const gk = ph ? 'p:' + ph : oid;
-    let g = groups[gk];
-    if(!g) g = groups[gk] = { key: gk, phone: ph, ids: [], lastTs: 0, lastMsg: null, lastId: oid, unread: false, guest: String(oid).indexOf('guest_') === 0 };
-    g.ids.push(oid);
-    const lk = ks[ks.length - 1], lm = ms[lk] || {}, ts = lm.timestamp || 0;
-    if(!g.lastMsg || ts >= g.lastTs){ g.lastTs = ts; g.lastMsg = lm; g.lastId = oid; }
-    if(lm.sender === 'customer' && staffChatSeen[oid] !== lk) g.unread = true;   // tin cuối là của khách và chưa được xem
-  });
-  CHAT_GROUPS = Object.keys(groups).map(function(k){ return groups[k]; }).sort(function(a, b){ return b.lastTs - a.lastTs; });
-  CHAT_GROUP_MAP = groups; CHAT_ID_GROUP = {};
-  CHAT_GROUPS.forEach(function(g){ g.ids.forEach(function(id){ CHAT_ID_GROUP[id] = g.key; }); if(g.unread) unread[g.key] = true; });
-  staffChatUnread = unread;
-}
-// Đánh dấu đã xem toàn bộ cuộc chat của khách (nhận khóa nhóm hoặc id chat cũ)
-function markStaffChatSeen(ref) {
-  const gk = CHAT_ID_GROUP[ref] || ref;
-  const g = CHAT_GROUP_MAP[gk];
-  const ids = g ? g.ids : [ref];
-  let changed = false;
-  ids.forEach(function(oid){
-    const ms = ALL_CHATS[oid]; if(!ms) return;
-    const ks = Object.keys(ms);
-    for(let i = ks.length - 1; i >= 0; i--){
-      const m = ms[ks[i]];
-      if(m && m.sender === 'customer'){ if(staffChatSeen[oid] !== ks[i]){ staffChatSeen[oid] = ks[i]; changed = true; } break; }
-    }
-  });
-  if(changed) saveStaffChatSeen();
-  delete staffChatUnread[gk];
+// Đánh dấu cuộc chat đã xem: nhớ khóa tin nhắn cuối của khách để lần sau không báo "mới" lại
+function markStaffChatSeen(oid) {
+  const msgs = (typeof ALL_CHATS !== 'undefined' && ALL_CHATS && ALL_CHATS[oid]) || {};
+  const keys = Object.keys(msgs).sort((a,b) => (msgs[a].timestamp||0) - (msgs[b].timestamp||0));
+  let lastCustomerKey = null;
+  keys.forEach(k => { if(msgs[k].sender === 'customer') lastCustomerKey = k; });
+  if(lastCustomerKey && staffChatSeen[oid] !== lastCustomerKey) { staffChatSeen[oid] = lastCustomerKey; saveStaffChatSeen(); }
+  delete staffChatUnread[oid];
 }
 function updateStaffChatBadge() {
   const badge = document.getElementById('staff-chat-badge');
@@ -7420,60 +7323,32 @@ function updateStaffChatBadge() {
   else badge.style.display = 'none';
 }
 
-/* ---- Nút online (xanh / đen) + trạng thái đơn hiện tại của khách ---- */
-function chatOnlineBtn(on){ return '<span class="sc-pill ' + (on ? 'sc-on' : 'sc-off') + '">● ' + (on ? 'Online' : 'Offline') + '</span>'; }
-function chatOrderPill(o){
-  if(!o) return '';                                   // chưa có đơn: chỉ hiện nút online
-  const s = o.status;
-  if(s === 'Đã hủy' || s === 'Yêu cầu hủy') return '<span class="sc-pill sc-st-cancel">Đã hủy</span>';
-  if(s === 'Hoàn thành') return '<span class="sc-pill sc-st-done">Đã hoàn thành</span>';
-  return '<span class="sc-pill sc-st-wait">Chờ hoàn thành</span>';
-}
-const _scNameCache = {};
-function staffChatGroupMeta(g, ctx, now){
-  const c = g.phone ? ctx.cm[g.phone] : null;
-  let o = null;
-  if(g.phone){ const r = ctx.lastByPhone[g.phone]; if(r) o = r.o; }
-  if(!o){ for(let i = 0; i < g.ids.length; i++){ const x = ctx.byId[g.ids[i]]; if(x && (!o || (getOrderTs(x) || 0) >= (getOrderTs(o) || 0))) o = x; } }
-  let name = c && c.realName ? c.realName : '';
-  if(!name && o) name = chatMetaFromOrder(o).name;
-  if(!name){
-    const ck = g.key + '|' + g.lastTs;
-    if(!_scNameCache[ck]) _scNameCache[ck] = chatInfoFor(g.lastId).name;      // hiếm: khách không có tài khoản / đơn đã xóa
-    name = _scNameCache[ck];
-  }
-  if(g.guest && name.indexOf('(khách lẻ)') < 0) name += ' (khách lẻ)';
-  let online;
-  if(c) online = isCustomerOnline(c, now);
-  else online = !!(g.lastMsg && g.lastMsg.sender === 'customer' && g.lastTs && now - g.lastTs < 180000);
-  let sub = g.phone ? 'SĐT ' + g.phone : '';
-  if(o && o.table) sub += (sub ? ' · ' : '') + o.table;
-  return { name: name, online: online, pill: chatOrderPill(o), sub: sub };
-}
-
-/* Làm mới gọn nhẹ khi trạng thái đơn / online đổi (gom nhiều lần thành 1) */
-let _scRefreshTimer = 0;
-function staffChatRefreshSoon(){
-  if(_scRefreshTimer) return;
-  _scRefreshTimer = setTimeout(function(){
-    _scRefreshTimer = 0;
-    const panel = document.getElementById('staff-chat-panel');
-    if(!panel || panel.style.display !== 'flex' || document.hidden) return;
-    try{ rebuildChatGroups(); }catch(e){}
-    if(staffChatActiveOrderId) renderStaffChatMessages(staffChatActiveOrderId); else renderStaffChatList();
-  }, isLiteMode() ? 900 : 400);
-}
-
 function initStaffChat() {
   if(!useFirebase || !db) return;
   db.ref('meoxam_data/chats').on('value', snap => {
     ALL_CHATS = snap.val() || {};
     rememberAllChatMetaSoon();
-    rebuildChatGroups();
+    // Chưa đọc = tin cuối của khách chưa được nhân viên XEM (mở hộp thư) và chưa có ai trả lời sau đó.
+    // Trạng thái "đã xem" nhớ theo từng máy (localStorage) nên không bật lại mỗi khi có dữ liệu mới về.
+    staffChatUnread = {};
+    Object.keys(ALL_CHATS).forEach(oid => {
+      const msgs = ALL_CHATS[oid] || {};
+      const keys = Object.keys(msgs).sort((a,b) => (msgs[a].timestamp||0) - (msgs[b].timestamp||0));
+      let lastStaffIdx = -1, lastCustomerIdx = -1, lastCustomerKey = null;
+      keys.forEach((k, i) => {
+        if(msgs[k].sender === 'staff') lastStaffIdx = i;
+        if(msgs[k].sender === 'customer') { lastCustomerIdx = i; lastCustomerKey = k; }
+      });
+      if(lastCustomerIdx > lastStaffIdx && staffChatSeen[oid] !== lastCustomerKey) staffChatUnread[oid] = true;
+    });
     const btn = document.getElementById('staff-chat-btn');
     if(btn) btn.style.display = 'flex';
     updateStaffChatBadge();
-    staffChatRefreshSoon();
+    const panel = document.getElementById('staff-chat-panel');
+    if(panel && panel.style.display === 'flex') {
+      if(staffChatActiveOrderId) renderStaffChatMessages(staffChatActiveOrderId);
+      else renderStaffChatList();
+    }
   });
 }
 
@@ -7643,65 +7518,66 @@ function toggleStaffChatPanel() {
   }
 }
 
-let staffChatListLimit = 0, _scListHtml = '';
-function staffChatListCap(){ return isLiteMode() ? 30 : 80; }
-function staffChatListMore(){ staffChatListLimit += 40; _scListHtml = ''; renderStaffChatList(); }
 function renderStaffChatList() {
   const listEl = document.getElementById('staff-chat-list');
   const convEl = document.getElementById('staff-chat-conv');
   convEl.style.display = 'none';
   listEl.style.display = 'block';
-  const all = CHAT_GROUPS;
-  if(all.length === 0) {
+  const chatIds = Object.keys(ALL_CHATS).filter(id => Object.keys(ALL_CHATS[id]).length > 0);
+  if(chatIds.length === 0) {
     listEl.innerHTML = '<p style="text-align:center; color:var(--muted); padding:30px 10px; font-size:13px;">Chưa có tin nhắn. Mọi đoạn chat với khách hàng (kể cả đơn đã hủy) sẽ được lưu trữ vĩnh viễn tại đây.</p>';
-    _scListHtml = '';
     return;
   }
-  if(!staffChatListLimit) staffChatListLimit = staffChatListCap();
-  const ctx = getChatCtx(), now = Date.now();
-  const isOwner = CURRENT_USER && CURRENT_USER.role === 'owner';
-  const shown = all.length > staffChatListLimit ? all.slice(0, staffChatListLimit) : all;
-  const parts = [];
-  for(let i = 0; i < shown.length; i++){
-    const g = shown[i], m = staffChatGroupMeta(g, ctx, now), lm = g.lastMsg || {}, unread = !!staffChatUnread[g.key];
-    const preview = (lm.imgId && !lm.text) ? '📷 Hình ảnh' : escapeHtml(lm.text || '');
-    parts.push(
-      '<div class="sc-item"><div class="sc-card' + (unread ? ' unread' : '') + '" onclick="openStaffChatConv(\'' + escapeHtml(g.key) + '\')">' +
-        '<div class="sc-head"><b class="sc-name">👤 ' + escapeHtml(m.name) + '</b><span style="font-size:11px; color:var(--muted); white-space:nowrap;">' + chatTimeLabel(lm) + '</span></div>' +
-        '<div class="sc-tags">' + chatOnlineBtn(m.online) + m.pill + (unread ? '<span class="sc-pill sc-new">MỚI</span>' : '') + '</div>' +
-        '<div class="sc-last">' + (lm.sender === 'customer' ? '' : '<b>Bạn:</b> ') + preview + '</div>' +
-        (m.sub ? '<div class="sc-sub">📍 ' + escapeHtml(m.sub).substring(0, 60) + '</div>' : '') +
-      '</div>' +
-      (isOwner ? '<button class="icon-btn danger" style="width:34px; height:34px; border-radius:10px; flex:none;" onclick="deleteStaffChat(\'' + escapeHtml(g.key) + '\')" title="Xóa vĩnh viễn toàn bộ chat của khách này">🗑️</button>' : '') +
-      '</div>'
-    );
-  }
-  let html = parts.join('');
-  if(all.length > shown.length) html += '<button class="sc-more" style="display:block; margin:4px auto;" onclick="staffChatListMore()">▼ Xem thêm (' + (all.length - shown.length) + ')</button>';
-  if(html === _scListHtml && listEl.firstChild) return;            // không đổi gì thì khỏi ghi DOM
-  _scListHtml = html;
-  const top = listEl.scrollTop;
-  listEl.innerHTML = html;
-  listEl.scrollTop = top;
+  chatIds.sort((a,b) => {
+    const aLast = Math.max(...Object.values(ALL_CHATS[a]).map(m => m.timestamp || 0));
+    const bLast = Math.max(...Object.values(ALL_CHATS[b]).map(m => m.timestamp || 0));
+    return bLast - aLast;
+  });
+  listEl.innerHTML = chatIds.map(oid => {
+    const msgs = ALL_CHATS[oid];
+    const keys = Object.keys(msgs).sort((a,b) => (msgs[a].timestamp||0) - (msgs[b].timestamp||0));
+    const lastMsg = msgs[keys[keys.length - 1]];
+    const unread = staffChatUnread[oid];
+    const info = chatInfoFor(oid);
+    const custName = info.name;
+    const tableStr = info.table || '';
+    let badgeHtml = '';
+    if(info.status === 'Đã hủy' || info.status === 'Yêu cầu hủy') badgeHtml = '<span style="background:#b3261e; color:#fff; border-radius:4px; padding:1px 4px; font-size:9px; margin-left:4px;">ĐÃ HỦY</span>';
+    else if(info.status === 'Hoàn thành') badgeHtml = '<span style="background:#1e7d3c; color:#fff; border-radius:4px; padding:1px 4px; font-size:9px; margin-left:4px;">HOÀN THÀNH</span>';
+    if(info.deleted) badgeHtml += '<span style="background:#6b7280; color:#fff; border-radius:4px; padding:1px 4px; font-size:9px; margin-left:4px;">ĐƠN ĐÃ XÓA</span>';
+    return `
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+          <div onclick="openStaffChatConv('${oid}')" style="flex:1; cursor:pointer; padding:10px 12px; border:1.5px solid ${unread ? '#e67e22' : '#e4ded0'}; background:${unread ? '#fff9f0' : '#fff'}; border-radius:12px; overflow:hidden;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
+              <b style="font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">👤 ${escapeHtml(custName)} ${badgeHtml} ${unread ? '<span style="background:#e67e22; color:#fff; border-radius:8px; padding:1px 6px; font-size:10px; margin-left:4px;">MỚI</span>' : ''}</b>
+              <span style="font-size:11px; color:var(--muted); white-space:nowrap;">${chatTimeLabel(lastMsg)}</span>
+            </div>
+            <div style="font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${lastMsg.sender === 'customer' ? '' : '<b>Bạn:</b> '}${(lastMsg.imgId && !lastMsg.text) ? '📷 Hình ảnh' : escapeHtml(lastMsg.text || '')}
+            </div>
+            <div style="font-size:10.5px; color:var(--accent); margin-top:2px;">📍 ${escapeHtml(tableStr).substring(0, 50)}</div>
+          </div>
+          ${CURRENT_USER && CURRENT_USER.role === 'owner' ? `<button class="icon-btn danger" style="width:34px; height:34px; border-radius:10px; flex:none;" onclick="deleteStaffChat('${oid}')" title="Xóa vĩnh viễn chat này">🗑️</button>` : ''}
+      </div>
+    `;
+  }).join('');
 }
 
-function openStaffChatConv(ref) {
-  const gk = CHAT_ID_GROUP[ref] || ref;
-  staffChatActiveOrderId = gk;           // (giữ tên biến cũ) = khóa nhóm khách
+function openStaffChatConv(orderId) {
+  staffChatActiveOrderId = orderId;
   staffChatShowCount = 0;
   { const w0 = document.getElementById('staff-chat-messages'); if(w0) w0.dataset.sig = ''; }
-  markStaffChatSeen(gk);
+  markStaffChatSeen(orderId);
   const listEl = document.getElementById('staff-chat-list');
   const convEl = document.getElementById('staff-chat-conv');
   listEl.style.display = 'none';
   convEl.style.display = 'flex';
-  renderStaffChatMessages(gk);
+  renderStaffChatMessages(orderId);
   updateStaffChatBadge();
 }
 
 function closeStaffChatConv() {
   staffChatActiveOrderId = null;
-  _scListHtml = '';
   renderStaffChatList();
 }
 
@@ -7709,61 +7585,36 @@ let staffChatShowCount = 0;
 function staffChatLimit() { return document.documentElement.classList.contains('lite') ? 30 : 100; }   // chế độ nhẹ: chỉ vẽ 30 tin gần nhất
 function staffChatShowMore() { staffChatShowCount += 50; if(staffChatActiveOrderId) renderStaffChatMessages(staffChatActiveOrderId, 'more'); }
 
-let _scTitleHtml = '';
-function updateStaffChatTitle(gk){
-  const titleEl = document.getElementById('staff-chat-title');
-  if(!titleEl) return;
-  const g = CHAT_GROUP_MAP[gk];
-  let html = '💬 Khách';
-  if(g){
-    const m = staffChatGroupMeta(g, getChatCtx(), Date.now());
-    html = '💬 ' + escapeHtml(m.name) + '<span class="sc-tags" style="margin:3px 0 0;">' + chatOnlineBtn(m.online) + m.pill + '</span>' +
-           (m.sub ? '<span style="font-size:10px; font-weight:normal; color:var(--muted); display:block;">' + escapeHtml(m.sub) + '</span>' : '');
-  }
-  if(html !== _scTitleHtml){ _scTitleHtml = html; titleEl.innerHTML = html; }
-}
-
-function renderStaffChatMessages(gk, force) {
-  gk = CHAT_ID_GROUP[gk] || gk;
-  markStaffChatSeen(gk);
+function renderStaffChatMessages(orderId, force) {
+  markStaffChatSeen(orderId);
   updateStaffChatBadge();
   const wrap = document.getElementById('staff-chat-messages');
-  updateStaffChatTitle(gk);
-  const g = CHAT_GROUP_MAP[gk];
-  if(!g){ wrap.innerHTML = '<p style="text-align:center; color:var(--muted); font-size:12px; padding:14px;">Chưa có tin nhắn.</p>'; wrap.dataset.sig = ''; return; }
+  const titleEl = document.getElementById('staff-chat-title');
+  const info = chatInfoFor(orderId);
+  titleEl.innerHTML = '💬 ' + escapeHtml(info.name) + (info.deleted ? ' <span style="font-size:9px; background:#6b7280; color:#fff; border-radius:4px; padding:1px 4px;">ĐƠN ĐÃ XÓA</span>' : '') + (info.table ? '<span style="font-size:10px; font-weight:normal; color:var(--muted); display:block;">' + escapeHtml(info.table) + '</span>' : '');
+  const msgs = ALL_CHATS[orderId] || {};
+  const keys = Object.keys(msgs).sort((a,b) => (msgs[a].timestamp||0) - (msgs[b].timestamp||0));
   if(!staffChatShowCount) staffChatShowCount = staffChatLimit();
-  const cnt = staffChatShowCount;
-  // Chỉ gom `cnt` tin cuối của mỗi cuộc chat rồi trộn theo thời gian -> không phải sắp xếp toàn bộ lịch sử
-  let sig = gk + '|' + cnt, total = 0;
-  const pool = [];
-  for(let i = 0; i < g.ids.length; i++){
-    const id = g.ids[i], ms = ALL_CHATS[id] || {}, ks = Object.keys(ms);
-    total += ks.length;
-    sig += '|' + ks.length + ':' + (ks[ks.length - 1] || '');
-    const from = Math.max(0, ks.length - cnt);
-    for(let j = from; j < ks.length; j++) pool.push({ cid: id, m: ms[ks[j]] || {} });
-  }
   // Không đổi gì (Firebase đẩy dữ liệu của chat khác về) thì khỏi vẽ lại -> mượt hơn, nhất là máy POS
+  const sig = orderId + '|' + keys.length + '|' + (keys[keys.length - 1] || '') + '|' + staffChatShowCount;
   if(!force && wrap.dataset.sig === sig) return;
-  const firstRender = !wrap.dataset.sig || wrap.dataset.oid !== gk;
+  const firstRender = !wrap.dataset.sig || wrap.dataset.oid !== orderId;
   const prevH = wrap.scrollHeight, prevTop = wrap.scrollTop;
   const nearBottom = (prevH - wrap.clientHeight - prevTop) < 80;
-  wrap.dataset.sig = sig; wrap.dataset.oid = gk;
-  if(pool.length === 0) {
+  wrap.dataset.sig = sig; wrap.dataset.oid = orderId;
+  if(keys.length === 0) {
     wrap.innerHTML = '<p style="text-align:center; color:var(--muted); font-size:12px; padding:14px;">Chưa có tin nhắn.</p>';
     return;
   }
-  if(g.ids.length > 1) pool.sort(function(a, b){ return (a.m.timestamp || 0) - (b.m.timestamp || 0); });
-  const shown = pool.length > cnt ? pool.slice(pool.length - cnt) : pool;
-  const parts = [];
-  if(total > shown.length) parts.push('<button class="sc-more" onclick="staffChatShowMore()">▲ Xem thêm tin cũ (' + (total - shown.length) + ')</button>');
+  const shown = keys.slice(Math.max(0, keys.length - staffChatShowCount));
+  let html = keys.length > shown.length ? '<button class="sc-more" onclick="staffChatShowMore()">▲ Xem thêm tin cũ (' + (keys.length - shown.length) + ')</button>' : '';
   let _lastDay = '';
-  for(let i = 0; i < shown.length; i++){
-    const m = shown[i].m, cid = shown[i].cid;
-    if(m.timestamp){ const dk = chatDayKey(m.timestamp); if(dk !== _lastDay){ _lastDay = dk; parts.push('<div class="sc-day">' + chatDayLabel(m.timestamp) + '</div>'); } }
-    parts.push('<div class="sc-msg ' + (m.sender === 'staff' ? 'sc-me' : 'sc-cus') + '"><span class="sc-txt">' + (m.imgId ? '<img class="sc-img" data-chat="' + escapeHtml(cid) + '" data-imgid="' + escapeHtml(m.imgId) + '" alt="Ảnh" onclick="openChatImage(this)" style="display:block; max-width:100%; min-width:90px; min-height:60px; border-radius:10px; background:#eee; cursor:zoom-in; margin-bottom:' + (m.text ? '4px' : '0') + ';">' : '') + escapeHtml(m.text || '') + '</span><span class="sc-time">' + chatTimeLabel(m) + '</span></div>');
-  }
-  wrap.innerHTML = parts.join('');
+  shown.forEach(k => {
+    const m = msgs[k];
+    if(m.timestamp){ const dk = chatDayKey(m.timestamp); if(dk !== _lastDay){ _lastDay = dk; html += '<div class="sc-day">' + chatDayLabel(m.timestamp) + '</div>'; } }
+    html += '<div class="sc-msg ' + (m.sender === 'staff' ? 'sc-me' : 'sc-cus') + '"><span class="sc-txt">' + (m.imgId ? '<img class="sc-img" data-chat="' + escapeHtml(orderId) + '" data-imgid="' + escapeHtml(m.imgId) + '" alt="Ảnh" onclick="openChatImage(this)" style="display:block; max-width:100%; min-width:90px; min-height:60px; border-radius:10px; background:#eee; cursor:zoom-in; margin-bottom:' + (m.text ? '4px' : '0') + ';">' : '') + escapeHtml(m.text || '') + '</span><span class="sc-time">' + chatTimeLabel(m) + '</span></div>';
+  });
+  wrap.innerHTML = html;
   hydrateStaffChatImages(wrap);
   if(firstRender || nearBottom) wrap.scrollTop = wrap.scrollHeight;                           // đang đọc tin cũ thì không giật xuống đáy
   else if(force === 'more') wrap.scrollTop = prevTop + (wrap.scrollHeight - prevH);
@@ -7797,24 +7648,10 @@ function sendStaffChatMessage() {
   const inp = document.getElementById('staff-chat-input');
   const text = inp.value.trim();
   if(!text || !staffChatActiveOrderId) return;
-  // Chat của 1 khách đã gộp: trả lời vào cuộc chat có tin KHÁCH mới nhất (nơi khách đang xem)
-  const g = CHAT_GROUP_MAP[staffChatActiveOrderId];
-  let target = staffChatActiveOrderId;
-  if(g){
-    let best = -1; target = null;
-    g.ids.forEach(function(id){
-      const ms = ALL_CHATS[id] || {}, ks = Object.keys(ms);
-      for(let i = ks.length - 1; i >= 0; i--){
-        const m = ms[ks[i]];
-        if(m && m.sender === 'customer'){ if((m.timestamp || 0) > best){ best = m.timestamp || 0; target = id; } break; }
-      }
-    });
-    if(!target) target = g.lastId;
-  }
   const nowVN = getVietnamTimeNow();
   const timeStr = `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')}`;
   const senderName = CURRENT_USER ? (CURRENT_USER.alias || CURRENT_USER.name || 'Quán') : 'Quán';
-  db.ref(`meoxam_data/chats/${target}`).push({
+  db.ref(`meoxam_data/chats/${staffChatActiveOrderId}`).push({
     sender: 'staff',
     staffName: senderName,
     text: text,
@@ -7824,20 +7661,16 @@ function sendStaffChatMessage() {
   inp.value = '';
 }
 
-window.deleteStaffChat = function(ref) {
-    const gk = CHAT_ID_GROUP[ref] || ref;
-    const g = CHAT_GROUP_MAP[gk];
-    const ids = g ? g.ids.slice() : [ref];
-    if(confirm('⚠️ Bạn có chắc chắn muốn xóa vĩnh viễn toàn bộ cuộc trò chuyện với khách này không? Hành động này không thể hoàn tác.')) {
-        const jobs = [];
-        ids.forEach(function(id){
-            try{ db.ref('meoxam_chat_img/' + id).remove(); }catch(e){}
-            jobs.push(db.ref(`meoxam_data/chats/${id}`).remove());
-        });
-        Promise.all(jobs).then(() => {
+window.deleteStaffChat = function(chatId) {
+    if(confirm('⚠️ Bạn có chắc chắn muốn xóa vĩnh viễn cuộc trò chuyện này không? Hành động này không thể hoàn tác.')) {
+        try{ db.ref('meoxam_chat_img/' + chatId).remove(); }catch(e){}
+        db.ref(`meoxam_data/chats/${chatId}`).remove().then(() => {
             alert('✅ Đã xóa cuộc trò chuyện!');
-            if (staffChatActiveOrderId === gk) { closeStaffChatConv(); }
-            else { _scListHtml = ''; renderStaffChatList(); }
+            if (staffChatActiveOrderId === chatId) {
+                closeStaffChatConv();
+            } else {
+                renderStaffChatList();
+            }
         }).catch(err => alert('Lỗi: ' + err.message));
     }
 };
@@ -7846,16 +7679,6 @@ initMenuViewsListener();
 loadData();
 
 setTimeout(() => { if(typeof initStaffChat === 'function') initStaffChat(); }, 1500);
-setInterval(function(){
-  if(document.hidden || !DATA) return;
-  try{
-    if(refreshCustomerOnlineUI()){
-      const ab = document.querySelector('nav.tabs button.active');
-      if(ab && ab.dataset.tab === 'settings' && CURRENT_USER && CURRENT_USER.role === 'owner' && document.getElementById('customer-list-container')) renderCustomersList();
-      staffChatRefreshSoon();
-    }
-  }catch(e){}
-}, 30000);
 
 window.renderWheelConfig = function() {
     const spinRateInp = document.getElementById('cfg-ticket-spin-rate');
