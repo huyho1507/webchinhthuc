@@ -911,7 +911,8 @@
     <h3 style="margin:0 0 2px; font-size:18px;">Thu tiền khách ngồi lại</h3>
     <div id="opm-title" style="font-size:13px; color:var(--muted); font-weight:700;"></div>
     <div id="opm-total" style="font-weight:800; color:var(--good); font-size:22px; margin:4px 0 10px;"></div>
-    <div style="display:flex; gap:8px; margin-bottom:8px;">
+    <div id="opm-split" style="display:none; text-align:left; margin-bottom:10px;"></div>
+    <div id="opm-toggle" style="display:flex; gap:8px; margin-bottom:8px;">
       <button type="button" id="opm-cash" class="btn" style="flex:1; padding:11px 6px;" onclick="setOpmPay('Tiền mặt')">💵 Tiền mặt</button>
       <button type="button" id="opm-bank" class="btn ghost" style="flex:1; padding:11px 6px;" onclick="setOpmPay('Chuyển khoản')">📱 Chuyển khoản</button>
     </div>
@@ -3736,8 +3737,16 @@ function bankQrHtml(amount, info){
 function otmTotal(){ return getCurrentUserBill().reduce((s, i) => s + (i.unitPrice || 0) * (i.qty || 0), 0); }
 function paintPayToggle(prefix, method){
   const bank = method === 'Chuyển khoản';
-  document.getElementById(prefix + '-cash').className = 'btn' + (bank ? ' ghost' : '');
-  document.getElementById(prefix + '-bank').className = 'btn' + (bank ? '' : ' ghost');
+  const paint = (id, on, color, label) => {
+    const el = document.getElementById(id); if(!el) return;
+    el.className = 'btn';
+    el.textContent = (on ? '✔ ' : '') + label;
+    el.style.cssText = 'flex:1; padding:12px 6px; font-size:14px; border-radius:12px; border:3px solid ' + color + '; ' +
+      (on ? 'background:' + color + '; color:#fff; box-shadow:0 0 0 4px ' + color + '33; transform:scale(1.04);'
+          : 'background:#fff; color:' + color + '; opacity:.7; box-shadow:none;');
+  };
+  paint(prefix + '-cash', !bank, '#2e9e5b', '💵 Tiền mặt');
+  paint(prefix + '-bank', bank, '#2f6fd6', '📱 Chuyển khoản');
 }
 function openOrderTypeModal(){
   document.getElementById('order-payment-method').value = 'Tiền mặt';
@@ -3766,10 +3775,35 @@ function closeOrderTypeModal(){ document.getElementById('order-type-modal').styl
 let _payOrderId = null, _payMethod = 'Tiền mặt';
 function openOrderPayModal(order){
   _payOrderId = order.id;
-  _payMethod = isBankOrder(order) ? 'Chuyển khoản' : 'Tiền mặt';
+  _payMethod = isMixedOrder(order) ? PAY_MIXED : (isBankOrder(order) ? 'Chuyển khoản' : 'Tiền mặt');
   document.getElementById('opm-title').textContent = '🪑 ' + (order.table || 'Khách ngồi lại') + ' · ' + (order.totalQty || 0) + ' ly' + (order.prepaid && order.prepaid.length ? ' (chỉ phần còn phải thu)' : '');
   document.getElementById('opm-total').textContent = fmt(order.totalPrice || 0) + 'đ';
   document.getElementById('order-pay-modal').style.display = 'flex';
+  if(isMixedOrder(order)){
+    // Bill chia từng ly: hiện rõ số tiền mặt / chuyển khoản, xác nhận 1 lần → mỗi phần vào đúng quỹ
+    const cash = orderCashAmt(order), bank = orderBankAmt(order);
+    const lines = (order.items || []).map(i => {
+      const sp = itemPaySplit(order, i);
+      return '<div style="font-size:12px; padding:2px 0;">• ' + escapeHtml(i.name) + ' (' + escapeHtml(i.size || '') + ') — ' +
+        (sp.cq > 0 ? '💵 ' + sp.cq + ' ly' : '') + (sp.cq > 0 && sp.bq > 0 ? ' · ' : '') + (sp.bq > 0 ? '📱 ' + sp.bq + ' ly' : '') + '</div>';
+    }).join('');
+    document.getElementById('opm-split').innerHTML =
+      '<div style="background:#e6f4ea; border:3px solid #2e9e5b; border-radius:12px; padding:10px 12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">' +
+        '<span style="font-weight:800; color:#1e7a43;">💵 THU TIỀN MẶT</span><span style="font-weight:900; font-size:20px; color:#1e7a43;">' + fmt(cash) + 'đ</span></div>' +
+      '<div style="background:#e7effb; border:3px solid #2f6fd6; border-radius:12px; padding:10px 12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">' +
+        '<span style="font-weight:800; color:#2a5ab0;">📱 NHẬN CHUYỂN KHOẢN</span><span style="font-weight:900; font-size:20px; color:#2a5ab0;">' + fmt(bank) + 'đ</span></div>' +
+      '<div style="background:#fffaf0; border:1px dashed #e6d9bd; border-radius:8px; padding:6px 10px;">' + lines + '</div>' +
+      '<div style="font-size:11.5px; color:var(--muted); margin-top:6px; text-align:center;">Bấm xác nhận: ' + fmt(cash) + 'đ vào quỹ <b>tiền mặt</b>, ' + fmt(bank) + 'đ vào quỹ <b>chuyển khoản</b>.</div>';
+    document.getElementById('opm-split').style.display = 'block';
+    document.getElementById('opm-toggle').style.display = 'none';
+    const box = document.getElementById('opm-qr');
+    if(bank > 0){ box.style.display = 'block'; box.innerHTML = bankQrHtml(bank, qrInfo(order.table)); } else { box.style.display = 'none'; box.innerHTML = ''; }
+    document.getElementById('opm-confirm').textContent = '✅ ĐÃ THU ĐỦ: TM ' + fmt(cash) + 'đ + CK ' + fmt(bank) + 'đ';
+    return;
+  }
+  document.getElementById('opm-split').style.display = 'none';
+  document.getElementById('opm-split').innerHTML = '';
+  document.getElementById('opm-toggle').style.display = 'flex';
   setOpmPay(_payMethod);
 }
 function setOpmPay(method){
@@ -3945,7 +3979,7 @@ function renderHistoryOrders(){
     const canComplete = !!CURRENT_USER && isWebOrder && !isCancelRequest && !isCancelledOrder(o) && !isCompleted;
     // Quyền: chỉ NGƯỜI TẠO BILL (trong ngày làm việc) hoặc CHỦ QUÁN mới sửa / thêm món / công nợ / in lại. Bill của người khác chỉ xem nội dung.
     const isMine = !!(CURRENT_USER && o.staffName === CURRENT_USER.name);
-    const canPrint = (isOwnerNow || isMine) && printerEnabled(); // chỉ hiện khi máy này đã chọn máy in
+    const canPrint = (isOwnerNow || isMine || (!!CURRENT_USER && isWebLikeOrder(o))) && printerEnabled(); // chỉ hiện khi máy này đã chọn máy in; đơn khách đặt từ web thì mọi nhân viên đều in được
     const canDebt = (isOwnerNow || staffCanEdit) && !isCancelledOrder(o) && !isDebtOrder(o);
     const debtBtn = canDebt ? `<button class="btn small" style="background:#b3261e; color:#fff; border-color:#b3261e;" onclick="markOrderDebt('${o.id}')">📕 Công nợ</button>` : '';
     return `
@@ -3992,7 +4026,7 @@ function renderHistoryOrders(){
         ${debtBtn}
         <button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="deleteOrder('${o.id}')">🗑️ Xóa đơn</button>` : ''}
       </div>` : ''}
-      ${canPay ? `<button class="btn" style="width:100%; margin-top:10px; padding:12px; font-size:15px; background:#2e9e5b; border-color:#2e9e5b; color:#fff;" onclick="markOrderPaid('${o.id}')">✅ ĐÃ THANH TOÁN (${fmt(o.totalPrice || 0)}đ)</button>` : ''}
+      ${canPay ? `<button class="btn" style="width:100%; margin-top:10px; padding:12px; font-size:15px; background:#2e9e5b; border-color:#2e9e5b; color:#fff;" onclick="markOrderPaid('${o.id}')">✅ ĐÃ THANH TOÁN (${isMixedOrder(o) ? 'TM ' + fmt(orderCashAmt(o)) + 'đ + CK ' + fmt(orderBankAmt(o)) + 'đ' : fmt(o.totalPrice || 0) + 'đ'})</button>` : ''}
       ${(isUnpaid && !canPay) ? `<div style="margin-top:8px; font-size:12px; color:#b45309; font-weight:700; text-align:center;">⏳ Chờ ${escapeHtml(o.staffName || '')} (đang trong ca) hoặc chủ quán xác nhận thanh toán</div>` : ''}
     </div>
   `;}).join('') + (_listShown.length > _listCut.length ? `<button class="btn ghost" style="width:100%; margin:6px 0 10px;" onclick="window.__histLimit = (window.__histLimit || 60) + 60; renderHistoryOrders();">⬇️ Hiện thêm bill (đang hiện ${_listCut.length}/${_listShown.length})</button>` : '');
@@ -4016,8 +4050,12 @@ function finalizeOrderPaid(id, method){
   if(!canCollectUnpaid(order)){ alert('⚠️ Bill này của ' + (order.staffName || 'nhân viên khác') + ' đang trong ca. Chỉ người tạo bill hoặc chủ quán thu được (nhân viên khác chỉ thu hộ khi người tạo bill đã ra ca).'); return; }
   if(isCancelledOrder(order) || isDebtOrder(order)){ alert('⚠️ Đơn này đang hủy / công nợ nên không xác nhận thanh toán được.'); return; }
   // Chốt hình thức thu tiền khách đã chọn (đơn chia từng ly cũ được gộp về 1 hình thức)
-  order.paymentMethod = (method === 'Chuyển khoản') ? 'Chuyển khoản' : 'Tiền mặt';
-  (order.items || []).forEach(i => { delete i.bankQty; });
+  if(method === PAY_MIXED && isMixedOrder(order)){
+    // giữ nguyên chia từng ly: tiền mặt → quỹ tiền mặt, chuyển khoản → quỹ chuyển khoản
+  } else {
+    order.paymentMethod = (method === 'Chuyển khoản') ? 'Chuyển khoản' : 'Tiền mặt';
+    (order.items || []).forEach(i => { delete i.bankQty; });
+  }
   checkShiftDayRollover();
   const nowVN = getVietnamTimeNow();
   const timeStr = `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')}:${String(nowVN.getSeconds()).padStart(2,'0')} — ${String(nowVN.getDate()).padStart(2,'0')}/${String(nowVN.getMonth()+1).padStart(2,'0')}/${nowVN.getFullYear()}`;
@@ -4035,7 +4073,7 @@ function finalizeOrderPaid(id, method){
   try{ recalculateShiftFundFromOrders(); }catch(e){ console.error(e); }
   saveDataDirect();
   renderHistoryOrders();
-  showToast(order.collectedBy ? `✅ Đã thu hộ ${order.staffName} ${fmt(order.totalPrice || 0)}đ (${order.paymentMethod}) — tiền tính vào quỹ ca của bạn, doanh số tính cho ${order.staffName}.` : `✅ Đã thu ${fmt(order.totalPrice || 0)}đ (${order.paymentMethod}) — đã tính vào quỹ ca.`);
+  showToast(order.collectedBy ? `✅ Đã thu hộ ${order.staffName} ${fmt(order.totalPrice || 0)}đ (${isMixedOrder(order) ? 'TM ' + fmt(orderCashAmt(order)) + 'đ + CK ' + fmt(orderBankAmt(order)) + 'đ' : order.paymentMethod}) — tiền tính vào quỹ ca của bạn, doanh số tính cho ${order.staffName}.` : `✅ Đã thu ${fmt(order.totalPrice || 0)}đ (${isMixedOrder(order) ? 'TM ' + fmt(orderCashAmt(order)) + 'đ + CK ' + fmt(orderBankAmt(order)) + 'đ' : order.paymentMethod}) — đã tính vào quỹ ca.`);
 }
 
 /* ============ CHI TIẾT MÓN / GỘP BILL / ĐƠN HỦY / GỌI THÊM MÓN ============ */
@@ -4446,7 +4484,7 @@ function renderAppOrdersBox(){
     const isMixed = isMixedOrder(o);
     const staffCanEdit = canStaffEditOrder(o);
     const isMine = !!(CURRENT_USER && o.staffName === CURRENT_USER.name);
-    const canPrint = (isOwnerNow || isMine) && printerEnabled();
+    const canPrint = (isOwnerNow || isMine || (!!CURRENT_USER && isWebLikeOrder(o))) && printerEnabled();
     const canPay = isUnpaid && canCollectUnpaid(o);
     return `
     <div style="background:#fff5cc; border:2px solid #e0b020; border-left:6px solid #e67e22; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
@@ -4471,7 +4509,7 @@ function renderAppOrdersBox(){
         <button class="btn small" style="background:#e67e22; color:#fff; border-color:#e67e22;" onclick="addMoreToOrder('${o.id}')">➕ Gọi thêm món</button>` : ''}
         ${isOwnerNow ? `<button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="deleteOrder('${o.id}')">🗑️ Xóa đơn</button>` : ''}
       </div>
-      ${canPay ? `<button class="btn" style="width:100%; margin-top:10px; padding:12px; font-size:15px; background:#2e9e5b; border-color:#2e9e5b; color:#fff;" onclick="markOrderPaid('${o.id}')">✅ ĐÃ THANH TOÁN (${fmt(o.totalPrice || 0)}đ)</button>` : ''}
+      ${canPay ? `<button class="btn" style="width:100%; margin-top:10px; padding:12px; font-size:15px; background:#2e9e5b; border-color:#2e9e5b; color:#fff;" onclick="markOrderPaid('${o.id}')">✅ ĐÃ THANH TOÁN (${isMixedOrder(o) ? 'TM ' + fmt(orderCashAmt(o)) + 'đ + CK ' + fmt(orderBankAmt(o)) + 'đ' : fmt(o.totalPrice || 0) + 'đ'})</button>` : ''}
     </div>`;
   }).join('');
   _openDet.forEach(k => { const d = wrap.querySelector('details.order-detail-box[data-k="' + k + '"]'); if(d) d.open = true; });
@@ -8135,8 +8173,18 @@ function renderReceiptCanvas(order, c){
   });
   dash();
   row('TỔNG (' + order.totalQty + ' ly)', fmt(order.totalPrice) + 'đ', fs + 4, true);
-  left('Thanh toán: ' + (isMixedOrder(order) ? 'Tiền mặt + CK' : (order.paymentMethod || 'Tiền mặt')), fs - 2, false);
-  if(isMixedOrder(order)){ left('  Tiền mặt: ' + fmt(orderCashAmt(order)) + 'đ', fs - 3, false); left('  Chuyển khoản: ' + fmt(orderBankAmt(order)) + 'đ', fs - 3, false); }
+  if(order.customerPhone) left('SĐT khách: ' + order.customerPhone, fs - 3, false);
+  const _unpaid = isUnpaidOrder(order);
+  if(_unpaid) center('*** CHƯA THANH TOÁN ***', fs, true);
+  if(isMixedOrder(order)){
+    left((_unpaid ? 'CẦN THU' : 'ĐÃ THU') + ' (chia tiền mặt + chuyển khoản):', fs - 2, true);
+    row('  Tiền mặt', fmt(orderCashAmt(order)) + 'đ', fs, true);
+    row('  Chuyển khoản', fmt(orderBankAmt(order)) + 'đ', fs, true);
+  } else if(_unpaid){
+    left('Hình thức thu: chọn khi khách trả tiền', fs - 3, false);
+  } else {
+    left('Thanh toán: ' + (order.paymentMethod || 'Tiền mặt'), fs - 2, false);
+  }
   if(order.generalNote) left('Ghi chú: ' + order.generalNote, fs - 2, false);
   dash();
   center(c.footer || 'Cảm ơn quý khách!', fs - 2, false);
