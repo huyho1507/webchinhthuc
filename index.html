@@ -1216,6 +1216,7 @@
       <button class="btn small" id="btn-edit-order-add-item">THÊM</button>
     </div>
     <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:700; margin-bottom:4px;"><span>Tổng số ly:</span><span id="edit-order-total-qty">0 ly</span></div>
+    <div id="edit-order-voucher-line" style="display:none; justify-content:space-between; gap:8px; font-size:12.5px; font-weight:700; margin-bottom:4px; background:#e8f5e9; border:1.5px dashed #81c784; color:#2e7d32; border-radius:10px; padding:6px 10px;"></div>
     <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:800; margin-bottom:6px;"><span>Tổng tiền:</span><span id="edit-order-total-price" style="color:var(--good);">0đ</span></div>
     <div id="edit-order-pay-summary" style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:12.5px; font-weight:700; margin-bottom:16px; background:#f6f1e4; border:1.5px dashed #d9cba6; border-radius:10px; padding:8px 10px;"></div>
     <div style="display:flex; gap:10px;"><button class="btn ghost" style="flex:1;" id="btn-cancel-edit-order">Hủy</button><button class="btn success" style="flex:1.5;" id="btn-save-edit-order">💾 LƯU THAY ĐỔI</button></div>
@@ -3868,7 +3869,8 @@ function renderHistoryOrders(){
   }
   try{ renderStaffCupsPanel(filtered.concat(_allShown.filter(isUnpaidOrder), _debtList)); }catch(e){ console.error(e); }
   const wrap = document.getElementById('history-order-list');
-  const _listShown = _allShown.filter(o => !(o.mergedInto && (DATA.orders || []).some(x => x.id === o.mergedInto)));
+  const _listShown = _allShown.filter(o => !(o.mergedInto && (DATA.orders || []).some(x => x.id === o.mergedInto)))
+    .filter(o => !(isWebLikeOrder(o) && !isCompletedOrder(o) && !isCancelledOrder(o))); // đơn app đang chờ chỉ hiện 1 lần ở khung "Đơn Từ App" dưới cùng (vẫn tính doanh thu như cũ)
   if(_listShown.length === 0){ wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted); text-align:center; padding:16px 0;">Không có đơn order nào.</p>'; return; }
   const _hKey = labelText + '|' + (document.getElementById('history-date').value || '');
   if(window.__histKey !== _hKey){ window.__histKey = _hKey; window.__histLimit = 60; }
@@ -4669,6 +4671,59 @@ function deleteOrder(id){
 
 let editingOrderId = null, editOrderDraftItems = null;
 let editOrderStaffMode = false, editOrderOrigItems = [], editOrderOrigQty = {}, editOrderOrigToppings = {};
+/* ===== VOUCHER KHI CHỈNH ĐƠN: giữ nguyên MỨC GIẢM (10% vẫn là 10%, giảm 10K vẫn là 10K) dù đổi / thêm / bớt món ===== */
+let editOrderVoucher = null;
+function _itemsGross(items){ return (items || []).reduce((s, i) => s + (i.unitPrice || 0) * (i.qty || 0), 0); }
+function parseVoucherRule(name){
+  const n = String(name || '').trim(), low = n.toLowerCase();
+  let m = /(\d+(?:[.,]\d+)?)\s*%/.exec(n);
+  if(m) return { type: 'percent', value: parseFloat(m[1].replace(',', '.')) || 0 };
+  if(/free|miễn phí|tặng 1 ly|1 ly/.test(low)) return { type: 'free' };
+  m = /(\d[\d.,]*)\s*(k|nghìn|ngàn|đ|vnđ|vnd)?/i.exec(n);
+  if(m){
+    let v = parseFloat(m[1].replace(/[.,]/g, '')) || 0;
+    const unit = (m[2] || '').toLowerCase();
+    if(unit === 'k' || unit === 'nghìn' || unit === 'ngàn' || (!unit && v < 1000)) v *= 1000;
+    if(v > 0) return { type: 'amount', value: v };
+  }
+  return null;
+}
+/* Lấy luật voucher của đơn. Chỉ áp dụng khi đơn THỰC SỰ đang được giảm (tổng ly > tổng tiền) để không giảm 2 lần. */
+function buildOrderVoucherRule(o){
+  if(!o || !o.appliedVoucher || o.appliedVoucher === 'none') return null;
+  const gross = _itemsGross(o.items), paid = o.totalPrice || 0;
+  const curDisc = Math.max(0, gross - paid);
+  let rule = (o.voucherRule && o.voucherRule.type) ? JSON.parse(JSON.stringify(o.voucherRule)) : parseVoucherRule(o.appliedVoucher);
+  if(curDisc <= 0 && !(o.voucherRule && o.voucherRule.type)) return null;
+  if(!rule || (rule.type === 'percent' && !(rule.value > 0))){
+    if(curDisc <= 0 || gross <= 0) return null;
+    rule = { type: 'percent', value: Math.round(curDisc / gross * 10000) / 100 };
+  }
+  rule.name = o.appliedVoucher;
+  rule.origGross = gross; rule.origDiscount = curDisc;
+  return rule;
+}
+function calcVoucherDiscount(rule, items){
+  if(!rule) return 0;
+  const gross = _itemsGross(items);
+  if(gross <= 0) return 0;
+  // món không đổi so với lúc đầu → giữ đúng số tiền giảm cũ (tránh lệch do làm tròn)
+  if(rule.origGross === gross && rule.origDiscount > 0) return Math.min(rule.origDiscount, gross);
+  let d = 0;
+  if(rule.type === 'percent') d = Math.round(gross * (rule.value || 0) / 100);
+  else if(rule.type === 'amount') d = rule.value || 0;
+  else if(rule.type === 'free'){
+    const bases = (items || []).filter(i => (i.qty || 0) > 0).map(i => (i.basePrice != null ? i.basePrice : (i.unitPrice || 0)));
+    d = bases.length ? Math.min.apply(null, bases) : 0; // miễn phí giá nước của ly rẻ nhất, topping vẫn tính tiền
+  }
+  return Math.max(0, Math.min(d, gross));
+}
+function voucherRuleLabel(rule){
+  if(!rule) return '';
+  if(rule.type === 'percent') return rule.value + '%';
+  if(rule.type === 'amount') return fmt(rule.value) + 'đ';
+  return '1 ly free';
+}
 function getToppingCostByName(name){
   const topProd = (DATA.products || []).find(p => p.category === 'Topping' && p.name === name);
   if(!topProd) return 0;
@@ -4712,6 +4767,7 @@ function openEditOrderModal(id){
     else it.bankQty = _bank ? (it.qty || 0) : 0;
   });
   editOrderOrigItems = JSON.parse(JSON.stringify(editOrderDraftItems));
+  editOrderVoucher = buildOrderVoucherRule(order);
   editOrderOrigQty = {}; editOrderOrigToppings = {};
   editOrderOrigItems.forEach(it => { editOrderOrigQty[it.itemKey] = it.qty || 0; editOrderOrigToppings[it.itemKey] = (it.toppings || []).map(t => t.name); });
   const _sn = document.getElementById('edit-order-staff-note'); if(_sn) _sn.style.display = editOrderStaffMode ? 'block' : 'none';
@@ -4726,7 +4782,7 @@ function openEditOrderModal(id){
 }
 function closeEditOrderModal(){
   document.getElementById('edit-order-modal').style.display = 'none';
-  editingOrderId = null; editOrderDraftItems = null; editOrderStaffMode = false;
+  editingOrderId = null; editOrderDraftItems = null; editOrderStaffMode = false; editOrderVoucher = null;
 }
 document.getElementById('btn-cancel-edit-order').addEventListener('click', closeEditOrderModal);
 function renderEditOrderItems(){
@@ -4777,9 +4833,16 @@ function renderEditOrderItems(){
     }).join('');
   }
   const totalQty = (editOrderDraftItems||[]).reduce((s,i)=>s+i.qty, 0);
-  const totalPrice = (editOrderDraftItems||[]).reduce((s,i)=>s+(i.unitPrice*i.qty), 0);
+  const grossPrice = (editOrderDraftItems||[]).reduce((s,i)=>s+(i.unitPrice*i.qty), 0);
+  const vDisc = calcVoucherDiscount(editOrderVoucher, editOrderDraftItems);
+  const totalPrice = grossPrice - vDisc;
   document.getElementById('edit-order-total-qty').textContent = totalQty + ' ly';
   document.getElementById('edit-order-total-price').textContent = fmt(totalPrice) + 'đ';
+  const vLine = document.getElementById('edit-order-voucher-line');
+  if(vLine){
+    if(editOrderVoucher){ vLine.style.display = 'flex'; vLine.innerHTML = `<span>✨ Voucher ${escapeHtml(editOrderVoucher.name || '')} (giữ nguyên mức ${escapeHtml(voucherRuleLabel(editOrderVoucher))})</span><span>-${fmt(vDisc)}đ</span>`; }
+    else { vLine.style.display = 'none'; vLine.innerHTML = ''; }
+  }
   const sp = editOrderPaySplit();
   const sumEl = document.getElementById('edit-order-pay-summary');
   if(sumEl) sumEl.innerHTML = `<span style="color:var(--good);">💵 Tiền mặt: ${sp.cupsCash} ly — ${fmt(sp.cash)}đ</span><span style="color:#2f5fa6;">📱 Chuyển khoản: ${sp.cupsBank} ly — ${fmt(sp.bank)}đ</span>`;
@@ -4794,6 +4857,8 @@ function editOrderPaySplit(){
     bank += bq * (i.unitPrice || 0); cash += (q - bq) * (i.unitPrice || 0);
     cupsBank += bq; cupsCash += (q - bq);
   });
+  const _vd = calcVoucherDiscount(editOrderVoucher, items);
+  if(_vd > 0){ const _tot = Math.max(0, cash + bank - _vd); bank = Math.min(bank, _tot); cash = _tot - bank; } // khớp với orderBankAmt: phần CK tính theo ly, tiền mặt hưởng phần giảm
   const method = (cupsBank === 0) ? 'Tiền mặt' : (cupsCash === 0 ? 'Chuyển khoản' : PAY_MIXED);
   return { cash, bank, cupsCash, cupsBank, method };
 }
@@ -4879,7 +4944,9 @@ document.getElementById('btn-save-edit-order').addEventListener('click', ()=>{
   const newPayment = _split.method;
   const newNote = document.getElementById('edit-order-note').value.trim();
   const totalQty = editOrderDraftItems.reduce((s,i)=>s+i.qty, 0);
-  const totalPrice = editOrderDraftItems.reduce((s,i)=>s+(i.unitPrice*i.qty), 0);
+  const _grossSave = editOrderDraftItems.reduce((s,i)=>s+(i.unitPrice*i.qty), 0);
+  const _voucherDisc = calcVoucherDiscount(editOrderVoucher, editOrderDraftItems);
+  const totalPrice = _grossSave - _voucherDisc;
   const totalCost = editOrderDraftItems.reduce((s,i)=>s+(i.unitCost*i.qty), 0);
   checkShiftDayRollover();
   const oldCashAmt = orderCashAmt(order), oldBankAmt = orderBankAmt(order);
@@ -4895,6 +4962,10 @@ document.getElementById('btn-save-edit-order').addEventListener('click', ()=>{
   order.items = JSON.parse(JSON.stringify(editOrderDraftItems));
   order.items.forEach(it => { if(newPayment === PAY_MIXED) it.bankQty = Math.min(Math.max(it.bankQty || 0, 0), it.qty || 0); else delete it.bankQty; });
   order.totalQty = totalQty; order.totalPrice = totalPrice; order.totalCost = totalCost;
+  if(editOrderVoucher){
+    order.voucherRule = { type: editOrderVoucher.type, value: editOrderVoucher.value || 0, name: editOrderVoucher.name || '' };
+    order.voucherDiscount = _voucherDisc;
+  }
   order.editedAt = new Date().toISOString();
   const newCashAmt = orderCashAmt(order), newBankAmt = orderBankAmt(order);
   let fundMsg = '';
@@ -7190,6 +7261,14 @@ function rememberAllChatMetaSoon(){
   }, 1500);
 }
 function chatInfoFor(oid){
+  if(/^(cust|guest)_/.test(String(oid))){
+    // cuộc chat theo khách (khách nhắn khi chưa có đơn đang chờ): lấy tên / SĐT từ chính tin nhắn của khách
+    const ms = ALL_CHATS[oid] || {};
+    let nm = '', ph = '';
+    Object.keys(ms).sort((a,b) => (ms[a].timestamp||0) - (ms[b].timestamp||0)).forEach(k => { const m = ms[k]; if(m && m.sender === 'customer'){ if(m.customerName) nm = m.customerName; if(m.customerPhone) ph = m.customerPhone; } });
+    if(!ph && String(oid).indexOf('cust_') === 0) ph = String(oid).slice(5);
+    return { name: (nm || 'Khách') + (String(oid).indexOf('guest_') === 0 ? ' (khách lẻ)' : ''), table: (ph ? 'SĐT ' + ph + ' · ' : '') + 'chưa có đơn đang chờ', status: '', deleted: false };
+  }
   const o = (DATA.orders || []).find(x => x.id === oid);
   if(o){ const m = chatMetaFromOrder(o); return { name: m.name, table: m.table, status: o.status || '', deleted: false }; }
   const meta = DATA.chatMeta && DATA.chatMeta[oid];
@@ -7474,7 +7553,7 @@ function renderStaffChatList() {
               <span style="font-size:11px; color:var(--muted); white-space:nowrap;">${chatTimeLabel(lastMsg)}</span>
             </div>
             <div style="font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              ${lastMsg.sender === 'customer' ? '' : '<b>Bạn:</b> '}${escapeHtml(lastMsg.text || '')}
+              ${lastMsg.sender === 'customer' ? '' : '<b>Bạn:</b> '}${(lastMsg.imgId && !lastMsg.text) ? '📷 Hình ảnh' : escapeHtml(lastMsg.text || '')}
             </div>
             <div style="font-size:10.5px; color:var(--accent); margin-top:2px;">📍 ${escapeHtml(tableStr).substring(0, 50)}</div>
           </div>
@@ -7533,13 +7612,38 @@ function renderStaffChatMessages(orderId, force) {
   shown.forEach(k => {
     const m = msgs[k];
     if(m.timestamp){ const dk = chatDayKey(m.timestamp); if(dk !== _lastDay){ _lastDay = dk; html += '<div class="sc-day">' + chatDayLabel(m.timestamp) + '</div>'; } }
-    html += '<div class="sc-msg ' + (m.sender === 'staff' ? 'sc-me' : 'sc-cus') + '"><span class="sc-txt">' + escapeHtml(m.text || '') + '</span><span class="sc-time">' + chatTimeLabel(m) + '</span></div>';
+    html += '<div class="sc-msg ' + (m.sender === 'staff' ? 'sc-me' : 'sc-cus') + '"><span class="sc-txt">' + (m.imgId ? '<img class="sc-img" data-chat="' + escapeHtml(orderId) + '" data-imgid="' + escapeHtml(m.imgId) + '" alt="Ảnh" onclick="openChatImage(this)" style="display:block; max-width:100%; min-width:90px; min-height:60px; border-radius:10px; background:#eee; cursor:zoom-in; margin-bottom:' + (m.text ? '4px' : '0') + ';">' : '') + escapeHtml(m.text || '') + '</span><span class="sc-time">' + chatTimeLabel(m) + '</span></div>';
   });
   wrap.innerHTML = html;
+  hydrateStaffChatImages(wrap);
   if(firstRender || nearBottom) wrap.scrollTop = wrap.scrollHeight;                           // đang đọc tin cũ thì không giật xuống đáy
   else if(force === 'more') wrap.scrollTop = prevTop + (wrap.scrollHeight - prevH);
 }
 
+/* Ảnh chat của khách (vd. ảnh đã chuyển khoản) nằm ở node riêng meoxam_chat_img — tải khi mở chat */
+const STAFF_CHAT_IMG_CACHE = {};
+function hydrateStaffChatImages(root){
+  root.querySelectorAll('img[data-imgid]').forEach(function(img){
+    if(img.getAttribute('src')) return;
+    const key = img.dataset.chat + '/' + img.dataset.imgid;
+    if(STAFF_CHAT_IMG_CACHE[key]){ img.src = STAFF_CHAT_IMG_CACHE[key]; return; }
+    if(!useFirebase || !db) return;
+    db.ref('meoxam_chat_img/' + key).once('value').then(function(sn){
+      const v = sn.val(); if(!v) return;
+      STAFF_CHAT_IMG_CACHE[key] = v; img.src = v;
+      const w = document.getElementById('staff-chat-messages');
+      if(w && root === w && (w.scrollHeight - w.clientHeight - w.scrollTop) < 260) w.scrollTop = w.scrollHeight;
+    }).catch(function(){});
+  });
+}
+function openChatImage(el){
+  const src = el && el.getAttribute('src'); if(!src) return;
+  const v = document.createElement('div');
+  v.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:99999; display:flex; align-items:center; justify-content:center; padding:12px;';
+  v.onclick = function(){ v.remove(); };
+  v.innerHTML = '<img src="' + src + '" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:10px;"><div style="position:absolute; top:14px; right:18px; color:#fff; font-size:28px; font-weight:900;">✕</div>';
+  document.body.appendChild(v);
+}
 function sendStaffChatMessage() {
   const inp = document.getElementById('staff-chat-input');
   const text = inp.value.trim();
@@ -7559,6 +7663,7 @@ function sendStaffChatMessage() {
 
 window.deleteStaffChat = function(chatId) {
     if(confirm('⚠️ Bạn có chắc chắn muốn xóa vĩnh viễn cuộc trò chuyện này không? Hành động này không thể hoàn tác.')) {
+        try{ db.ref('meoxam_chat_img/' + chatId).remove(); }catch(e){}
         db.ref(`meoxam_data/chats/${chatId}`).remove().then(() => {
             alert('✅ Đã xóa cuộc trò chuyện!');
             if (staffChatActiveOrderId === chatId) {
