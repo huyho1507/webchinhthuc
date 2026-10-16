@@ -2410,6 +2410,7 @@ function loadData(){
       checkSessionTimeout();
       renderHeaderMoneyBadge();
       renderNotifications();
+      if(typeof tgCheckNewOrders === 'function') tgCheckNewOrders();
       if(typeof staffChatRefreshSoon === 'function') staffChatRefreshSoon();
       if(isInitialLoad) {
         isInitialLoad = false;
@@ -7841,6 +7842,59 @@ window.deleteStaffChat = function(ref) {
         }).catch(err => alert('Lỗi: ' + err.message));
     }
 };
+
+/* ===== THÔNG BÁO TELEGRAM (nhóm "Đơn phát sinh") ===== */
+const TG_BOT_TOKEN = '8817438066:AAHtSji8KgIVNLCTJr4IXukYNsMHGUGsqbE';
+const TG_CHAT_ID = '-5055567050';
+let _tgSeen = null;   // trạng thái từng đơn lúc mở app -> chỉ báo đơn MỚI phát sinh sau đó (không báo lại đơn cũ)
+function tgEsc(x){ return String(x == null ? '' : x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function tgSend(html){
+  try{
+    fetch('https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage', {
+      method: 'POST',
+      body: new URLSearchParams({ chat_id: TG_CHAT_ID, text: html, parse_mode: 'HTML' })
+    }).catch(function(e){ console.warn('[tg] gửi lỗi', e); });
+  }catch(e){}
+}
+function tgOrderText(kind, o){
+  const m = chatMetaFromOrder(o);
+  const head = kind === 'cancelreq' ? '⚠️ <b>KHÁCH YÊU CẦU HỦY ĐƠN</b>' : '🆕 <b>CÓ ĐƠN HÀNG MỚI!</b>';
+  let t = head + '\n👤 ' + tgEsc(m.name) + (o.customerPhone ? ' · ' + tgEsc(o.customerPhone) : '') +
+    '\n📍 ' + tgEsc(o.table || '') + '\n🕒 ' + tgEsc(o.time || '');
+  const items = (typeof wkItemsText === 'function') ? wkItemsText(o) : '';
+  if(items) t += '\n🧋 ' + tgEsc(items);
+  t += '\n💰 ' + tgEsc(fmt(o.totalPrice || 0)) + 'đ';
+  if(o.generalNote) t += '\n📝 ' + tgEsc(o.generalNote);
+  return t;
+}
+function tgClaimAndSend(kind, o){
+  const text = tgOrderText(kind, o);
+  const key = (kind + '_' + o.id).replace(/[.#$\[\]\/]/g, '_');
+  if(useFirebase && db){
+    // Nhiều máy cùng mở app: chỉ máy giành được khóa này mới gửi -> không bị báo trùng
+    db.ref('meoxam_tg_sent/' + key).transaction(function(v){ return v ? undefined : Date.now(); })
+      .then(function(r){ if(r && r.committed) tgSend(text); })
+      .catch(function(){ tgSend(text); });
+  } else tgSend(text);
+}
+function tgCheckNewOrders(){
+  if(!DATA || window.DATA_IS_STALE) return;
+  const orders = DATA.orders || [];
+  if(_tgSeen === null){ _tgSeen = {}; orders.forEach(function(o){ if(o && o.id) _tgSeen[o.id] = o.status || ''; }); return; }
+  orders.forEach(function(o){
+    if(!o || !o.id) return;
+    const prev = _tgSeen[o.id], cur = o.status || '';
+    _tgSeen[o.id] = cur;
+    if(!isWebLikeOrder(o)) return;                    // chỉ đơn khách tự đặt từ web/app
+    let kind = null;
+    if(prev === undefined) kind = (cur === 'Yêu cầu hủy') ? 'cancelreq' : (cur === 'Hoàn thành' || cur === 'Đã hủy' ? null : 'new');
+    else if(prev !== cur && cur === 'Yêu cầu hủy') kind = 'cancelreq';
+    if(!kind) return;
+    const t = getOrderTs(o);
+    if(t && Date.now() - t > 15 * 60000) return;     // đơn quá cũ thì bỏ qua, tránh báo dồn
+    tgClaimAndSend(kind, o);
+  });
+}
 
 initMenuViewsListener();
 loadData();
