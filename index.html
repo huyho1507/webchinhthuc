@@ -1151,7 +1151,7 @@
     </div>
     <div style="margin-bottom:10px;">
       <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Số Giờ:</label><input type="number" id="modal-shift-hours" class="num" step="0.5" value="5" style="margin-top:4px; font-weight:700;"></div>
-      
+
     </div>
     <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn ghost" style="flex:1;" id="btn-close-shift-modal">Hủy</button><button class="btn success" style="flex:1.5;" id="btn-save-calendar-shift">LƯU CA</button></div>
   </div>
@@ -1654,7 +1654,7 @@
           <button class="btn small ghost" id="btn-add-staff-account">+ Thêm NV</button>
         </div>
       </div>
-      
+
       <div class="card" style="margin-top:14px;">
         <h2>📱 Mã QR Chuyển Khoản Của Quán</h2>
         <p style="font-size:12.5px; color:var(--muted); margin:-2px 0 12px;">Khi khách chọn chuyển khoản, app hiện mã QR có sẵn số tiền (VietQR, cần có mạng). Nếu chưa nhập ngân hàng / STK, có thể tải ảnh mã QR của quán lên để dùng thay.</p>
@@ -1684,7 +1684,7 @@
         <button class="btn success small" style="margin-top:14px;" onclick="saveAttendanceCfg()">💾 Lưu Cài Đặt Chấm Công</button>
       </div>
 
-      
+
 <div class="card" style="margin-top:14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
           <h2 style="margin:0;">👥 Quản Lý Khách Hàng</h2>
@@ -1744,6 +1744,17 @@
   </section>
 
   <section class="panel owner-only" id="tab-analytics">
+      <div class="card" style="border:2px solid #d9eee2; background:#fbfffc; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+          <div><h3 style="margin:0; color:#177245;">🥤 Xếp hạng món nước bán chạy</h3><div style="font-size:12px; color:var(--muted); margin-top:3px;">Xếp theo số ly đã bán; không tính đơn hủy, công nợ hoặc đơn app chưa hoàn thành.</div></div>
+          <label style="font-size:12px; font-weight:700;">Khoảng thời gian
+            <select id="pos-product-sales-period" style="margin-left:5px; min-width:145px;">
+              <option value="today">Hôm nay</option><option value="week">7 ngày gần nhất</option><option value="month">Tháng này</option><option value="all" selected>Tất cả</option>
+            </select>
+          </label>
+        </div>
+        <div id="pos-product-sales-ranking"></div>
+      </div>
     <div class="card" style="border: 2.5px solid var(--accent); background:#fffefc;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
         <div><h2 style="margin:0; font-size:20px; color:var(--accent);">📈 Phân Tích Chuyên Sâu &amp; Báo Cáo Tài Chính</h2></div>
@@ -2185,6 +2196,43 @@ function reportSaveError(err){
   _lastSaveErrAt = now;
   try{ showToast('❌ <b>LƯU LÊN MÁY CHỦ THẤT BẠI</b> — ' + escapeHtml(String((err && (err.code || err.message)) || err || 'lỗi không rõ')) + '<br>Đừng tắt app, hãy kiểm tra mạng rồi thử lại. Đơn mới có thể chưa được lưu!'); }catch(e){}
 }
+function posMergeAttendanceForSave(remoteValue, localValue, baselineJson){
+  const toArray = function(v){ return Array.isArray(v) ? v.filter(Boolean) : (v && typeof v === 'object' ? Object.keys(v).map(function(k){ return v[k]; }).filter(Boolean) : []); };
+  const remote = toArray(remoteValue), local = toArray(localValue);
+  let baseline = [];
+  try{ baseline = toArray(baselineJson ? JSON.parse(baselineJson) : []); }catch(e){}
+  const keyOf = function(a, i){ return a && a.id ? String(a.id) : 'legacy:' + i + ':' + JSON.stringify(a || {}); };
+  const baseMap = new Map(), localMap = new Map(), remoteMap = new Map();
+  baseline.forEach(function(a,i){ baseMap.set(keyOf(a,i), a); });
+  local.forEach(function(a,i){ localMap.set(keyOf(a,i), a); });
+  remote.forEach(function(a,i){ remoteMap.set(keyOf(a,i), a); });
+  baseMap.forEach(function(base,key){
+    if(!localMap.has(key) && remoteMap.has(key) && JSON.stringify(remoteMap.get(key)) === JSON.stringify(base)) remoteMap.delete(key);
+  });
+  const shiftOf = function(a){ return a && (a.shiftDay || a.dateStr || ''); };
+  const latestClock = function(staffId, staffName, shiftDay){
+    return Array.from(remoteMap.values()).filter(function(a){
+      const same = (staffId && a.staffId === staffId) || (!staffId && a.staffName === staffName);
+      return same && shiftOf(a) === shiftDay && (a.type === 'Vào ca làm' || a.type === 'Ra ca làm');
+    }).sort(function(a,b){ return (Number(b.timestamp)||0) - (Number(a.timestamp)||0); })[0] || null;
+  };
+  let conflictId = null;
+  localMap.forEach(function(item,key){
+    const base = baseMap.get(key);
+    const isChanged = !base || JSON.stringify(item) !== JSON.stringify(base);
+    if(!isChanged) return;
+    if(!base && item && (item.type === 'Vào ca làm' || item.type === 'Ra ca làm')){
+      const last = latestClock(item.staffId, item.staffName, shiftOf(item));
+      if(last && last.id !== item.id && ((item.type === 'Vào ca làm' && last.type === 'Vào ca làm') || (item.type === 'Ra ca làm' && last.type === 'Ra ca làm'))){ conflictId = item.id || key; return; }
+    }
+    remoteMap.set(key, item);
+  });
+  if(conflictId) return {__attendanceConflictId:String(conflictId)};
+  const result = Array.from(remoteMap.values());
+  result.sort(function(a,b){ return (Number(b && b.timestamp)||0) - (Number(a && a.timestamp)||0); });
+  return result.length ? result : null;
+}
+
 function saveDataDirect(){
     // ═══════════════════════════════════════════════════════════
     // 🛡️ LỚP BẢO VỆ 1: KHÓA GHI KHI DATA LÀ BACKUP CŨ
@@ -2234,7 +2282,7 @@ function saveDataDirect(){
     } else {
         dataToSave = JSON.parse(JSON.stringify(DATA));
     }
-    
+
     delete dataToSave.customers;
     delete dataToSave.chats;
     delete dataToSave.productImages;
@@ -2244,25 +2292,57 @@ function saveDataDirect(){
     if (useFirebase && db) {
         // Chỉ gửi những mục đã thay đổi so với lần đồng bộ trước
         const changed = {}; let nChanged = 0;
+        const attendanceBaseJson = _syncedJson.attendance;
         Object.keys(dataToSave).forEach(function(k){
             const j = JSON.stringify(dataToSave[k]);
-            if(_syncedJson[k] !== j){ changed[k] = dataToSave[k]; nChanged++; _syncedJson[k] = j; }
+            if(_syncedJson[k] !== j){ changed[k] = dataToSave[k]; nChanged++; if(k !== 'attendance') _syncedJson[k] = j; }
         });
-        const localOrders = changed.orders;
-        delete changed.orders;
+        const localOrders = changed.orders; delete changed.orders;
+        const localAttendance = changed.attendance; delete changed.attendance;
         if(Object.keys(changed).length){
             db.ref('meoxam_data').update(changed).catch(function(err){
-                Object.keys(changed).forEach(function(k){ delete _syncedJson[k]; }); // lần lưu sau sẽ thử lại mục này
+                Object.keys(changed).forEach(function(k){ delete _syncedJson[k]; });
                 reportSaveError(err);
                 try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave)); }catch(e){}
             });
+        }
+        if(localAttendance !== undefined){
+            let attendanceConflictId = null;
+            db.ref('meoxam_data/attendance').transaction(function(remote){
+                const merged = posMergeAttendanceForSave(remote, localAttendance, attendanceBaseJson);
+                if(merged && merged.__attendanceConflictId){ attendanceConflictId = merged.__attendanceConflictId; return; }
+                return merged;
+            }, function(err, committed, snapshot){
+                if(err || !committed){
+                    delete _syncedJson.attendance;
+                    if(attendanceConflictId){
+                        const remoteValue = snapshot && snapshot.val();
+                        const remoteList = Array.isArray(remoteValue) ? remoteValue.filter(Boolean) : (remoteValue && typeof remoteValue === 'object' ? Object.keys(remoteValue).map(function(k){ return remoteValue[k]; }).filter(Boolean) : []);
+                        const remoteIds = new Set(remoteList.map(function(a){ return a && a.id ? String(a.id) : ''; }).filter(Boolean));
+                        const localExtras = (DATA.attendance || []).filter(function(a){ return a && String(a.id || '') !== attendanceConflictId && (!a.id || !remoteIds.has(String(a.id))); });
+                        DATA.attendance = remoteList.concat(localExtras).sort(function(a,b){ return (Number(b && b.timestamp)||0) - (Number(a && a.timestamp)||0); });
+                        try{ _syncedJson.attendance = JSON.stringify(remoteList); writeBackupLS(DATA); }catch(e){}
+                        if(typeof posRefreshShiftClockControls === 'function') posRefreshShiftClockControls();
+                        try{ showToast('⚠️ Ca vừa được cập nhật trên thiết bị khác. Trạng thái đã tải lại; vui lòng kiểm tra trước khi tiếp tục.'); }catch(e){}
+                        return;
+                    }
+                    reportSaveError(err || 'Giao dịch đồng bộ chấm công không được xác nhận'); return;
+                }
+                try{ _syncedJson.attendance = JSON.stringify(snapshot && snapshot.val() || []); }catch(e){ delete _syncedJson.attendance; }
+            }, false);
         }
         if(localOrders !== undefined){
             db.ref('meoxam_data/orders').transaction(function(remote){
                 const merged = mergeOrdersForSave(remote, localOrders);
                 return merged.length ? merged : null;
-            }, function(err, committed){
-                if(err || !committed){ delete _syncedJson.orders; reportSaveError(err || 'Giao dịch lưu đơn không được xác nhận'); }
+            }, function(err, committed, snapshot){
+                if(err || !committed){ delete _syncedJson.orders; reportSaveError(err || 'Giao dịch lưu đơn không được xác nhận'); return; }
+                try{
+                    const saved = snapshot && snapshot.val();
+                    _syncedOrders = {};
+                    ordersToArray(saved).forEach(function(o){ if(o && o.id) _syncedOrders[o.id] = JSON.stringify(o); });
+                    _syncedJson.orders = JSON.stringify(saved || []);
+                }catch(e){ delete _syncedJson.orders; }
             }, false);
         }
     } else {
@@ -2329,7 +2409,7 @@ function loadData(){
     if (useFirebase && db) {
         db.ref('meoxam_data').on('value', (snapshot) => {
             const val = snapshot.val(); // Dòng cũ của ông[cite: 4]
-            
+
             // --- BẮT ĐẦU ĐOẠN CHỐT CHẶN (ĐÃ SỬA LỖI ĐĂNG NHẬP) ---
             const activeTag = document.activeElement ? document.activeElement.tagName : '';
             if ((activeTag === 'INPUT' || activeTag === 'TEXTAREA') && isInitialLoad === false) {
@@ -2342,15 +2422,14 @@ function loadData(){
                     window.DATA_IS_STALE = false;
                     noteSynced(val);
                     const preservedCustomers = (DATA && DATA.customers && DATA.customers.length) ? DATA.customers : [];
-                    DATA = val;
-                    DATA.customers = preservedCustomers;
+                    DATA = val; if(typeof posRefreshShiftClockControls === 'function') posRefreshShiftClockControls(); if(typeof posRenderProductSalesRanking === 'function') posRenderProductSalesRanking(); DATA.customers = preservedCustomers;
                     if(!DATA.productImages) DATA.productImages = {};
                 } else {
                     // val null hoặc không hợp lệ → GIỮ NGUYÊN DATA hiện có, khóa ghi Firebase
                     window.DATA_IS_STALE = true;
                     console.warn('[meoxam] 🛡️ Bỏ qua Firebase update (null/không hợp lệ) trong lúc đang gõ — KHÔNG ghi đè DATA.');
                 }
-                return; 
+                return;
             }
       const isValidRemoteData = val && Array.isArray(val.products) && Array.isArray(val.ingredients) && Array.isArray(val.users) && val.products.length > 0;
       if(isValidRemoteData) {
@@ -3457,7 +3536,7 @@ function applyRolePermissions(){
   setTimeout(function(){
     if(CURRENT_USER && CURRENT_USER.role === 'owner') initCheckoutFormulaCard();
   }, 500);
-setTimeout(registerFCMToken, 2000); 	
+setTimeout(registerFCMToken, 2000);
 }
 
 function checkUnsavedBeforeLeave(currentTab){
@@ -3818,6 +3897,7 @@ function setOpmPay(method){
 function closeOrderPayModal(){ document.getElementById('order-pay-modal').style.display = 'none'; _payOrderId = null; }
 function confirmOrderPayModal(){ const id = _payOrderId, m = _payMethod; closeOrderPayModal(); if(id) finalizeOrderPaid(id, m); }
 function submitOrderBill(dineIn){
+  if(CURRENT_USER && CURRENT_USER.role === 'staff' && typeof posIsStaffClockedIn === 'function' && !posIsStaffClockedIn(CURRENT_USER)){ alert('🔒 Bạn cần VÀO CA trước khi bấm bill. Vui lòng vào ca rồi thử lại.'); if(typeof posRefreshShiftClockControls === 'function') posRefreshShiftClockControls(); return; }
   closeOrderTypeModal();
   if(!DATA) { loadData(); return; }
   const currentBill = getCurrentUserBill();
@@ -3834,6 +3914,13 @@ function submitOrderBill(dineIn){
     items: JSON.parse(JSON.stringify(currentBill)),
     totalQty, totalPrice, totalCost,
     staffName: CURRENT_USER ? CURRENT_USER.name : 'Nhân viên',
+    createdByUserId: CURRENT_USER ? CURRENT_USER.id : 'guest',
+    creatorName: CURRENT_USER ? CURRENT_USER.name : 'Nhân viên',
+    attributionUserId: CURRENT_USER ? CURRENT_USER.id : null,
+    assignedToUserId: CURRENT_USER ? CURRENT_USER.id : null,
+    sourceCreatorUserIds: CURRENT_USER ? [CURRENT_USER.id] : [],
+    shiftDay: getShiftDayStr(),
+    shiftInId: (typeof posGetActiveShiftRecord === 'function' && CURRENT_USER) ? ((posGetActiveShiftRecord(CURRENT_USER) || {}).id || null) : null,
     dateIso: toVNDateStr(nowVN),
     time: `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')}:${String(nowVN.getSeconds()).padStart(2,'0')} — ${String(nowVN.getDate()).padStart(2,'0')}/${String(nowVN.getMonth()+1).padStart(2,'0')}/${nowVN.getFullYear()}`
   };
@@ -5656,9 +5743,9 @@ async function confirmCheckin(){
   if(result === 'error') alert('⚠️ Đã vào ca, nhưng ảnh chưa lưu được. Bạn báo chủ quán giúp nhé!');
 }
 function finalizeClockIn(extra){
-  const nowVN = getVietnamTimeNow();
+  if(CURRENT_USER && CURRENT_USER.role === 'staff' && typeof posIsStaffClockedIn === 'function' && posIsStaffClockedIn(CURRENT_USER)){ alert('Tài khoản này đã vào ca trên thiết bị khác. Trạng thái đã được đồng bộ.'); if(typeof posRefreshShiftClockControls === 'function') posRefreshShiftClockControls(); return; }   const nowVN = getVietnamTimeNow();
   const timeStr = `${String(nowVN.getHours()).padStart(2,'0')}:${String(nowVN.getMinutes()).padStart(2,'0')}:${String(nowVN.getSeconds()).padStart(2,'0')} — ${String(nowVN.getDate()).padStart(2,'0')}/${String(nowVN.getMonth()+1).padStart(2,'0')}/${nowVN.getFullYear()}`;
-  const rec = { id: uid('att'), staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Vào ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: toVNDateStr(nowVN) };
+  const rec = { id: uid('att'), staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Vào ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: toVNDateStr(nowVN), shiftDay: getShiftDayStr() };
   Object.assign(rec, extra || {});
   DATA.attendance.unshift(rec);
   if(!DATA.notifications) DATA.notifications = [];
@@ -6008,7 +6095,7 @@ document.getElementById('btn-confirm-checkout').addEventListener('click', ()=>{
     alert(`✅ Kiểm kê tiền mặt khớp hoàn toàn! Ra ca thành công.\n\n💰 Quỹ đầu ca kế tiếp: ${fmt(countedCash)}đ`);
   }
 
-  DATA.attendance.unshift({ id: checkoutId, staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Ra ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, shiftDay, countedCash, expectedCash, transferTotal, zMoney: z, y2, y2Auto, denoms, formula: { left: formula.left, right: formula.right }, sinceTs: _ho ? _ho.ts : 0, fromHandover: !!_ho });
+  DATA.attendance.unshift({ id: checkoutId, staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Ra ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, shiftDay, countedCash, expectedCash, transferTotal, zMoney: z, y2, y2Auto, denoms, formula: { left: formula.left, right: formula.right }, sinceTs: _ho ? _ho.ts : 0, fromHandover: !!_ho, shiftInId: (typeof posGetActiveShiftRecord === 'function' ? ((posGetActiveShiftRecord(CURRENT_USER) || {}).id || null) : null), shiftSummary: (typeof posBuildShiftSummary === 'function' ? posBuildShiftSummary({staffName:CURRENT_USER.name,shiftDay:shiftDay,sinceTs:_ho ? _ho.ts : 0,time:timeStr}) : null) });
 
   if(!DATA.notifications) DATA.notifications = [];
   let kcMsg = `🔴 ${CURRENT_USER.name} đã kết ca (ra ca) lúc ${timeStr}`;
@@ -8428,6 +8515,363 @@ initPrinterUI();
   scan(document.body);
   window.__numFmt = { rawToDisplay: rawToDisplay, displayToRaw: displayToRaw, enhance: enhance };
 })();
+</script>
+<div class="modal-overlay" id="pos-reassign-modal" style="display:none;" onclick="if(event.target===this) posCloseReassignModal()">
+  <div class="modal-card" style="max-width:470px; width:calc(100% - 24px);">
+    <h3 style="margin-top:0;">👤 Đổi người order</h3>
+    <div id="pos-reassign-info" style="font-size:13px; line-height:1.55; padding:10px; background:#f5f8ff; border-radius:9px; margin-bottom:12px;"></div>
+    <label for="pos-reassign-target" style="font-size:12px; font-weight:800;">Chọn nhân viên nhận chỉ tiêu</label>
+    <select id="pos-reassign-target" style="margin-top:5px; width:100%;"></select>
+    <p style="font-size:11px; color:var(--muted); margin:8px 0 12px;">Chỉ đổi người ghi nhận doanh số/ly bán; người tạo ban đầu và người thu tiền vẫn được lưu riêng.</p>
+    <div style="display:flex; gap:8px;"><button class="btn ghost" style="flex:1;" onclick="posCloseReassignModal()">Hủy</button><button class="btn success" style="flex:1.4;" onclick="posConfirmReassignOrders()">✅ Xác nhận đổi</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="pos-shift-summary-modal" style="display:none;" onclick="if(event.target===this) posCloseShiftSummary()">
+  <div class="modal-card" style="max-width:460px; width:calc(100% - 24px); max-height:90vh; overflow:auto;">
+    <h3 style="margin-top:0; color:#177245;">📊 Tổng kết ca vừa kết</h3>
+    <div id="pos-shift-summary-content"></div>
+    <button class="btn success" style="width:100%; margin-top:12px;" onclick="posCloseShiftSummary()">Đã hiểu</button>
+  </div>
+</div>
+<script>
+function posToArray(v){ return Array.isArray(v) ? v.filter(Boolean) : []; }
+function posClockShiftDay(a){ return (a && a.shiftDay) || (a ? getOrderShiftDay({dateIso:a.dateStr || '', time:a.time || ''}) : ''); }
+function posClockRecords(user){
+  if(!user || !DATA || !Array.isArray(DATA.attendance)) return [];
+  return DATA.attendance.filter(function(a){
+    if(!a || (a.type !== 'Vào ca làm' && a.type !== 'Ra ca làm')) return false;
+    return (user.id && a.staffId === user.id) || ((!a.staffId || !user.id) && a.staffName === user.name);
+  }).sort(function(a,b){ return (Number(b.timestamp)||0) - (Number(a.timestamp)||0); });
+}
+function posGetLatestClockRecord(user){ return posClockRecords(user)[0] || null; }
+function posIsStaffClockedIn(user){
+  const last = posGetLatestClockRecord(user);
+  return !!(last && last.type === 'Vào ca làm' && posClockShiftDay(last) === getShiftDayStr());
+}
+function posGetActiveShiftRecord(user){ return posIsStaffClockedIn(user) ? posGetLatestClockRecord(user) : null; }
+function posRefreshShiftClockControls(){
+  if(!CURRENT_USER || CURRENT_USER.role !== 'staff') return;
+  const inShift = posIsStaffClockedIn(CURRENT_USER), last = posGetLatestClockRecord(CURRENT_USER);
+  const inBtn = document.getElementById('btn-clock-in'), outBtn = document.getElementById('btn-clock-out');
+  if(inBtn) inBtn.style.display = inShift ? 'none' : 'inline-block';
+  if(outBtn) outBtn.style.display = inShift ? 'inline-block' : 'none';
+  const status = document.getElementById('shift-clock-status');
+  if(status){
+    if(inShift) status.textContent = '🟢 Đã vào ca lúc ' + String(last.time || '').split(' — ')[0];
+    else if(last && last.type === 'Ra ca làm' && posClockShiftDay(last) === getShiftDayStr()) status.textContent = '🔴 Đã ra ca';
+    else status.textContent = 'Chưa vào ca';
+  }
+}
+function posGetOrderCreatorIds(order){
+  if(!order) return [];
+  const source = Array.isArray(order.sourceCreatorUserIds) ? Array.from(new Set(order.sourceCreatorUserIds.filter(Boolean).map(String))) : [];
+  if(source.length) return source;
+  if((Array.isArray(order.sourceCreatorUserIds) || Array.isArray(order.mergedFrom)) && Array.isArray(order.mergedFrom) && order.mergedFrom.length) return [];
+  const id = order.createdByUserId || order.creatorUserId;
+  if(id) return [String(id)];
+  const name = String(order.creatorName || order.staffName || '').trim();
+  if(!name || !Array.isArray(DATA && DATA.users)) return [];
+  const matches = DATA.users.filter(function(u){
+    const candidates = [u && u.name, u && u.alias, u && u.realName];
+    try{ if(u) candidates.push(getFormattedUserDisplayName(u)); }catch(e){}
+    return candidates.some(function(v){ return v && String(v).trim() === name; });
+  });
+  return matches.length === 1 && matches[0].id ? [String(matches[0].id)] : [];
+}
+function posGetOrderAttributionId(order){
+  if(!order) return null;
+  if(order.attributionUserId || order.assignedToUserId) return String(order.attributionUserId || order.assignedToUserId);
+  const ids = posGetOrderCreatorIds(order);
+  return ids.length === 1 ? ids[0] : null;
+}
+function posReassignEligibility(){
+  if(!CURRENT_USER || CURRENT_USER.role !== 'owner') return {ok:false, reason:'Chỉ tài khoản chủ quán được đổi người order.'};
+  const list = getMergeSources();
+  if(!list.length) return {ok:false, reason:'Hãy chọn ít nhất một đơn.'};
+  if(list.some(function(o){ return !o || isCancelledOrder(o) || isDebtOrder(o) || isWebLikeOrder(o) || o.mergedInto; })) return {ok:false, reason:'Đơn hủy, công nợ, đơn app hoặc đơn đã gộp không thể đổi người order.'};
+  const ids = [];
+  for(const o of list){
+    const own = posGetOrderCreatorIds(o);
+    if(own.length !== 1) return {ok:false, reason:'Không xác định được duy nhất người tạo của từng đơn; không thể đổi người order.'};
+    ids.push(own[0]);
+  }
+  if(new Set(ids).size !== 1) return {ok:false, reason:'Các đơn được chọn do nhiều user tạo. Nhóm này chỉ được gộp bill, không được đổi người order.'};
+  return {ok:true, list:list, creatorId:ids[0]};
+}
+function posAddReassignAction(){
+  const bar = document.getElementById('merge-bar');
+  if(!bar || bar.style.display === 'none' || !mergeSelection || mergeSelection.size === 0) return;
+  const actions = bar.querySelector('span:last-child');
+  if(!actions) return;
+  const state = posReassignEligibility();
+  const btn = document.createElement('button');
+  btn.type = 'button'; btn.className = 'btn small'; btn.textContent = '👤 Đổi người order';
+  btn.disabled = !state.ok; btn.title = state.ok ? 'Đổi người order cho các đơn cùng một người tạo' : state.reason;
+  if(!state.ok) btn.style.cssText = 'opacity:.48; cursor:not-allowed;';
+  btn.addEventListener('click', posOpenReassignModal);
+  const mergeBtn = Array.from(actions.querySelectorAll('button')).find(function(b){ return (b.textContent || '').includes('Gộp bill'); });
+  actions.insertBefore(btn, mergeBtn || actions.firstChild);
+}
+function posOpenReassignModal(){
+  const state = posReassignEligibility();
+  if(!state.ok){ alert('⚠️ ' + state.reason); return; }
+  const info = document.getElementById('pos-reassign-info');
+  const creator = (DATA.users || []).find(function(u){ return String(u.id) === state.creatorId; });
+  const creatorName = creator ? getFormattedUserDisplayName(creator) : state.list[0].creatorName || state.list[0].staffName || 'Không rõ';
+  info.innerHTML = 'Đã chọn <b>' + state.list.length + '</b> đơn. Tất cả đều được tạo bởi <b>' + escapeHtml(creatorName) + '</b>.<br>Chỉ tiêu ly bán sẽ chuyển sang người được chọn bên dưới.';
+  const select = document.getElementById('pos-reassign-target');
+  const users = (DATA.users || []).filter(function(u){ return u && u.id && u.status !== 'inactive'; });
+  select.innerHTML = users.map(function(u){ return '<option value="' + escapeHtml(String(u.id)) + '">' + escapeHtml(getFormattedUserDisplayName(u)) + (u.role === 'owner' ? ' (Chủ quán)' : '') + '</option>'; }).join('');
+  const current = state.list[0];
+  const preferred = current.assignedToUserId || current.attributionUserId || (DATA.users || []).find(function(u){ return u.name === current.staffName; })?.id;
+  if(preferred) select.value = String(preferred);
+  document.getElementById('pos-reassign-modal').style.display = 'flex';
+}
+function posCloseReassignModal(){ const el = document.getElementById('pos-reassign-modal'); if(el) el.style.display = 'none'; }
+function posConfirmReassignOrders(){
+  const state = posReassignEligibility();
+  if(!state.ok){ alert('⚠️ ' + state.reason); posCloseReassignModal(); if(typeof renderMergeBar === 'function') renderMergeBar(); return; }
+  const target = (DATA.users || []).find(function(u){ return u && String(u.id) === String(document.getElementById('pos-reassign-target').value); });
+  if(!target){ alert('⚠️ Không tìm thấy tài khoản nhận chỉ tiêu.'); return; }
+  if(CURRENT_USER && CURRENT_USER.role === 'owner'){
+    const pin = (DATA && DATA.config && DATA.config.securityPin) ? DATA.config.securityPin : '9999';
+    if(prompt('🔒 Nhập Mã PIN Cấp Hai để đổi người order:') !== pin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
+  }
+  const now = new Date().toISOString();
+  const targetName = target.name || getFormattedUserDisplayName(target);
+  state.list.forEach(function(o){
+    const creatorIds = posGetOrderCreatorIds(o);
+    if(creatorIds.length === 1 && !Array.isArray(o.sourceCreatorUserIds)) o.sourceCreatorUserIds = creatorIds;
+    o.staffName = targetName;
+    o.assignedToUserId = String(target.id);
+    o.attributionUserId = String(target.id);
+    o.reassignedByUserId = CURRENT_USER.id;
+    o.reassignedAt = now;
+  });
+  saveDataDirect();
+  if(mergeSelection && typeof mergeSelection.clear === 'function') mergeSelection.clear();
+  posCloseReassignModal();
+  renderHistoryOrders();
+  showToast('✅ Đã đổi người order và chuyển chỉ tiêu ly bán sang ' + escapeHtml(targetName) + '.');
+}
+var __posOriginalRenderMergeBar = window.renderMergeBar;
+if(typeof __posOriginalRenderMergeBar === 'function') window.renderMergeBar = function(){ const r = __posOriginalRenderMergeBar.apply(this, arguments); posAddReassignAction(); return r; };
+var __posOriginalApplyRolePermissions = window.applyRolePermissions;
+if(typeof __posOriginalApplyRolePermissions === 'function') window.applyRolePermissions = function(){ const r = __posOriginalApplyRolePermissions.apply(this, arguments); posRefreshShiftClockControls(); return r; };
+var __posOriginalShiftCups = window.getStaffCupsForShiftDay;
+if(typeof __posOriginalShiftCups === 'function') window.getStaffCupsForShiftDay = function(userObj, shiftDay){
+  let cups = 0;
+  (DATA.orders || []).forEach(function(o){
+    if(isCancelledOrder(o) || o.staffName !== userObj.name) return;
+    if((o.salesCreditShiftDay || o.shiftDay || getOrderShiftDay(o)) !== shiftDay) return;
+    if(o.mergedInto){ const parent = (DATA.orders || []).find(function(x){ return x && x.id === o.mergedInto; }); if(parent && parent.salesCreditQty !== undefined) return; }
+    cups += (o.salesCreditQty !== undefined ? Number(o.salesCreditQty) || 0 : Number(o.totalQty) || 0);
+  });
+  return cups;
+};
+var __posOriginalHistoryCups = window.renderStaffCupsPanel;
+if(typeof __posOriginalHistoryCups === 'function') window.renderStaffCupsPanel = function(list){
+  const orders = DATA.orders || [];
+  const adjusted = (list || []).map(function(o){
+    if(o && o.mergedInto){
+      const parent = orders.find(function(x){ return x && x.id === o.mergedInto; });
+      if(parent && parent.salesCreditQty !== undefined) return Object.assign({}, o, {totalQty:0, items:[]});
+    }
+    if(o && o.salesCreditQty !== undefined) return Object.assign({}, o, {totalQty:o.salesCreditQty, items:o.salesCreditItems || o.items || [], dateIso:o.salesCreditShiftDay || o.dateIso});
+    return o;
+  });
+  return __posOriginalHistoryCups.call(this, adjusted);
+};
+var __posOriginalBuildMergedOrder = window.buildMergedOrder;
+if(typeof __posOriginalBuildMergedOrder === 'function') window.buildMergedOrder = function(srcAll, table, note){
+  const merged = __posOriginalBuildMergedOrder.apply(this, arguments);
+  const sources = Array.isArray(srcAll) ? srcAll : [];
+  if(!sources.length) return merged;
+  const first = sources[0];
+  const creatorIds = Array.from(new Set([].concat.apply([], sources.map(posGetOrderCreatorIds)).filter(Boolean).map(String)));
+  const creditedItems = [];
+  sources.forEach(function(o){
+    const items = Array.isArray(o.salesCreditItems) ? o.salesCreditItems : (o.items || []);
+    items.forEach(function(it){ creditedItems.push({prodId:it.prodId || null, name:it.name || '', size:it.size || '', qty:Number(it.qty)||0, unitPrice:Number(it.unitPrice)||0}); });
+  });
+  merged.staffName = first.staffName || merged.staffName;
+  merged.attributionUserId = posGetOrderAttributionId(first);
+  merged.createdByUserId = CURRENT_USER ? String(CURRENT_USER.id) : null;
+  merged.creatorName = CURRENT_USER ? CURRENT_USER.name : '';
+  merged.sourceCreatorUserIds = creatorIds;
+  merged.salesCreditQty = sources.reduce(function(sum,o){ return sum + (o.salesCreditQty !== undefined ? Number(o.salesCreditQty)||0 : Number(o.totalQty)||0); }, 0);
+  merged.salesCreditRevenue = sources.reduce(function(sum,o){ return sum + (o.salesCreditRevenue !== undefined ? Number(o.salesCreditRevenue)||0 : Number(o.totalPrice)||0); }, 0);
+  merged.salesCreditItems = creditedItems;
+  merged.salesCreditShiftDay = first.salesCreditShiftDay || first.shiftDay || getOrderShiftDay(first);
+  merged.shiftInId = first.shiftInId || merged.shiftInId || null;
+  if(sources.some(isUnpaidOrder) && CURRENT_USER){
+    merged.collectedBy = CURRENT_USER.name;
+    const collectionTime = getVietnamTimeNow();
+    merged.dateIso = toVNDateStr(collectionTime);
+    merged.time = `${String(collectionTime.getHours()).padStart(2,'0')}:${String(collectionTime.getMinutes()).padStart(2,'0')}:${String(collectionTime.getSeconds()).padStart(2,'0')} — ${String(collectionTime.getDate()).padStart(2,'0')}/${String(collectionTime.getMonth()+1).padStart(2,'0')}/${collectionTime.getFullYear()}`;
+    merged.shiftDay = getShiftDayStr();
+    const collectorShift = posGetActiveShiftRecord(CURRENT_USER);
+    if(collectorShift) merged.shiftInId = collectorShift.id;
+  }
+  return merged;
+};
+function posProductSalesPeriodDay(order){ return order.salesCreditShiftDay || order.shiftDay || getOrderShiftDay(order); }
+function posRenderProductSalesRanking(){
+  const host = document.getElementById('pos-product-sales-ranking');
+  if(!host) return;
+  if(!DATA || !Array.isArray(DATA.orders)){ host.innerHTML = '<div style="color:var(--muted); padding:10px;">Chưa có dữ liệu bán hàng.</div>'; return; }
+  const periodEl = document.getElementById('pos-product-sales-period');
+  const period = periodEl ? periodEl.value : 'all';
+  const today = getShiftDayStr();
+  const start = period === 'today' ? today : period === 'week' ? addDaysToDateStr(today,-6) : period === 'month' ? today.slice(0,7) + '-01' : '';
+  const stats = new Map();
+  (DATA.orders || []).forEach(function(o){
+    if(!o || isCancelledOrder(o) || isDebtOrder(o) || (isWebLikeOrder(o) && !isCompletedOrder(o))) return;
+    if(o.mergedInto){
+      const parent = DATA.orders.find(function(x){ return x && x.id === o.mergedInto; });
+      if(parent && Array.isArray(parent.salesCreditItems)) return;
+      if(!(parent && Array.isArray(parent.prepaid) && parent.prepaid.some(function(p){ return p && p.id === o.id; }))) return;
+    }
+    const day = posProductSalesPeriodDay(o);
+    if(start && (period === 'month' ? !day.startsWith(start.slice(0,7)) : day < start)) return;
+    const items = Array.isArray(o.salesCreditItems) ? o.salesCreditItems : (o.items || []);
+    const seenInOrder = new Set();
+    items.forEach(function(it){
+      if(!it || !it.name) return;
+      const product = (DATA.products || []).find(function(p){ return p && ((it.prodId && p.id === it.prodId) || p.name === it.name); });
+      const category = String((product && product.category) || it.category || '').toLowerCase();
+      if(/topping|ăn vặt|đồ ăn|snack/.test(category)) return;
+      const qty = Math.max(0, Number(it.qty) || 0);
+      if(!qty) return;
+      const key = String(it.name).trim().toLocaleLowerCase('vi');
+      const record = stats.get(key) || {name:String(it.name).trim(), qty:0, revenue:0, orders:0};
+      record.qty += qty;
+      record.revenue += (Number(it.unitPrice) || 0) * qty;
+      if(!seenInOrder.has(key)){ record.orders++; seenInOrder.add(key); }
+      stats.set(key,record);
+    });
+  });
+  const rows = Array.from(stats.values()).sort(function(a,b){ return b.qty-a.qty || b.revenue-a.revenue || a.name.localeCompare(b.name,'vi'); });
+  if(!rows.length){ host.innerHTML = '<div style="color:var(--muted); text-align:center; padding:16px;">Chưa có món nước nào được bán trong khoảng thời gian này.</div>'; return; }
+  const max = rows[0].qty || 1;
+  host.innerHTML = '<div style="overflow:auto;"><table style="width:100%; border-collapse:collapse; min-width:420px; font-size:12.5px;"><thead><tr style="color:var(--muted); text-align:left; border-bottom:1px solid var(--line);"><th style="padding:8px; width:42px;">Top</th><th style="padding:8px;">Món nước</th><th style="padding:8px; text-align:right;">Số ly</th><th style="padding:8px; text-align:right;">Giá trị món</th></tr></thead><tbody>' + rows.slice(0,20).map(function(r,i){
+    const pct = Math.max(5, Math.round(r.qty/max*100));
+    const rank = i < 3 ? ['🥇','🥈','🥉'][i] : String(i+1);
+    return '<tr style="border-bottom:1px solid #edf0ed;"><td style="padding:8px; font-weight:800;">' + rank + '</td><td style="padding:8px;"><div style="font-weight:750;">' + escapeHtml(r.name) + '</div><div style="height:5px; background:#edf4ee; border-radius:99px; margin-top:5px;"><div style="width:' + pct + '%; height:5px; background:#34a36a; border-radius:99px;"></div></div></td><td style="padding:8px; text-align:right; font-weight:850; color:#177245;">' + r.qty + ' ly</td><td style="padding:8px; text-align:right;">' + fmt(r.revenue) + 'đ</td></tr>';
+  }).join('') + '</tbody></table></div><div style="font-size:11px; color:var(--muted); margin-top:7px;">Tính cả bill đang chờ thanh toán; giá trị món theo đơn giá, chưa trừ voucher/giảm giá. Không tính đơn hủy, công nợ, đơn app chưa hoàn thành.</div>';
+}
+window.posRenderProductSalesRanking = posRenderProductSalesRanking;
+var __posOriginalDeepAnalytics = window.calculateDeepAnalytics;
+if(typeof __posOriginalDeepAnalytics === 'function') window.calculateDeepAnalytics = function(){ const r = __posOriginalDeepAnalytics.apply(this, arguments); posRenderProductSalesRanking(); return r; };
+var __posOriginalInitAnalytics = window.initAnalyticsUI;
+if(typeof __posOriginalInitAnalytics === 'function') window.initAnalyticsUI = function(){ const r = __posOriginalInitAnalytics.apply(this, arguments); posRenderProductSalesRanking(); return r; };
+function posSummaryOrdersForShift(staffName, shiftDay, sinceTs){
+  return (DATA.orders || []).filter(function(o){
+    if(!o || isCancelledOrder(o) || isDebtOrder(o) || (isWebLikeOrder(o) && !isCompletedOrder(o))) return false;
+    if(o.staffName !== staffName || (o.salesCreditShiftDay || o.shiftDay || getOrderShiftDay(o)) !== shiftDay) return false;
+    if(o.mergedInto){ const parent = DATA.orders.find(function(x){ return x && x.id === o.mergedInto; }); if(parent && parent.salesCreditQty !== undefined) return false; }
+    if(sinceTs){ const ts = getOrderTs(o); if(ts !== null && ts <= sinceTs) return false; }
+    return true;
+  });
+}
+function posBuildShiftSummary(record){
+  const staffName = CURRENT_USER ? CURRENT_USER.name : record.staffName;
+  const shiftDay = record.shiftDay || posClockShiftDay(record);
+  const sinceTs = Number(record.sinceTs) || 0;
+  const orders = posSummaryOrdersForShift(staffName, shiftDay, sinceTs);
+  const cups = orders.reduce(function(sum,o){ return sum + (o.salesCreditQty !== undefined ? Number(o.salesCreditQty)||0 : Number(o.totalQty)||0); },0);
+  const revenue = orders.reduce(function(sum,o){ return sum + (o.salesCreditRevenue !== undefined ? Number(o.salesCreditRevenue)||0 : Number(o.totalPrice)||0); },0);
+  let collection = {cash:0,bank:0};
+  try{ collection = getStaffOrderTotals(staffName, sinceTs ? {shiftDay:shiftDay,sinceTs:sinceTs} : {shiftDay:shiftDay}); }catch(e){}
+  return {shiftDay:shiftDay, orders:orders.length, cups:cups, revenue:revenue, cash:Number(collection.cash)||0, bank:Number(collection.bank)||0, checkoutAt:record.time || ''};
+}
+function posShowShiftSummary(summary, name){
+  const host = document.getElementById('pos-shift-summary-content');
+  if(!host) return;
+  host.innerHTML = '<div style="font-size:12px; color:var(--muted); margin-bottom:10px;">' + escapeHtml(name || '') + ' · Ngày ca ' + escapeHtml(summary.shiftDay || '') + (summary.checkoutAt ? ' · Ra ca ' + escapeHtml(String(summary.checkoutAt).split(' — ')[0]) : '') + '</div>' +
+    '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">' +
+    '<div style="background:#f0f8f2; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Đơn ghi nhận</div><b style="font-size:18px;">' + summary.orders + '</b></div>' +
+    '<div style="background:#f0f8f2; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Ly tính chỉ tiêu</div><b style="font-size:18px; color:#177245;">' + summary.cups + ' ly</b></div>' +
+    '<div style="background:#fff8eb; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Giá trị đơn theo món</div><b>' + fmt(summary.revenue) + 'đ</b></div>' +
+    '<div style="background:#f0f5ff; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Tiền mặt / chuyển khoản thu trong ca</div><b>' + fmt(summary.cash) + 'đ / ' + fmt(summary.bank) + 'đ</b></div>' +
+    '</div><div style="font-size:11px; color:var(--muted); margin-top:9px;">Số liệu ca đã đồng bộ; chỉ tiêu ly/doanh số theo người lên bill đầu tiên, còn tiền mặt/chuyển khoản theo người thu trong ca.</div>';
+  document.getElementById('pos-shift-summary-modal').style.display = 'flex';
+}
+function posCloseShiftSummary(){ const el = document.getElementById('pos-shift-summary-modal'); if(el) el.style.display = 'none'; }
+const posPeriod = document.getElementById('pos-product-sales-period');
+if(posPeriod) posPeriod.addEventListener('change', posRenderProductSalesRanking);
+var posClockInBtn = document.getElementById('btn-clock-in');
+var posClockOutBtn = document.getElementById('btn-clock-out');
+var posCheckoutConfirm = document.getElementById('btn-confirm-checkout');
+var posCheckinConfirm = document.getElementById('btn-checkin-confirm');
+function posFirebaseReadyForShiftCheck(){ return typeof useFirebase !== 'undefined' && !!useFirebase && typeof db !== 'undefined' && !!db && typeof db.ref === 'function'; }
+function posRefreshRemoteAttendance(){
+  if(!posFirebaseReadyForShiftCheck()) return Promise.resolve(posIsStaffClockedIn(CURRENT_USER));
+  return db.ref('meoxam_data/attendance').once('value').then(function(snapshot){
+    const value = snapshot && snapshot.val();
+    DATA.attendance = Array.isArray(value) ? value.filter(Boolean) : (value && typeof value === 'object' ? Object.keys(value).map(function(k){ return value[k]; }).filter(Boolean) : []);
+    try{ if(typeof _syncedJson !== 'undefined') _syncedJson.attendance = JSON.stringify(DATA.attendance); }catch(e){}
+    return posIsStaffClockedIn(CURRENT_USER);
+  });
+}
+function posInstallRemoteShiftGate(button, expectedActive, failureMessage, closeCameraOnFailure){
+  if(!button) return;
+  let pending = false, allowNext = false, handedOff = false;
+  button.addEventListener('click', function(ev){
+    if(allowNext){ allowNext = false; return; }
+    if(!CURRENT_USER || CURRENT_USER.role !== 'staff') return;
+    const fail = function(message){
+      if(closeCameraOnFailure && typeof closeCheckinCamera === 'function') closeCheckinCamera();
+      if(typeof posRefreshShiftClockControls === 'function') posRefreshShiftClockControls();
+      alert(message || failureMessage);
+    };
+    if(!posFirebaseReadyForShiftCheck()){
+      if(posIsStaffClockedIn(CURRENT_USER) !== expectedActive){ ev.preventDefault(); ev.stopImmediatePropagation(); fail(failureMessage); }
+      return;
+    }
+    ev.preventDefault(); ev.stopImmediatePropagation();
+    if(pending) return;
+    pending = true; button.disabled = true;
+    posRefreshRemoteAttendance().then(function(active){
+      if(active !== expectedActive){ fail(failureMessage); return; }
+      button.disabled = false; allowNext = true; handedOff = true; button.click();
+    }).catch(function(err){
+      console.error('Không đọc được trạng thái ca từ Firebase:', err);
+      fail('Không xác minh được trạng thái ca trên máy chủ. Kiểm tra mạng rồi thử lại.');
+    }).finally(function(){ pending = false; if(!handedOff || button.id !== 'btn-checkin-confirm') button.disabled = false; });
+  }, true);
+}
+posInstallRemoteShiftGate(posClockInBtn, false, 'Tài khoản này đã vào ca trên thiết bị khác. Trạng thái đã được đồng bộ.');
+posInstallRemoteShiftGate(posCheckinConfirm, false, 'Tài khoản này đã vào ca trên thiết bị khác; không tạo thêm lượt vào ca.', true);
+posInstallRemoteShiftGate(posClockOutBtn, true, 'Tài khoản chưa vào ca hoặc ca đã được kết trên thiết bị khác.');
+if(posCheckoutConfirm){
+  posInstallRemoteShiftGate(posCheckoutConfirm, true, 'Ca đã được kết trên thiết bị khác hoặc bạn chưa vào ca.');
+  posCheckoutConfirm.addEventListener('click', function(){
+    setTimeout(function(){
+      const rec = CURRENT_USER && posGetLatestClockRecord(CURRENT_USER);
+      if(!rec || rec.type !== 'Ra ca làm' || posClockShiftDay(rec) !== (rec.shiftDay || getShiftDayStr())){ posRefreshShiftClockControls(); return; }
+      const summary = rec.shiftSummary || posBuildShiftSummary(rec);
+      if(!rec.shiftSummary){ rec.shiftSummary = summary; rec.shiftInId = rec.shiftInId || (posClockRecords(CURRENT_USER).find(function(a){ return a.type === 'Vào ca làm' && posClockShiftDay(a) === posClockShiftDay(rec) && (Number(a.timestamp)||0) < (Number(rec.timestamp)||0); }) || {}).id || null; saveDataDirect(); }
+      posRefreshShiftClockControls();
+      posShowShiftSummary(summary, getFormattedUserDisplayName(CURRENT_USER));
+    }, 0);
+  });
+}
+var __posOriginalSubmitOrderBill = window.submitOrderBill;
+var __posSubmitRemotePending = false;
+if(typeof __posOriginalSubmitOrderBill === 'function') window.submitOrderBill = function(){
+  const args = arguments, self = this;
+  if(!CURRENT_USER || CURRENT_USER.role !== 'staff' || !posFirebaseReadyForShiftCheck()) return __posOriginalSubmitOrderBill.apply(self,args);
+  if(__posSubmitRemotePending) return;
+  __posSubmitRemotePending = true;
+  posRefreshRemoteAttendance().then(function(active){
+    if(!active){ alert('Bạn cần VÀO CA mới nhất trước khi bấm bill. Trạng thái ca đã được đồng bộ từ máy chủ.'); posRefreshShiftClockControls(); return; }
+    return __posOriginalSubmitOrderBill.apply(self,args);
+  }).catch(function(err){ console.error('Không đọc được ca trước khi tạo bill:',err); alert('Không xác minh được ca trên máy chủ. Kiểm tra mạng rồi thử lại; bill chưa được tạo.'); })
+    .finally(function(){ __posSubmitRemotePending = false; });
+};
+posRefreshShiftClockControls();
+posRenderProductSalesRanking();
 </script>
 </body>
 </html>
