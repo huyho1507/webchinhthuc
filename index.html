@@ -1664,8 +1664,8 @@
         <h2 style="margin:0;">⚙️ Thiết Lập Hệ Thống &amp; Tài Khoản</h2>
         <button class="btn success" id="btn-save-settings-tab">💾 LƯU THIẾT LẬP</button>
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-        <div class="card">
+      <div class="settings-account-cards" style="display:grid; grid-template-columns:1fr; gap:14px;">
+        <div class="card owner-password-settings-card" style="order:2;">
           <h2>🔑 Đổi Mật Khẩu Chủ Quán</h2>
           <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Biệt danh (Tên hiển thị):</label><input type="text" id="owner-alias-input" oninput="markDirty('settings')"></div>
           <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Tên Thật (Bắt buộc phía sau):</label><input type="text" id="owner-realname-input" oninput="markDirty('settings')"></div>
@@ -1676,7 +1676,7 @@
           <hr style="border:none; border-top:1px dashed var(--line); margin:16px 0;">
           <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Mã PIN Cấp Ba:</label><input type="password" id="level3-pin-setting-input" oninput="markDirty('settings')"></div>
         </div>
-        <div class="card">
+        <div class="card staff-account-settings-card" style="order:1;">
           <h2>👥 Quản Lý Tài Khoản Nhân Viên</h2>
           <p style="font-size:11.5px; color:var(--muted); margin:-4px 0 9px;">🏷️ Tag 6 · Tích các chỉ số nhân viên được xem trong Lịch sử. Bỏ tích để ẩn từng loại doanh thu/số liệu; nhấn <b>LƯU THIẾT LẬP</b> để áp dụng. Doanh thu hệ thống toàn chuỗi vẫn chỉ chủ quán xem được.</p>
           <table style="margin-bottom:10px;"><thead><tr><th>Biệt Danh</th><th>Tên Thật</th><th>Emoji</th><th>PIN</th><th></th></tr></thead><tbody id="staff-accounts-tbody"></tbody></table>
@@ -3568,7 +3568,32 @@ function initShopRegistry(){
 }
 function renderShopBranchesSettings(){
   const box = document.getElementById('shop-branches-list'); if(!box) return;
-  box.innerHTML = SHOP_LIST.map(shop => `<div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap; padding:7px 9px; background:var(--soft); border-radius:9px;"><span style="font-size:12px; font-weight:800; min-width:68px;">${shop.id==='main'?'Quán gốc':'Chi nhánh'}</span><input type="text" value="${escapeHtml(shop.name)}" data-shop-name-id="${escapeHtml(shop.id)}" style="flex:1; min-width:180px;"><button type="button" class="btn small ghost" onclick="renameShopBranch('${escapeHtml(shop.id)}')">Lưu tên</button></div>`).join('');
+  box.innerHTML = SHOP_LIST.map(shop => `<div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap; padding:7px 9px; background:var(--soft); border-radius:9px;"><span style="font-size:12px; font-weight:800; min-width:68px;">${shop.id==='main'?'Quán gốc':'Chi nhánh'}</span><input type="text" value="${escapeHtml(shop.name)}" data-shop-name-id="${escapeHtml(shop.id)}" style="flex:1; min-width:180px;"><button type="button" class="btn small ghost" onclick="renameShopBranch('${escapeHtml(shop.id)}')">Lưu tên</button>${shop.id!=='main'?`<button type="button" class="btn small danger" onclick="deleteShopBranch('${escapeHtml(shop.id)}')">🗑️ Xóa</button>`:''}</div>`).join('');
+}
+function deleteShopBranch(shopId){
+  if(!CURRENT_USER || CURRENT_USER.role !== 'owner'){ alert('🔒 Chỉ chủ quán mới được xóa chi nhánh.'); return; }
+  if(shopId === 'main'){ alert('Không thể xóa quán gốc.'); return; }
+  if(CURRENT_SHOP_ID === shopId){ alert('Bạn đang đăng nhập vào chi nhánh này. Hãy chuyển sang quán khác trước khi xóa.'); return; }
+  const shop = SHOP_LIST.find(s => s.id === shopId);
+  if(!shop){ alert('Không tìm thấy chi nhánh cần xóa.'); return; }
+  if(!(useFirebase && db)){ alert('Cần kết nối Firebase để xóa chi nhánh.'); return; }
+  if(!confirm(`⚠️ XÓA CHI NHÁNH “${shop.name}”?
+
+Thao tác này sẽ xóa vĩnh viễn dữ liệu doanh thu, lương, lịch sử và cài đặt của chi nhánh. Không thể hoàn tác.`)) return;
+  const pin2 = prompt('🔒 Nhập Mã PIN Cấp Hai để xác nhận xóa:');
+  if(pin2 === null) return;
+  const expected2 = String((DATA.config && DATA.config.securityPin) || '9999');
+  if(pin2.trim() !== expected2){ alert('❌ Mã PIN Cấp Hai không chính xác. Chi nhánh chưa bị xóa.'); return; }
+  const pin3 = prompt('🔒 Nhập Mã PIN Cấp Ba để xác nhận xóa:');
+  if(pin3 === null) return;
+  const expected3 = String((DATA.config && DATA.config.level3Pin) || '2578');
+  if(pin3.trim() !== expected3){ alert('❌ Mã PIN Cấp Ba không chính xác. Chi nhánh chưa bị xóa.'); return; }
+  const updates = {};
+  updates[shopDataPath(shopId)] = null;
+  updates[SHOP_REGISTRY_PATH + '/' + shopId] = null;
+  db.ref().update(updates).then(() => {
+    showToast(`🗑️ Đã xóa chi nhánh ${escapeHtml(shop.name)} và dữ liệu của chi nhánh.`);
+  }).catch(err => alert('Không xóa được chi nhánh: ' + (err.message || err)));
 }
 function renameShopBranch(shopId){
   if(!CURRENT_USER || CURRENT_USER.role !== 'owner') return;
