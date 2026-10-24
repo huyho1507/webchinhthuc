@@ -951,15 +951,21 @@
     <h3 style="margin-top:0; font-size:20px;">🔴 Kiểm Kê Tiền Mặt &amp; Ra Ca</h3>
 
     <!-- Tổng quan -->
-    <div style="background:var(--soft); padding:14px; border-radius:12px; margin-bottom:14px; font-size:14px;">
-      <div style="display:flex; justify-content:space-between; padding:4px 0;">
-        <span>💵 Tiền mặt thu trong ca (X1):</span>
-        <b id="co-expected-cash" style="color:var(--good); font-size:16px;">0đ</b>
+    <div style="background:var(--soft); padding:12px; border-radius:12px; margin-bottom:14px; font-size:14px;">
+      <div style="font-size:11.5px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">📊 Tiền thu trong ca (cả quán)</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div style="background:#f1fbf5; border:1.5px solid #bfe3cb; border-radius:10px; padding:10px;">
+          <div style="font-size:11px; color:var(--muted);">💵 Tiền mặt (X1)</div>
+          <b id="co-expected-cash" style="color:var(--good); font-size:19px;">0đ</b>
+          <div id="co-cash-sub" style="font-size:10.5px; color:var(--muted);">0 đơn</div>
+        </div>
+        <div style="background:#f3f7fd; border:1.5px solid #bcd0ee; border-radius:10px; padding:10px;">
+          <div style="font-size:11px; color:var(--muted);">📱 Chuyển khoản (Y1)</div>
+          <b id="co-transfer-bills" style="color:#2f5fa6; font-size:19px;">0đ</b>
+          <div id="co-bank-sub" style="font-size:10.5px; color:var(--muted);">0 đơn</div>
+        </div>
       </div>
-      <div style="display:flex; justify-content:space-between; padding:4px 0;">
-        <span>📱 Chuyển khoản thu trong ca (Y1):</span>
-        <b id="co-transfer-bills" style="color:var(--accent); font-size:16px;">0đ</b>
-      </div>
+      <div id="co-overview-extra" style="margin-top:8px;"></div>
     </div>
 
     <!-- Ô nhập Z -->
@@ -1435,19 +1441,21 @@
       </div>
       <div style="margin-top:8px; font-size:12px; font-weight:700; color:var(--accent);" id="history-filter-active-label">Đang hiển thị</div>
       <div class="daily-summary" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:10px;">
-        <div class="stat-card" style="background:#fffdf8; border:1.5px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">Số đơn</div><div class="num" id="stat-orders-count" style="font-weight:800; font-size:18px;">0</div></div>
-        <div class="stat-card" style="background:#fffdf8; border:1.5px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">Tổng ly</div><div class="num" id="stat-cups-count" style="font-weight:800; font-size:18px;">0</div></div>
-        <div class="stat-card" style="background:#fffdf8; border:2px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">Tổng doanh thu</div><div class="num" id="stat-revenue" style="font-weight:800; font-size:18px; color:var(--good);">0đ</div></div>
-        <div class="stat-card" style="background:#f4fbf5; border:1.5px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">💵 DT Tiền mặt</div><div class="num" id="stat-revenue-cash" style="font-weight:800; font-size:18px; color:var(--good);">0đ</div><div id="stat-revenue-cash-sub" style="font-size:10.5px; color:var(--muted); margin-top:2px;">0 đơn</div></div>
-        <div class="stat-card" style="background:#f3f7fd; border:1.5px solid var(--line); border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:var(--muted)">📱 DT Chuyển khoản</div><div class="num" id="stat-revenue-bank" style="font-weight:800; font-size:18px; color:#2f5fa6;">0đ</div><div id="stat-revenue-bank-sub" style="font-size:10.5px; color:var(--muted); margin-top:2px;">0 đơn</div></div>
-        <div class="stat-card" style="background:#fdeceb; border:1.5px solid #e8a6a1; border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:#b3261e">📕 Công nợ (chưa thu)</div><div class="num" id="stat-revenue-debt" style="font-weight:800; font-size:18px; color:#b3261e;">0đ</div><div id="stat-revenue-debt-sub" style="font-size:10.5px; color:#b3261e; margin-top:2px;">0 đơn</div></div>
-        <div class="stat-card" style="background:#fff4e5; border:1.5px solid #f0b66b; border-radius:10px; padding:10px;"><div class="lbl" style="font-size:11px; color:#b45309">🪑 Khách ngồi lại - chưa thanh toán</div><div class="num" id="stat-revenue-unpaid" style="font-weight:800; font-size:18px; color:#b45309;">0đ</div><div id="stat-revenue-unpaid-sub" style="font-size:10.5px; color:#b45309; margin-top:2px;">0 đơn</div></div>
+        <div class="stat-card hist-view-card" data-view="all" onclick="setHistoryView('all')" title="Bấm để xem đúng loại bill này" style="background:#fffdf8; border:1.5px solid var(--line); border-radius:10px; padding:10px; cursor:pointer;"><div class="lbl" style="font-size:11px; color:var(--muted)">Số đơn</div><div class="num" id="stat-orders-count" style="font-weight:800; font-size:18px;">0</div></div>
+        <div class="stat-card hist-view-card" data-view="all" onclick="setHistoryView('all')" title="Bấm để xem đúng loại bill này" style="background:#fffdf8; border:1.5px solid var(--line); border-radius:10px; padding:10px; cursor:pointer;"><div class="lbl" style="font-size:11px; color:var(--muted)">Tổng ly</div><div class="num" id="stat-cups-count" style="font-weight:800; font-size:18px;">0</div></div>
+        <div class="stat-card hist-view-card" data-view="revenue" onclick="setHistoryView('revenue')" title="Bấm để xem đúng loại bill này" style="background:#fffdf8; border:2px solid var(--line); border-radius:10px; padding:10px; cursor:pointer;"><div class="lbl" style="font-size:11px; color:var(--muted)">Tổng doanh thu</div><div class="num" id="stat-revenue" style="font-weight:800; font-size:18px; color:var(--good);">0đ</div></div>
+        <div class="stat-card hist-view-card" data-view="cash" onclick="setHistoryView('cash')" title="Bấm để xem đúng loại bill này" style="background:#f4fbf5; border:1.5px solid var(--line); border-radius:10px; padding:10px; cursor:pointer;"><div class="lbl" style="font-size:11px; color:var(--muted)">💵 DT Tiền mặt</div><div class="num" id="stat-revenue-cash" style="font-weight:800; font-size:18px; color:var(--good);">0đ</div><div id="stat-revenue-cash-sub" style="font-size:10.5px; color:var(--muted); margin-top:2px;">0 đơn</div></div>
+        <div class="stat-card hist-view-card" data-view="bank" onclick="setHistoryView('bank')" title="Bấm để xem đúng loại bill này" style="background:#f3f7fd; border:1.5px solid var(--line); border-radius:10px; padding:10px; cursor:pointer;"><div class="lbl" style="font-size:11px; color:var(--muted)">📱 DT Chuyển khoản</div><div class="num" id="stat-revenue-bank" style="font-weight:800; font-size:18px; color:#2f5fa6;">0đ</div><div id="stat-revenue-bank-sub" style="font-size:10.5px; color:var(--muted); margin-top:2px;">0 đơn</div></div>
+        <div class="stat-card hist-view-card" data-view="app" onclick="setHistoryView('app')" title="Bấm để xem các đơn từ App Order" style="background:#fffbe6; border:1.5px solid #e0b020; border-radius:10px; padding:10px; cursor:pointer;"><div class="lbl" style="font-size:11px; color:#8a6d00">📱 Đơn từ App Order</div><div class="num" id="stat-revenue-app" style="font-weight:800; font-size:18px; color:#8a6d00;">0đ</div><div id="stat-revenue-app-sub" style="font-size:10.5px; color:#8a6d00; margin-top:2px;">0 đơn · đã tính vào doanh thu</div></div>
+        <div class="stat-card hist-view-card" data-view="debt" onclick="setHistoryView('debt')" title="Bấm để xem đúng loại bill này" style="background:#fdeceb; border:1.5px solid #e8a6a1; border-radius:10px; padding:10px; cursor:pointer;"><div class="lbl" style="font-size:11px; color:#b3261e">📕 Công nợ (chưa thu)</div><div class="num" id="stat-revenue-debt" style="font-weight:800; font-size:18px; color:#b3261e;">0đ</div><div id="stat-revenue-debt-sub" style="font-size:10.5px; color:#b3261e; margin-top:2px;">0 đơn</div></div>
+        <div class="stat-card hist-view-card" data-view="unpaid" onclick="setHistoryView('unpaid')" title="Bấm để xem đúng loại bill này" style="background:#fff4e5; border:1.5px solid #f0b66b; border-radius:10px; padding:10px; cursor:pointer;"><div class="lbl" style="font-size:11px; color:#b45309">🪑 Khách ngồi lại - chưa thanh toán</div><div class="num" id="stat-revenue-unpaid" style="font-weight:800; font-size:18px; color:#b45309;">0đ</div><div id="stat-revenue-unpaid-sub" style="font-size:10.5px; color:#b45309; margin-top:2px;">0 đơn</div></div>
         <div class="stat-card system-revenue-card owner-only" style="border-radius:14px; padding:12px;"><div class="lbl" style="font-size:11px; font-weight:900;">🌐 DOANH THU HỆ THỐNG · TẤT CẢ QUÁN</div><div class="num" id="stat-system-revenue" style="font-weight:950; font-size:20px; margin-top:4px;">Đang tải…</div><div id="stat-system-revenue-sub" style="font-size:10.5px; margin-top:3px; opacity:.9;">Đang cộng theo bộ lọc hiện tại</div></div>
       </div>
       <div id="history-staff-cups" style="margin-top:12px;"></div>
     </div>
     <div class="card">
       <h2>📜 Chi Tiết Hóa Đơn</h2>
+      <div id="history-view-bar"></div>
       <div id="merge-bar"></div>
       <div id="history-order-list"></div>
     </div>
@@ -2819,6 +2827,21 @@ function getStaffOrderTotals(staffName, opts){
   return { cash, bank };
 }
 
+/* ===== TIỀN CỦA CA = TOÀN BỘ đơn trong ca (từ lúc bàn giao ca trước đến lúc ra ca), KHÔNG chia theo nhân viên / chủ quán =====
+   opts: { shiftDay, sinceTs?, untilTs? } */
+function getShiftTotals(opts){
+  let cash = 0, bank = 0, orders = 0;
+  (DATA.orders || []).forEach(o => {
+    if(isNonRevenueOrder(o)) return;
+    if(getOrderShiftDay(o) !== opts.shiftDay) return;
+    const ts = getOrderTs(o);
+    if(opts.sinceTs && ts !== null && ts <= opts.sinceTs) return;
+    if(opts.untilTs && ts !== null && ts > opts.untilTs) return;
+    bank += orderBankAmt(o); cash += orderCashAmt(o); orders++;
+  });
+  return { cash, bank, orders };
+}
+
 /* Nhập/đổi Quỹ Đầu Ngày (Z): lấy phần chênh từ Quỹ Tiền Mặt Tổng ra két; cuối ngày gom trả lại */
 function setShiftZ(newZ, note){
   ensureFundStructure();
@@ -3181,7 +3204,7 @@ function findCheckoutRecForDiff(a){
 function computeCheckoutDiscrepancy(rec){
   const _o = rec.shiftDay ? { shiftDay: rec.shiftDay } : { dateStr: rec.dateStr };
   if(rec.sinceTs) _o.sinceTs = rec.sinceTs;
-  const t = getStaffOrderTotals(rec.staffName, _o);
+  const t = rec.shiftWide ? getShiftTotals(Object.assign(_o, { untilTs: rec.timestamp })) : getStaffOrderTotals(rec.staffName, _o);
   const X1 = t.cash, Y1 = t.bank, Z = rec.zMoney || 0, X2 = rec.countedCash || 0;
   const y2Auto = (rec.y2Auto !== undefined) ? rec.y2Auto : (rec.y2 === rec.transferTotal);
   const Y2 = y2Auto ? Y1 : (rec.y2 || 0);
@@ -3202,9 +3225,10 @@ function discLabel(a){
 }
 function refreshDiscrepanciesForOrder(order){
   if(!order || !DATA.attendance) return;
-  DATA.attendance.filter(r => r.type === 'Ra ca làm' && r.countedCash !== undefined && r.staffName === orderCashOwner(order)).forEach(rec => {
+  DATA.attendance.filter(r => r.type === 'Ra ca làm' && r.countedCash !== undefined && (r.shiftWide || r.staffName === orderCashOwner(order))).forEach(rec => {
     const same = rec.shiftDay ? (rec.shiftDay === getOrderShiftDay(order)) : (rec.dateStr === order.dateIso);
     if(!same) return;
+    if(rec.shiftWide){ const _ts = getOrderTs(order); if(_ts !== null && ((rec.sinceTs && _ts <= rec.sinceTs) || (rec.timestamp && _ts > rec.timestamp))) return; }
     const existing = DATA.attendance.find(a => a.isDiscrepancy && findCheckoutRecForDiff(a) === rec);
     if(existing) return;
     const d = computeCheckoutDiscrepancy(rec);
@@ -4210,6 +4234,40 @@ function sumSystemOrders(orders, f){
   else if(f.dateFrom && f.dateTo) a = a.filter(o => o.dateIso && o.dateIso >= f.dateFrom && o.dateIso <= f.dateTo);
   return a.reduce((sum,o)=>sum+(Number(o.totalPrice)||0),0);
 }
+
+/* ===== TAB 2: BẤM VÀO Ô THỐNG KÊ → CHỈ HIỆN ĐÚNG LOẠI BILL (mặc định 'all' như cũ; bấm Số đơn / Tổng ly để xem đầy đủ) ===== */
+window.__histView = window.__histView || 'all';
+var HIST_VIEW_LABELS = {
+  all:'Tất cả bill', revenue:'💰 Bill tính doanh thu', cash:'💵 Bill có thu tiền mặt',
+  bank:'📱 Bill có chuyển khoản', app:'📱 Đơn từ App Order (đã tính vào doanh thu)', debt:'📕 Bill công nợ', unpaid:'🪑 Bill khách ngồi lại - chưa thu'
+};
+function setHistoryView(v, opts){
+  v = HIST_VIEW_LABELS[v] ? v : 'all';
+  // bấm lại đúng ô đang chọn → trở về xem đầy đủ
+  if(v !== 'all' && window.__histView === v && !(opts && opts.keep)) v = 'all';
+  window.__histView = v;
+  window.__histLimit = 60;
+  renderHistoryOrders();
+  if(!(opts && opts.noScroll)){
+    const bar = document.getElementById('history-view-bar');
+    const target = bar || document.getElementById('history-order-list');
+    if(target && target.scrollIntoView){ try{ target.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){ target.scrollIntoView(); } }
+  }
+}
+function renderHistoryViewBar(view, count){
+  document.querySelectorAll('.hist-view-card').forEach(c => {
+    const on = view !== 'all' && c.getAttribute('data-view') === view;
+    c.style.outline = on ? '3px solid #1f6feb' : '';
+    c.style.outlineOffset = on ? '1px' : '';
+    c.style.boxShadow = on ? '0 4px 14px rgba(31,111,235,.25)' : '';
+  });
+  const bar = document.getElementById('history-view-bar');
+  if(!bar) return;
+  if(view === 'all'){ bar.innerHTML = '<div style="font-size:11.5px; color:var(--muted); margin-bottom:8px;">💡 Bấm vào ô <b>Doanh thu / Tiền mặt / Chuyển khoản / Công nợ / Ngồi lại</b> ở trên để chỉ xem đúng loại bill. Bấm <b>Số đơn</b> hoặc <b>Tổng ly</b> để xem đầy đủ.</div>'; return; }
+  bar.innerHTML = '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; background:#eaf2ff; border:1.5px solid #1f6feb; border-radius:10px; padding:8px 12px; margin-bottom:10px;">'
+    + '<span style="font-weight:800; font-size:13px; color:#1f4fa8;">Đang xem: ' + HIST_VIEW_LABELS[view] + ' · ' + count + ' bill</span>'
+    + '<button class="btn small ghost" onclick="setHistoryView(\'all\')">↩ Xem đầy đủ</button></div>';
+}
 function renderHistoryOrders(){
   const selDate = document.getElementById('history-date').value;
   const selWeek = document.getElementById('history-week').value;
@@ -4247,6 +4305,13 @@ function renderHistoryOrders(){
   document.getElementById('stat-revenue-bank').textContent = fmt(bankRev) + 'đ';
   document.getElementById('stat-revenue-cash-sub').textContent = cashOrders.length + ' đơn';
   document.getElementById('stat-revenue-bank-sub').textContent = bankOrders.length + ' đơn';
+  const _appEl = document.getElementById('stat-revenue-app');
+  if(_appEl){
+    const _appList = filtered.filter(isWebLikeOrder);
+    const _appWait = _appList.filter(o => !isCompletedOrder(o)).length;
+    _appEl.textContent = fmt(_appList.reduce((a, o) => a + (o.totalPrice || 0), 0)) + 'đ';
+    document.getElementById('stat-revenue-app-sub').textContent = _appList.length + ' đơn' + (_appWait ? ' (' + _appWait + ' chờ hoàn thành)' : '') + ' · đã tính vào doanh thu';
+  }
   const _debtEl = document.getElementById('stat-revenue-debt');
   if(_debtEl){
     _debtEl.textContent = fmt(_debtList.reduce((s, o) => s + (o.totalPrice || 0), 0)) + 'đ';
@@ -4260,10 +4325,25 @@ function renderHistoryOrders(){
   applyTag6HistoryDisplay();
   try{ renderStaffCupsPanel(filtered.concat(_allShown.filter(isUnpaidOrder), _debtList)); }catch(e){ console.error(e); }
   const wrap = document.getElementById('history-order-list');
-  const _listShown = _allShown.filter(o => !(o.mergedInto && (DATA.orders || []).some(x => x.id === o.mergedInto)))
-    .filter(o => !(isWebLikeOrder(o) && !isCompletedOrder(o) && !isCancelledOrder(o))); // đơn app đang chờ chỉ hiện 1 lần ở khung "Đơn Từ App" dưới cùng (vẫn tính doanh thu như cũ)
-  if(_listShown.length === 0){ wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted); text-align:center; padding:16px 0;">Không có đơn order nào.</p>'; return; }
-  const _hKey = labelText + '|' + (document.getElementById('history-date').value || '');
+  const _view = window.__histView || 'all';
+  const _notMergedChild = o => !(o.mergedInto && (DATA.orders || []).some(x => x.id === o.mergedInto));
+  let _listShown;
+  if(_view === 'all'){
+    _listShown = _allShown.filter(_notMergedChild)
+      .filter(o => !(isWebLikeOrder(o) && !isCompletedOrder(o) && !isCancelledOrder(o))); // đơn app đang chờ chỉ hiện 1 lần ở khung "Đơn Từ App" dưới cùng (vẫn tính doanh thu như cũ)
+  } else {
+    // Xem theo loại: danh sách khớp ĐÚNG với con số trên ô đã bấm (kể cả đơn app đang chờ vì chúng có tính doanh thu)
+    let _src = filtered;
+    if(_view === 'cash') _src = filtered.filter(o => orderCashAmt(o) > 0 || (o.totalPrice || 0) === 0);
+    else if(_view === 'bank') _src = filtered.filter(o => orderBankAmt(o) > 0);
+    else if(_view === 'app') _src = filtered.filter(isWebLikeOrder);
+    else if(_view === 'debt') _src = _debtList;
+    else if(_view === 'unpaid') _src = _unpaidAll;
+    _listShown = _src.filter(_notMergedChild);
+  }
+  try{ renderHistoryViewBar(_view, _listShown.length); }catch(e){ console.error(e); }
+  if(_listShown.length === 0){ wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted); text-align:center; padding:16px 0;">' + (_view === 'all' ? 'Không có đơn order nào.' : 'Không có bill nào thuộc loại này trong bộ lọc hiện tại.') + '</p>'; return; }
+  const _hKey = labelText + '|' + (document.getElementById('history-date').value || '') + '|' + _view;
   if(window.__histKey !== _hKey){ window.__histKey = _hKey; window.__histLimit = 60; }
   const _hLimit = window.__histLimit || 60;
   const _listCut = _listShown.length > _hLimit ? _listShown.slice(0, _hLimit) : _listShown;
@@ -4298,11 +4378,12 @@ function renderHistoryOrders(){
     <div style="background:${bgStyle}; border:${borderStyle}; border-left:6px solid ${payColor}; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
       ${(isUnpaid && o.prepaid && o.prepaid.length) ? `<div style="background:#b3261e; color:#fff; border-radius:10px; padding:10px 12px; margin-bottom:8px; font-weight:800; font-size:14px; line-height:1.5;">⚠️ CÒN PHẢI THU ${fmt(o.totalPrice || 0)}đ<br><span style="font-size:12px; font-weight:700;">Đã thu trước ${fmt(o.prepaid.reduce((s,x)=>s+(x.totalPrice||0),0))}đ: ${o.prepaid.map(x => escapeHtml(x.table || '') + ' (' + escapeHtml(x.staffName || '') + ') ' + fmt(x.totalPrice||0) + 'đ · ' + escapeHtml(x.payLabel || '')).join(' | ')}<br>${o.prepaid.map(x => (x.items||[]).map(i => escapeHtml(i.name) + ' (' + escapeHtml(i.size||'') + ') x' + i.qty).join(', ')).join('; ')}</span></div>` : ''}
       ${isUnpaid ? '<div style="position:absolute; top:-8px; right:12px; background:#e67e22; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">🪑 NGỒI LẠI · CHƯA THANH TOÁN</div>' : ''}
+      ${isDebtOrder(o) ? '<div style="position:absolute; top:-8px; right:12px; background:#b3261e; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">📕 CÔNG NỢ · CHƯA THU</div>' : ''}
       ${isCompleted ? '<div style="position:absolute; top:-8px; right:12px; background:#2e9e5b; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">✅ ĐÃ HOÀN THÀNH</div>' : ''}
       ${isCancelRequest ? '<div style="position:absolute; top:-8px; right:12px; background:#000; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">YÊU CẦU HỦY</div>' : ''}
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; font-weight:800; font-size:14px; margin-bottom:4px;">
         <span style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0;">${canMergeOrder(o) ? `<input type="checkbox" class="merge-check" title="Chọn để gộp bill" ${mergeSelection.has(o.id) ? 'checked' : ''} onchange="toggleMergeSelect('${o.id}', this.checked)">` : ''}📍 ${escapeHtml(o.table)} <span style="font-size:11px; background:${payBg}; color:${payColor}; border:1px solid ${payColor}; padding:2px 6px; border-radius:6px; margin-left:6px;">${isMixed ? '💵+📱' : (isBank ? '📱' : '💵')} ${isMixed ? 'Chia từng ly' : escapeHtml(o.paymentMethod || 'Tiền mặt')}</span></span>
-        <span style="color:${payColor}; white-space:nowrap;">${isUnpaid ? 'Chưa thu' : (isMixed ? 'Tổng' : (isBank ? 'DT Chuyển khoản' : 'DT Tiền mặt'))}: ${fmt(o.totalPrice)}đ</span>
+        <span style="color:${payColor}; white-space:nowrap;">${isUnpaid ? 'Chưa thu' : (isDebtOrder(o) ? 'Công nợ' : (isMixed ? 'Tổng' : (isBank ? 'DT Chuyển khoản' : 'DT Tiền mặt')))}: ${fmt(o.totalPrice)}đ</span>
       </div>
       <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
         👤 NV: <b>${escapeHtml(o.staffName)}</b> | 🕒 ${o.time} | 🥤 ${o.totalQty} ly
@@ -6134,7 +6215,7 @@ document.getElementById('btn-clock-out').addEventListener('click', ()=>{
   const staffName = CURRENT_USER.name;
   const shiftDay = getShiftDayStr();
   const _ho = getActiveHandover();
-  const _totals = getStaffOrderTotals(staffName, _ho ? { shiftDay, sinceTs: _ho.ts } : { shiftDay });
+  const _totals = getShiftTotals(_ho ? { shiftDay, sinceTs: _ho.ts } : { shiftDay });
   let expectedCash = _totals.cash, transferTotal = _totals.bank;
   const z = _ho ? _ho.amount : getTodayZMoney();
   const _zl = document.getElementById('co-z-label');
@@ -6345,7 +6426,7 @@ document.getElementById('btn-confirm-checkout').addEventListener('click', ()=>{
   const staffName = CURRENT_USER.name;
   const shiftDay = getShiftDayStr();
   const _ho = getActiveHandover();
-  const _totals = getStaffOrderTotals(staffName, _ho ? { shiftDay, sinceTs: _ho.ts } : { shiftDay });
+  const _totals = getShiftTotals(_ho ? { shiftDay, sinceTs: _ho.ts } : { shiftDay });
   let expectedCash = _totals.cash, transferTotal = _totals.bank;
 
   const z  = parseFloat(document.getElementById('co-z-money').value) || 0;
@@ -6364,13 +6445,13 @@ document.getElementById('btn-confirm-checkout').addEventListener('click', ()=>{
   document.querySelectorAll('.denom-inp').forEach(inp => { const q = parseFloat(inp.value) || 0; if(q > 0) denoms[inp.getAttribute('data-val')] = q; });
   const y2Auto = (y2 === transferTotal);
   if(Math.abs(diff) > 0){
-    alert(`⚠️ CẢNH BÁO LỆCH QUỸ!\n- Tiền trong ca: ${fmt(vt)}đ\n- Tiền thực nhận: ${fmt(vp)}đ\n- Chênh lệch: ${diff > 0 ? '+' : ''}${fmt(diff)}đ\n\n💰 Quỹ đầu ca kế tiếp (tiền thực đếm): ${fmt(countedCash)}đ`);
+    window.__lastCheckoutResult = { diff, vt, vp, countedCash, at: Date.now() }; // hiện ngay trong bảng tổng kết (không chặn bằng alert)
     DATA.attendance.unshift({ id: uid('att_diff'), staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: `Lệch quỹ (${diff > 0 ? 'Thừa ' + fmt(diff) : 'Thiếu ' + fmt(Math.abs(diff))})`, time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, shiftDay, checkoutId, isDiscrepancy: true, discrepancyAmount: diff });
   } else {
-    alert(`✅ Kiểm kê tiền mặt khớp hoàn toàn! Ra ca thành công.\n\n💰 Quỹ đầu ca kế tiếp: ${fmt(countedCash)}đ`);
+    window.__lastCheckoutResult = { diff: 0, vt, vp, countedCash, at: Date.now() };
   }
 
-  DATA.attendance.unshift({ id: checkoutId, staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Ra ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, shiftDay, countedCash, expectedCash, transferTotal, zMoney: z, y2, y2Auto, denoms, formula: { left: formula.left, right: formula.right }, sinceTs: _ho ? _ho.ts : 0, fromHandover: !!_ho, shiftInId: (typeof posGetActiveShiftRecord === 'function' ? ((posGetActiveShiftRecord(CURRENT_USER) || {}).id || null) : null), shiftSummary: (typeof posBuildShiftSummary === 'function' ? posBuildShiftSummary({staffName:CURRENT_USER.name,shiftDay:shiftDay,sinceTs:_ho ? _ho.ts : 0,time:timeStr}) : null) });
+  DATA.attendance.unshift({ id: checkoutId, staffId: CURRENT_USER.id, staffName: CURRENT_USER.name, type: 'Ra ca làm', time: timeStr, timestamp: nowVN.getTime(), dateStr: todayStr, shiftDay, countedCash, expectedCash, transferTotal, zMoney: z, y2, y2Auto, denoms, shiftWide: true, formula: { left: formula.left, right: formula.right }, sinceTs: _ho ? _ho.ts : 0, fromHandover: !!_ho, shiftInId: (typeof posGetActiveShiftRecord === 'function' ? ((posGetActiveShiftRecord(CURRENT_USER) || {}).id || null) : null), shiftSummary: (typeof posBuildShiftSummary === 'function' ? posBuildShiftSummary({staffName:CURRENT_USER.name,shiftDay:shiftDay,sinceTs:_ho ? _ho.ts : 0,time:timeStr}) : null) });
 
   if(!DATA.notifications) DATA.notifications = [];
   let kcMsg = `🔴 ${CURRENT_USER.name} đã kết ca (ra ca) lúc ${timeStr}`;
@@ -6392,6 +6473,12 @@ document.getElementById('btn-confirm-checkout').addEventListener('click', ()=>{
   document.getElementById('btn-clock-in').style.display = 'inline-block';
   document.getElementById('btn-clock-out').style.display = 'none';
   renderShiftTab();
+  // Cập nhật NGAY mọi chỗ phụ thuộc trạng thái ca (không chờ đồng bộ / tải lại)
+  try{ if(typeof posRefreshShiftClockControls === 'function') posRefreshShiftClockControls(); }catch(e){}
+  try{ recalculateShiftFundFromOrders(); }catch(e){}
+  try{ renderHeaderMoneyBadge(); }catch(e){}
+  try{ renderHistoryOrders(); }catch(e){}
+  try{ if(typeof renderOrderTab === 'function') renderOrderTab(); }catch(e){}
 });
 
 function changeMonth(delta){ currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta); renderShiftTab(); }
@@ -7431,7 +7518,7 @@ function setTag6HistoryDisplay(idx, key, visible){
 }
 function applyTag6HistoryDisplay(){
   const staff = CURRENT_USER && CURRENT_USER.role === 'staff' ? (DATA.users || []).find(u => u.id === CURRENT_USER.id) : null;
-  const ids = {orders:'stat-orders-count', cups:'stat-cups-count', revenue:'stat-revenue', cash:'stat-revenue-cash', bank:'stat-revenue-bank', debt:'stat-revenue-debt', unpaid:'stat-revenue-unpaid'};
+  const ids = {orders:'stat-orders-count', cups:'stat-cups-count', revenue:'stat-revenue', cash:'stat-revenue-cash', bank:'stat-revenue-bank', app:'stat-revenue-app', debt:'stat-revenue-debt', unpaid:'stat-revenue-unpaid'};
   Object.keys(ids).forEach(key => {
     const value = document.getElementById(ids[key]);
     const card = value && value.closest('.stat-card');
@@ -9081,35 +9168,108 @@ if(typeof __posOriginalDeepAnalytics === 'function') window.calculateDeepAnalyti
 var __posOriginalInitAnalytics = window.initAnalyticsUI;
 if(typeof __posOriginalInitAnalytics === 'function') window.initAnalyticsUI = function(){ const r = __posOriginalInitAnalytics.apply(this, arguments); posRenderProductSalesRanking(); return r; };
 function posSummaryOrdersForShift(staffName, shiftDay, sinceTs){
+  /* Đơn của CA (toàn quán, không chia theo người): cùng định nghĩa doanh thu với tab 2 — bỏ hủy / công nợ / ngồi lại chưa thu */
   return (DATA.orders || []).filter(function(o){
-    if(!o || isCancelledOrder(o) || isDebtOrder(o) || (isWebLikeOrder(o) && !isCompletedOrder(o))) return false;
-    if(o.staffName !== staffName || (o.salesCreditShiftDay || o.shiftDay || getOrderShiftDay(o)) !== shiftDay) return false;
-    if(o.mergedInto){ const parent = DATA.orders.find(function(x){ return x && x.id === o.mergedInto; }); if(parent && parent.salesCreditQty !== undefined) return false; }
+    if(!o || isNonRevenueOrder(o)) return false;
+    if(getOrderShiftDay(o) !== shiftDay) return false;
     if(sinceTs){ const ts = getOrderTs(o); if(ts !== null && ts <= sinceTs) return false; }
     return true;
   });
 }
+/* Một nguồn số liệu duy nhất cho ra ca: tổng tiền mặt + chuyển khoản của CẢ CA (ai bấm kết ca cũng ra cùng số) */
 function posBuildShiftSummary(record){
   const staffName = CURRENT_USER ? CURRENT_USER.name : record.staffName;
   const shiftDay = record.shiftDay || posClockShiftDay(record);
   const sinceTs = Number(record.sinceTs) || 0;
-  const orders = posSummaryOrdersForShift(staffName, shiftDay, sinceTs);
-  const cups = orders.reduce(function(sum,o){ return sum + (o.salesCreditQty !== undefined ? Number(o.salesCreditQty)||0 : Number(o.totalQty)||0); },0);
-  const revenue = orders.reduce(function(sum,o){ return sum + (o.salesCreditRevenue !== undefined ? Number(o.salesCreditRevenue)||0 : Number(o.totalPrice)||0); },0);
-  let collection = {cash:0,bank:0};
-  try{ collection = getStaffOrderTotals(staffName, sinceTs ? {shiftDay:shiftDay,sinceTs:sinceTs} : {shiftDay:shiftDay}); }catch(e){}
-  return {shiftDay:shiftDay, orders:orders.length, cups:cups, revenue:revenue, cash:Number(collection.cash)||0, bank:Number(collection.bank)||0, checkoutAt:record.time || ''};
+  const all = DATA.orders || [];
+  const inWin = function(o){ if(!sinceTs) return true; const ts = getOrderTs(o); return ts === null || ts > sinceTs; };
+  const mine = posSummaryOrdersForShift(staffName, shiftDay, sinceTs);
+  const cash = mine.reduce(function(a,o){ return a + orderCashAmt(o); },0);
+  const bank = mine.reduce(function(a,o){ return a + orderBankAmt(o); },0);
+  const cups = mine.reduce(function(a,o){ return a + (Number(o.totalQty)||0); },0);
+  // KPI: ly / doanh số ghi nhận theo người lên bill (giữ như cũ, chỉ để xét chỉ tiêu)
+  let kpiCups = 0, kpiValue = 0;
+  all.forEach(function(o){
+    if(!o || isCancelledOrder(o) || isDebtOrder(o) || (isWebLikeOrder(o) && !isCompletedOrder(o))) return;
+    if(o.staffName !== staffName || (o.salesCreditShiftDay || o.shiftDay || getOrderShiftDay(o)) !== shiftDay) return;
+    if(o.mergedInto){ const parent = all.find(function(x){ return x && x.id === o.mergedInto; }); if(parent && parent.salesCreditQty !== undefined) return; }
+    if(!inWin(o)) return;
+    kpiCups += (o.salesCreditQty !== undefined ? Number(o.salesCreditQty)||0 : Number(o.totalQty)||0);
+    kpiValue += (o.salesCreditRevenue !== undefined ? Number(o.salesCreditRevenue)||0 : Number(o.totalPrice)||0);
+  });
+  const unpaid = all.filter(function(o){ return o && isUnpaidOrder(o) && !isCancelledOrder(o) && !isDebtOrder(o); });
+  const debt = all.filter(function(o){ return o && isDebtOrder(o) && !isCancelledOrder(o) && getOrderShiftDay(o) === shiftDay && inWin(o); });
+  const cancelled = all.filter(function(o){ return o && isCancelledOrder(o) && getOrderShiftDay(o) === shiftDay && inWin(o); });
+  const sum = function(l){ return l.reduce(function(a,o){ return a + (Number(o.totalPrice)||0); },0); };
+  return {
+    v:3, shiftDay:shiftDay, checkoutAt:record.time || '',
+    orders:mine.length, cups:cups, revenue:cash + bank, cash:cash, bank:bank,
+    appOrders:mine.filter(isWebLikeOrder).length, appAmt:mine.filter(isWebLikeOrder).reduce(function(a,o){ return a + (Number(o.totalPrice)||0); },0),
+    cashOrders:mine.filter(function(o){ return orderCashAmt(o) > 0; }).length,
+    bankOrders:mine.filter(function(o){ return orderBankAmt(o) > 0; }).length,
+    kpiCups:kpiCups, kpiValue:kpiValue,
+    unpaidCount:unpaid.length, unpaidAmt:sum(unpaid),
+    debtCount:debt.length, debtAmt:sum(debt),
+    cancelledCount:cancelled.length, cancelledAmt:sum(cancelled)
+  };
+}
+function posGoToHistoryView(view, day){
+  posCloseShiftSummary();
+  try{ switchTab('history'); }catch(e){}
+  try{
+    if(day && view !== 'unpaid'){
+      ['history-week','history-month','history-date-from','history-date-to'].forEach(function(id){ const el = document.getElementById(id); if(el) el.value = ''; });
+      const d = document.getElementById('history-date'); if(d) d.value = day;
+    }
+    setHistoryView(view, {keep:true});
+  }catch(e){ console.error(e); }
 }
 function posShowShiftSummary(summary, name){
   const host = document.getElementById('pos-shift-summary-content');
   if(!host) return;
-  host.innerHTML = '<div style="font-size:12px; color:var(--muted); margin-bottom:10px;">' + escapeHtml(name || '') + ' · Ngày ca ' + escapeHtml(summary.shiftDay || '') + (summary.checkoutAt ? ' · Ra ca ' + escapeHtml(String(summary.checkoutAt).split(' — ')[0]) : '') + '</div>' +
-    '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">' +
-    '<div style="background:#f0f8f2; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Đơn ghi nhận</div><b style="font-size:18px;">' + summary.orders + '</b></div>' +
-    '<div style="background:#f0f8f2; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Ly tính chỉ tiêu</div><b style="font-size:18px; color:#177245;">' + summary.cups + ' ly</b></div>' +
-    '<div style="background:#fff8eb; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Giá trị đơn theo món</div><b>' + fmt(summary.revenue) + 'đ</b></div>' +
-    '<div style="background:#f0f5ff; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Tiền mặt / chuyển khoản thu trong ca</div><b>' + fmt(summary.cash) + 'đ / ' + fmt(summary.bank) + 'đ</b></div>' +
-    '</div><div style="font-size:11px; color:var(--muted); margin-top:9px;">Số liệu ca đã đồng bộ; chỉ tiêu ly/doanh số theo người lên bill đầu tiên, còn tiền mặt/chuyển khoản theo người thu trong ca.</div>';
+  const S = summary || {};
+  const isV2 = (S.v === 2 || S.v === 3);
+  const day = S.shiftDay || '';
+  const tile = function(bg, bd, label, value, sub, color, view){
+    const click = view ? ' onclick="posGoToHistoryView(\'' + view + '\',\'' + escapeHtml(day) + '\')" style="cursor:pointer;' : ' style="';
+    return '<div' + click + 'background:' + bg + '; border:1.5px solid ' + bd + '; border-radius:12px; padding:10px 11px;">' +
+      '<div style="font-size:11px; color:var(--muted); font-weight:700;">' + label + '</div>' +
+      '<div style="font-size:19px; font-weight:900; color:' + color + '; margin-top:2px;">' + value + '</div>' +
+      '<div style="font-size:10.5px; color:var(--muted); margin-top:1px;">' + sub + '</div></div>';
+  };
+  let html = '<div style="font-size:12px; color:var(--muted); margin-bottom:10px;">' + escapeHtml(name || '') + ' · Ngày ca ' + escapeHtml(day) + (S.checkoutAt ? ' · Ra ca ' + escapeHtml(String(S.checkoutAt).split(' — ')[0]) : '') + '</div>';
+  // kết quả kiểm kê (chỉ hiện ngay sau khi vừa ra ca)
+  const R = window.__lastCheckoutResult;
+  if(R && Date.now() - R.at < 120000){
+    const ok = Math.abs(R.diff) < 1;
+    html += '<div style="padding:10px 12px; border-radius:12px; margin-bottom:10px; font-weight:800; font-size:13.5px; ' + (ok ? 'background:#e8f5e9; color:#2e7d32; border:1.5px solid #9fd3a8;' : 'background:#fff3e0; color:#c2410c; border:1.5px solid #f0b66b;') + '">' +
+      (ok ? '✅ Kiểm kê khớp quỹ' : (R.diff > 0 ? '⚠️ LỆCH QUỸ DƯƠNG +' : '⚠️ LỆCH QUỸ ÂM -') + fmt(Math.abs(R.diff)) + 'đ (kỳ vọng ' + fmt(R.vt) + 'đ · thực tế ' + fmt(R.vp) + 'đ)') +
+      '<div style="font-weight:700; font-size:12px; margin-top:3px;">💰 Quỹ đầu ca kế tiếp: ' + fmt(R.countedCash) + 'đ</div></div>';
+  }
+  if(isV2){
+    html += '<div style="background:linear-gradient(135deg,#177245,#2e9e5b); color:#fff; border-radius:14px; padding:14px; margin-bottom:10px;">' +
+      '<div style="font-size:11.5px; opacity:.9; font-weight:700;">DOANH THU CẢ CA (tiền mặt + chuyển khoản)</div>' +
+      '<div style="font-size:28px; font-weight:950; line-height:1.15;">' + fmt(S.revenue) + 'đ</div>' +
+      '<div style="font-size:12px; opacity:.92;">' + S.orders + ' đơn · ' + S.cups + ' ly</div></div>';
+    html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">' +
+      tile('#f1fbf5','#bfe3cb','💵 Tiền mặt', fmt(S.cash) + 'đ', S.cashOrders + ' đơn', '#177245', 'cash') +
+      tile('#f3f7fd','#bcd0ee','📱 Chuyển khoản', fmt(S.bank) + 'đ', S.bankOrders + ' đơn', '#2f5fa6', 'bank') +
+      tile('#fff4e5','#f0b66b','🪑 Ngồi lại - chưa thu', fmt(S.unpaidAmt) + 'đ', S.unpaidCount + ' bill (bấm để xem)', '#b45309', 'unpaid') +
+      tile('#fdeceb','#e8a6a1','📕 Công nợ', fmt(S.debtAmt) + 'đ', S.debtCount + ' bill (bấm để xem)', '#b3261e', 'debt') +
+      '</div>';
+    if(S.appOrders) html += '<div style="background:#fffbe6; border:1.5px solid #e0b020; border-radius:10px; padding:8px 10px; font-size:12px; font-weight:700; color:#8a6d00; margin-bottom:8px;">📱 Trong đó đơn App Order: ' + S.appOrders + ' đơn · ' + fmt(S.appAmt) + 'đ (đã tính vào doanh thu ca)</div>';
+    html += '<div style="font-size:11.5px; color:var(--muted); margin-bottom:8px;">Tính chung cho cả ca, không chia theo nhân viên hay chủ quán: ai bấm kết ca cũng ra cùng số này.</div>';
+    if(S.cancelledCount) html += '<div style="font-size:12px; color:var(--muted); margin-bottom:6px;">🚫 ' + S.cancelledCount + ' bill hủy (' + fmt(S.cancelledAmt) + 'đ) — không tính doanh thu</div>';
+    html += '<div style="font-size:11.5px; color:var(--muted); background:#f0f8f2; border-radius:10px; padding:8px 10px;">🎯 Chỉ tiêu: <b>' + S.kpiCups + ' ly</b> · giá trị theo món ' + fmt(S.kpiValue) + 'đ (tính theo người lên bill, chưa trừ voucher — chỉ để xét KPI, không phải tiền thu).</div>';
+  } else {
+    // bản tổng kết cũ đã lưu từ trước: giữ nguyên cách hiển thị cũ
+    html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">' +
+      '<div style="background:#f0f8f2; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Đơn ghi nhận</div><b style="font-size:18px;">' + S.orders + '</b></div>' +
+      '<div style="background:#f0f8f2; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Ly tính chỉ tiêu</div><b style="font-size:18px; color:#177245;">' + S.cups + ' ly</b></div>' +
+      '<div style="background:#fff8eb; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Giá trị đơn theo món</div><b>' + fmt(S.revenue) + 'đ</b></div>' +
+      '<div style="background:#f0f5ff; border-radius:10px; padding:10px;"><div style="font-size:11px; color:var(--muted);">Tiền mặt / chuyển khoản thu trong ca</div><b>' + fmt(S.cash) + 'đ / ' + fmt(S.bank) + 'đ</b></div></div>';
+  }
+  host.innerHTML = html;
   document.getElementById('pos-shift-summary-modal').style.display = 'flex';
 }
 function posCloseShiftSummary(){ const el = document.getElementById('pos-shift-summary-modal'); if(el) el.style.display = 'none'; }
@@ -9147,13 +9307,16 @@ function posInstallRemoteShiftGate(button, expectedActive, failureMessage, close
     ev.preventDefault(); ev.stopImmediatePropagation();
     if(pending) return;
     pending = true; button.disabled = true;
+    const _origLabel = button.textContent;
+    const _isCheckoutBtn = (button.id === 'btn-confirm-checkout' || button.id === 'btn-clock-out');
+    if(_isCheckoutBtn) button.textContent = '⏳ Đang xử lý…';
     posRefreshRemoteAttendance().then(function(active){
       if(active !== expectedActive){ fail(failureMessage); return; }
       button.disabled = false; allowNext = true; handedOff = true; button.click();
     }).catch(function(err){
       console.error('Không đọc được trạng thái ca từ Firebase:', err);
       fail('Không xác minh được trạng thái ca trên máy chủ. Kiểm tra mạng rồi thử lại.');
-    }).finally(function(){ pending = false; if(!handedOff || button.id !== 'btn-checkin-confirm') button.disabled = false; });
+    }).finally(function(){ pending = false; if(_isCheckoutBtn) button.textContent = _origLabel; if(!handedOff || button.id !== 'btn-checkin-confirm') button.disabled = false; });
   }, true);
 }
 posInstallRemoteShiftGate(posClockInBtn, false, 'Tài khoản này đã vào ca trên thiết bị khác. Trạng thái đã được đồng bộ.');
@@ -9185,6 +9348,29 @@ if(typeof __posOriginalSubmitOrderBill === 'function') window.submitOrderBill = 
   }).catch(function(err){ console.error('Không đọc được ca trước khi tạo bill:',err); alert('Không xác minh được ca trên máy chủ. Kiểm tra mạng rồi thử lại; bill chưa được tạo.'); })
     .finally(function(){ __posSubmitRemotePending = false; });
 };
+
+function renderCheckoutOverview(){
+  try{
+    if(!CURRENT_USER) return;
+    const _ho = getActiveHandover();
+    const sum = posBuildShiftSummary({ staffName: CURRENT_USER.name, shiftDay: getShiftDayStr(), sinceTs: _ho ? _ho.ts : 0, time: '' });
+    const set = function(id, t){ const el = document.getElementById(id); if(el) el.textContent = t; };
+    set('co-cash-sub', sum.cashOrders + ' đơn');
+    set('co-bank-sub', sum.bankOrders + ' đơn');
+    const box = document.getElementById('co-overview-extra');
+    if(!box) return;
+    const chip = function(bg, color, text){ return '<span style="display:inline-block; background:' + bg + '; color:' + color + '; border-radius:8px; padding:3px 8px; font-size:11.5px; font-weight:800; margin:2px 4px 2px 0;">' + text + '</span>'; };
+    let h = '<div style="display:flex; justify-content:space-between; font-size:13px; font-weight:800; border-top:1px dashed #cfc7b2; padding-top:7px;"><span>Doanh thu cả ca</span><span style="color:var(--good);">' + fmt(sum.revenue) + 'đ · ' + sum.orders + ' đơn · ' + sum.cups + ' ly</span></div>';
+    if(sum.appOrders) h += chip('#fffbe6', '#8a6d00', '📱 ' + sum.appOrders + ' đơn App Order · ' + fmt(sum.appAmt) + 'đ (đã tính)');
+    if(sum.unpaidCount) h += chip('#fff4e5', '#b45309', '🪑 ' + sum.unpaidCount + ' bill ngồi lại chưa thu · ' + fmt(sum.unpaidAmt) + 'đ');
+    if(sum.debtCount) h += chip('#fdeceb', '#b3261e', '📕 ' + sum.debtCount + ' bill công nợ · ' + fmt(sum.debtAmt) + 'đ');
+    box.innerHTML = h;
+  }catch(e){ console.error('renderCheckoutOverview', e); }
+}
+(function(){
+  const out = document.getElementById('btn-clock-out');
+  if(out) out.addEventListener('click', function(){ setTimeout(renderCheckoutOverview, 0); });
+})();
 posRefreshShiftClockControls();
 posRenderProductSalesRanking();
 </script>
