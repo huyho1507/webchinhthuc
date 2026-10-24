@@ -2064,7 +2064,8 @@ async function registerFCMToken() {
 }
 /* Giờ chuẩn từ máy chủ Firebase (chống chỉnh giờ điện thoại để gian lận giờ vào ca) */
 let SERVER_TIME_OFFSET = 0;
-if (useFirebase && db) { db.ref('.info/serverTimeOffset').on('value', function(s){ SERVER_TIME_OFFSET = Number(s.val()) || 0; }); }
+if (useFirebase && db) { db.ref('.info/serverTimeOffset').on('value', function(s){ SERVER_TIME_OFFSET = Number(s.val()) || 0; });
+  db.ref('.info/connected').on('value', function(s){ window.__fbConnected = !!s.val(); if(s.val()){ setTimeout(function(){ try{ meoxamOutboxApply(); }catch(e){} }, 1500); } else { try{ showToast('📵 Mất kết nối máy chủ — đơn mới sẽ được lưu tạm trên máy và tự gửi lại khi có mạng.'); }catch(e){} } }); }
 
 let CURRENT_USER = null;
 let CURRENT_SHOP_ID = 'main';
@@ -2232,6 +2233,49 @@ function noteSynced(val){
     ordersToArray(val && val.orders).forEach(function(o){ if(o && o.id) _syncedOrders[o.id] = JSON.stringify(o); });
   }catch(e){ _syncedJson = {}; _syncedOrders = {}; }
 }
+/* ===== 🛡️ HỘP THƯ ĐI CHO ĐƠN ORDER: đơn đã bấm KHÔNG BAO GIỜ mất =====
+   Mỗi đơn mới được cất vào bộ nhớ máy NGAY khi bấm, chỉ xóa khi máy chủ đã xác nhận có đơn đó.
+   Nếu mất mạng / app bị tắt / dữ liệu bị tải đè từ máy chủ → tự đưa đơn về lại và gửi lại. */
+function meoxamOutboxKey(){ return STORAGE_KEY + '_outbox'; }
+function meoxamOutboxLoad(){ try{ return JSON.parse(localStorage.getItem(meoxamOutboxKey()) || '{}') || {}; }catch(e){ return {}; } }
+function meoxamOutboxSave(box){ try{ localStorage.setItem(meoxamOutboxKey(), JSON.stringify(box)); }catch(e){ console.error('outbox save', e); } }
+function meoxamOutboxAdd(order){
+  if(!order || !order.id) return;
+  const box = meoxamOutboxLoad();
+  box[order.id] = { order: JSON.parse(JSON.stringify(order)), at: Date.now() };
+  meoxamOutboxSave(box);
+}
+function meoxamOutboxClear(serverOrders){
+  try{
+    const box = meoxamOutboxLoad(); const ids = Object.keys(box); if(!ids.length) return;
+    const onServer = {}; ordersToArray(serverOrders).forEach(function(o){ if(o && o.id) onServer[o.id] = 1; });
+    let changed = false;
+    ids.forEach(function(id){ if(onServer[id] || (Date.now() - (box[id].at || 0)) > 3*24*3600*1000){ delete box[id]; changed = true; } });
+    if(changed) meoxamOutboxSave(box);
+  }catch(e){ console.error('outbox clear', e); }
+}
+function meoxamOutboxPendingCount(){ return Object.keys(meoxamOutboxLoad()).length; }
+function meoxamOutboxApply(){
+  try{
+    if(!DATA || window.DATA_IS_STALE) return;
+    let box = meoxamOutboxLoad(); let ids = Object.keys(box); if(!ids.length) return;
+    // đơn đã thấy trên máy chủ → coi như đã gửi xong, bỏ khỏi hộp thư đi
+    const _confirmed = ids.filter(function(id){ return id in _syncedOrders; });
+    if(_confirmed.length){ _confirmed.forEach(function(id){ delete box[id]; }); meoxamOutboxSave(box); ids = Object.keys(box); if(!ids.length) return; }
+    if(!Array.isArray(DATA.orders)) DATA.orders = ordersToArray(DATA.orders);
+    const have = {}; DATA.orders.forEach(function(o){ if(o && o.id) have[o.id] = 1; });
+    let added = 0;
+    ids.forEach(function(id){ if(!have[id] && box[id] && box[id].order){ DATA.orders.unshift(box[id].order); added++; } });
+    if(added){
+      try{ showToast('🛟 Đã khôi phục <b>' + added + '</b> đơn chưa kịp lên máy chủ và đang gửi lại…'); }catch(e){}
+      saveDataDirect();
+      try{ if(typeof renderHistoryOrders === 'function') renderHistoryOrders(); }catch(e){}
+    } else if(window.__fbConnected !== false){
+      // đơn đã có trong dữ liệu nhưng chưa được xác nhận trên máy chủ → ép gửi lại
+      delete _syncedJson.orders; saveDataDirect();
+    }
+  }catch(e){ console.error('outbox apply', e); }
+}
 function mergeOrdersForSave(remote, local){
   const rem = ordersToArray(remote), loc = ordersToArray(local);
   const locIds = {}; loc.forEach(function(o){ if(o && o.id) locIds[o.id] = 1; });
@@ -2321,6 +2365,7 @@ function saveDataDirect(){
     if(window.DATA_IS_STALE){
         console.warn('[meoxam] 🛡️ DATA_IS_STALE=true → KHÔNG ghi Firebase, chỉ lưu local.');
         try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); }catch(e){}
+        try{ showToast('⚠️ Chưa đồng bộ được với máy chủ — đơn vừa bấm đã được giữ tạm trên máy và sẽ tự gửi lại khi kết nối ổn định.'); }catch(e){}
         return;
     }
 
@@ -2415,9 +2460,16 @@ function saveDataDirect(){
                 const merged = mergeOrdersForSave(remote, localOrders);
                 return merged.length ? merged : null;
             }, function(err, committed, snapshot){
-                if(err || !committed){ delete _syncedJson.orders; reportSaveError(err || 'Giao dịch lưu đơn không được xác nhận'); return; }
+                if(err || !committed){
+                    delete _syncedJson.orders; reportSaveError(err || 'Giao dịch lưu đơn không được xác nhận');
+                    window.__ordersRetry = (window.__ordersRetry || 0) + 1;
+                    if(window.__ordersRetry <= 8){ setTimeout(function(){ try{ saveDataDirect(); }catch(e){} }, 4000 * window.__ordersRetry); }
+                    return;
+                }
+                window.__ordersRetry = 0;
                 try{
                     const saved = snapshot && snapshot.val();
+                    meoxamOutboxClear(saved);
                     _syncedOrders = {};
                     ordersToArray(saved).forEach(function(o){ if(o && o.id) _syncedOrders[o.id] = JSON.stringify(o); });
                     _syncedJson.orders = JSON.stringify(saved || []);
@@ -2503,7 +2555,7 @@ function loadData(){
                     window.DATA_IS_STALE = false;
                     noteSynced(val);
                     const preservedCustomers = (DATA && DATA.customers && DATA.customers.length) ? DATA.customers : [];
-                    DATA = val; if(CURRENT_SHOP_ID === 'main') BASE_SHOP_DATA = JSON.parse(JSON.stringify(val)); if(typeof posRefreshShiftClockControls === 'function') posRefreshShiftClockControls(); if(typeof posRenderProductSalesRanking === 'function') posRenderProductSalesRanking(); DATA.customers = preservedCustomers;
+                    DATA = val; setTimeout(meoxamOutboxApply, 0); if(CURRENT_SHOP_ID === 'main') BASE_SHOP_DATA = JSON.parse(JSON.stringify(val)); if(typeof posRefreshShiftClockControls === 'function') posRefreshShiftClockControls(); if(typeof posRenderProductSalesRanking === 'function') posRenderProductSalesRanking(); DATA.customers = preservedCustomers;
                     if(!DATA.productImages) DATA.productImages = {};
                 } else {
                     // val null hoặc không hợp lệ → GIỮ NGUYÊN DATA hiện có, khóa ghi Firebase
@@ -2524,7 +2576,7 @@ function loadData(){
         previousAttendanceCount = val.attendance ? val.attendance.length : 0;
         noteSynced(val);
         const preservedCustomers = (DATA && DATA.customers && DATA.customers.length) ? DATA.customers : [];
-        DATA = val;
+        DATA = val; setTimeout(meoxamOutboxApply, 0);
         if(CURRENT_SHOP_ID === 'main') BASE_SHOP_DATA = JSON.parse(JSON.stringify(val));
         DATA.customers = preservedCustomers;
         if(!DATA.productImages) DATA.productImages = {};
@@ -4139,6 +4191,7 @@ function submitOrderBill(dineIn){
   if(dineIn){ order.dineIn = true; order.unpaid = true; } // ngồi lại: chưa tính tiền vào quỹ cho tới khi bấm "Đã thanh toán"
   if(!DATA.orders) DATA.orders = [];
   DATA.orders.unshift(order);
+  meoxamOutboxAdd(order); // cất đơn vào bộ nhớ máy ngay lập tức — chỉ xóa khi máy chủ xác nhận đã có
   const isBank = (paymentMethod === 'Chuyển khoản');
   if(!dineIn) logCashFundOnly('order', isBank ? 'shiftBank' : 'shiftCash', totalPrice, `Order bàn ${tableName}`, order.id);
   saveDataDirect();
@@ -4154,7 +4207,8 @@ function submitOrderBill(dineIn){
   const _okMsg = dineIn
     ? `✅ Gửi Order thành công! (${order.totalQty} ly - ${fmt(order.totalPrice)}đ) — 🪑 khách ngồi lại, bill đang chờ thanh toán ở tab 2`
     : `✅ Gửi Order thành công! (${order.totalQty} ly - ${fmt(order.totalPrice)}đ | ${paymentMethod})`;
-  if(_printed) showToast(_okMsg + ' — đang in bill...'); else alert(_okMsg);
+  const _offlineNote = (useFirebase && window.__fbConnected === false) ? '\n\n📵 ĐANG MẤT MẠNG: đơn đã được lưu tạm trên máy này, sẽ tự gửi lên máy chủ khi có mạng. ĐỪNG xóa dữ liệu trình duyệt.' : '';
+  if(_printed) showToast(_okMsg + ' — đang in bill...' + _offlineNote.replace(/\n/g, '<br>')); else alert(_okMsg + _offlineNote);
 }
 const historyDateInput = document.getElementById('history-date');
 if(historyDateInput) historyDateInput.value = toVNDateStr(getVietnamTimeNow());
