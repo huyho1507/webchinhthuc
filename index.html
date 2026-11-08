@@ -942,112 +942,257 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
 
   /* ===== Priority · Tag 1 Order — cacao + gold + ivory hierarchy ===== */
   html.priority nav.tabs button.active, html.priority nav.tabs button.active[data-tab]{
-    color:#2A2018 !important; background:linear-gradient(135deg,#EAE0C8,#D4B886) !important;
-    border-color:#D4B886 !important; box-shadow:0 3px 12px rgba(212,184,134,.34), inset 0 1px rgba(255,255,255,.45) !important;
+    color:var(--pt-deep) !important; background:linear-gradient(135deg,var(--pt-cream),var(--pt-gold)) !important;
+    border-color:var(--pt-gold) !important; box-shadow:0 3px 12px rgba(212,184,134,.34), inset 0 1px rgba(255,255,255,.45) !important;
   }
   html.priority #tab-order .order-container > div:first-child{ background:rgba(28,19,14,.56); border:1px solid rgba(139,101,70,.55); border-radius:16px; padding:12px; }
   html.priority #tab-order #pos-cat-chips .chip{
-    background:#3A2D28 !important; color:#EAE0C8 !important; border:1.5px solid #8B6546 !important;
+    background:var(--pt-brown) !important; color:var(--pt-cream) !important; border:1.5px solid var(--pt-bronze) !important;
     box-shadow:0 2px 5px rgba(0,0,0,.28); transition:all .15s ease;
   }
-  html.priority #tab-order #pos-cat-chips .chip:hover{ background:#514036 !important; border-color:#D4B886 !important; transform:translateY(-1px); }
+  html.priority #tab-order #pos-cat-chips .chip:hover{ background:var(--pt-hover) !important; border-color:var(--pt-gold) !important; transform:translateY(-1px); }
   html.priority #tab-order #pos-cat-chips .chip.active{
-    background:linear-gradient(135deg,#EAE0C8,#D4B886) !important; color:#2A2018 !important;
-    border:2px solid #F0D9A1 !important; box-shadow:0 0 0 2px rgba(212,184,134,.20),0 4px 10px rgba(0,0,0,.32) !important;
+    background:linear-gradient(135deg,var(--pt-cream),var(--pt-gold)) !important; color:var(--pt-deep) !important;
+    border:2px solid var(--pt-gold-hi) !important; box-shadow:0 0 0 2px rgba(212,184,134,.20),0 4px 10px rgba(0,0,0,.32) !important;
   }
   html.priority #tab-order .pos-menu{ padding:4px 7px 4px 2px; }
   html.priority #tab-order .pos-item{
-    background:linear-gradient(145deg,#3A2D28,#30241f) !important; color:#F5F5F0 !important;
-    border:1.5px solid #8B6546 !important; box-shadow:0 3px 8px rgba(0,0,0,.26); transition:all .15s ease;
+    background:linear-gradient(145deg,var(--pt-brown),var(--pt-brown-dark)) !important; color:var(--pt-ivory) !important;
+    border:1.5px solid var(--pt-bronze) !important; box-shadow:0 3px 8px rgba(0,0,0,.26); transition:all .15s ease;
   }
   html.priority #tab-order .pos-item:hover{
-    background:linear-gradient(145deg,#514036,#3A2D28) !important; border-color:#D4B886 !important;
+    background:linear-gradient(145deg,var(--pt-hover),var(--pt-brown)) !important; border-color:var(--pt-gold) !important;
     box-shadow:0 5px 13px rgba(0,0,0,.38),0 0 0 1px rgba(212,184,134,.25) !important; transform:translateY(-1px);
   }
-  html.priority #tab-order .pos-item > div:first-child{ background:#8B6546 !important; border-color:#D4B886 !important; }
-  html.priority #tab-order .pos-item > div:nth-child(2) > div:last-child{ color:#D9C8A5 !important; }
-  html.priority #tab-order .pos-item > div:last-child{ color:#EAE0C8 !important; }
+  html.priority #tab-order .pos-item > div:first-child{ background:var(--pt-bronze) !important; border-color:var(--pt-gold) !important; }
+  html.priority #tab-order .pos-item > div:nth-child(2) > div:last-child{ color:var(--pt-secondary) !important; }
+  html.priority #tab-order .pos-item > div:last-child{ color:var(--pt-cream) !important; }
   html.priority #tab-order .bill-card{
-    background:#3A2D28 !important; color:#F5F5F0 !important; border:3px solid #D4B886 !important;
+    background:var(--pt-brown) !important; color:var(--pt-ivory) !important; border:3px solid var(--pt-gold) !important;
     box-shadow:0 8px 24px rgba(0,0,0,.46), inset 0 0 0 1px rgba(234,224,200,.12) !important;
   }
-  html.priority #tab-order .bill-card h2{ color:#EAE0C8 !important; text-shadow:0 1px 0 rgba(0,0,0,.2); }
-  html.priority #tab-order #table-number{ background:#F5F5F0 !important; color:#2A2018 !important; border:1.5px solid #8B6546 !important; }
+  html.priority #tab-order .bill-card h2{ color:var(--pt-cream) !important; text-shadow:0 1px 0 rgba(0,0,0,.2); }
+  html.priority #tab-order #table-number{ background:var(--pt-ivory) !important; color:var(--pt-deep) !important; border:1.5px solid var(--pt-bronze) !important; }
   html.priority #tab-order #bill-items-list{
-    background:#F5F5F0 !important; color:#2A2018 !important; border:1.5px solid #C8B99A !important;
-    border-bottom:2px solid #8B6546 !important; border-radius:12px; padding:10px 12px 8px; box-shadow:inset 0 1px 3px rgba(58,45,40,.08);
+    background:var(--pt-ivory) !important; color:var(--pt-deep) !important; border:1.5px solid var(--pt-sep) !important;
+    border-bottom:2px solid var(--pt-bronze) !important; border-radius:12px; padding:10px 12px 8px; box-shadow:inset 0 1px 3px rgba(58,45,40,.08);
   }
-  html.priority #tab-order #bill-items-list *{ color:#2A2018 !important; }
-  html.priority #tab-order #bill-items-list .bill-row{ border-bottom:1px solid #D8CEBB !important; padding:8px 4px; }
-  html.priority #tab-order #bill-items-list .bill-item-sub{ border-left-color:#8B6546 !important; }
-  html.priority #tab-order #bill-items-list .icon-btn{ background:#EAE0C8 !important; color:#2A2018 !important; border:1.5px solid #8B6546 !important; }
-  html.priority #tab-order #bill-items-list .icon-btn:hover{ background:#D4B886 !important; }
+  html.priority #tab-order #bill-items-list *{ color:var(--pt-deep) !important; }
+  html.priority #tab-order #bill-items-list .bill-row{ border-bottom:1px solid var(--pt-sep) !important; padding:8px 4px; }
+  html.priority #tab-order #bill-items-list .bill-item-sub{ border-left-color:var(--pt-bronze) !important; }
+  html.priority #tab-order #bill-items-list .icon-btn{ background:var(--pt-cream) !important; color:var(--pt-deep) !important; border:1.5px solid var(--pt-bronze) !important; }
+  html.priority #tab-order #bill-items-list .icon-btn:hover{ background:var(--pt-gold) !important; }
   html.priority #tab-order .bill-card > div:last-child{
-    background:#F5F5F0 !important; color:#2A2018 !important; border:1.5px solid #C8B99A;
+    background:var(--pt-ivory) !important; color:var(--pt-deep) !important; border:1.5px solid var(--pt-sep);
     border-radius:12px; padding:12px; margin-top:10px; box-shadow:inset 0 1px 3px rgba(58,45,40,.08);
   }
-  html.priority #tab-order .bill-card > div:last-child *{ color:#2A2018 !important; }
+  html.priority #tab-order .bill-card > div:last-child *{ color:var(--pt-deep) !important; }
   html.priority #tab-order .bill-card > div:last-child input,
-  html.priority #tab-order .bill-card > div:last-child select{ background:#FAF9F6 !important; color:#2A2018 !important; border-color:#8B6546 !important; }
-  html.priority #tab-order #bill-total-price{ color:#65442d !important; font-size:19px; }
-  html.priority #tab-order #bill-total-qty{ color:#65442d !important; }
+  html.priority #tab-order .bill-card > div:last-child select{ background:var(--pt-ivory) !important; color:var(--pt-deep) !important; border-color:var(--pt-bronze) !important; }
+  html.priority #tab-order #bill-total-price{ color:var(--pt-deep-text) !important; font-size:19px; }
+  html.priority #tab-order #bill-total-qty{ color:var(--pt-deep-text) !important; }
   html.priority #tab-order #btn-submit-order{
-    background:linear-gradient(135deg,#EAE0C8,#D4B886) !important; color:#2A2018 !important;
-    border:2px solid #F0D9A1 !important; box-shadow:0 4px 0 #8B6546,0 7px 13px rgba(58,45,40,.22) !important;
+    background:linear-gradient(135deg,var(--pt-cream),var(--pt-gold)) !important; color:var(--pt-deep) !important;
+    border:2px solid var(--pt-gold-hi) !important; box-shadow:0 4px 0 var(--pt-bronze),0 7px 13px rgba(58,45,40,.22) !important;
     font-weight:950; letter-spacing:.3px; min-height:48px;
   }
   html.priority #tab-order #btn-submit-order:hover{ filter:brightness(1.06); transform:translateY(-1px); }
-  html.priority #tab-order #btn-submit-order:active{ transform:translateY(2px); box-shadow:0 2px 0 #8B6546 !important; }
+  html.priority #tab-order #btn-submit-order:active{ transform:translateY(2px); box-shadow:0 2px 0 var(--pt-bronze) !important; }
   /* Chọn size/topping của món trong Tag 1 */
   html.priority #product-option-modal .modal-card{
-    background:#3A2D28 !important; color:#F5F5F0 !important; border:2.5px solid #D4B886 !important;
+    background:var(--pt-brown) !important; color:var(--pt-ivory) !important; border:2.5px solid var(--pt-gold) !important;
     box-shadow:0 12px 34px rgba(0,0,0,.55) !important;
   }
-  html.priority #product-option-modal #modal-prod-name{ color:#EAE0C8 !important; }
-  html.priority #product-option-modal label{ color:#D9C8A5 !important; }
+  html.priority #product-option-modal #modal-prod-name{ color:var(--pt-cream) !important; }
+  html.priority #product-option-modal label{ color:var(--pt-secondary) !important; }
   html.priority #product-option-modal .size-tabs button{
-    background:#F5F5F0 !important; color:#3A2D28 !important; border:1.5px solid #8B6546 !important;
+    background:var(--pt-ivory) !important; color:var(--pt-brown) !important; border:1.5px solid var(--pt-bronze) !important;
   }
   html.priority #product-option-modal .size-tabs button.active{
-    background:#D4B886 !important; color:#2A2018 !important; border:2px solid #F0D9A1 !important;
+    background:var(--pt-gold) !important; color:var(--pt-deep) !important; border:2px solid var(--pt-gold-hi) !important;
     box-shadow:0 0 0 2px rgba(212,184,134,.2) !important;
   }
   html.priority #product-option-modal .topping-select-list{
-    background:#F5F5F0 !important; color:#2A2018 !important; border:1.5px solid #8B6546 !important;
+    background:var(--pt-ivory) !important; color:var(--pt-deep) !important; border:1.5px solid var(--pt-bronze) !important;
   }
-  html.priority #product-option-modal .topping-select-list *{ color:#2A2018 !important; }
-  html.priority #product-option-modal #modal-item-note{ background:#FAF9F6 !important; color:#2A2018 !important; border-color:#8B6546 !important; }
+  html.priority #product-option-modal .topping-select-list *{ color:var(--pt-deep) !important; }
+  html.priority #product-option-modal #modal-item-note{ background:var(--pt-ivory) !important; color:var(--pt-deep) !important; border-color:var(--pt-bronze) !important; }
   html.priority #product-option-modal #btn-confirm-add-item{
-    background:linear-gradient(135deg,#EAE0C8,#D4B886) !important; color:#2A2018 !important; border:2px solid #F0D9A1 !important;
+    background:linear-gradient(135deg,var(--pt-cream),var(--pt-gold)) !important; color:var(--pt-deep) !important; border:2px solid var(--pt-gold-hi) !important;
   }
   /* Chọn mang đi / ngồi lại và phương thức thanh toán */
-  html.priority #order-type-modal .modal-card{ background:#3A2D28 !important; color:#F5F5F0 !important; border:2.5px solid #D4B886 !important; }
-  html.priority #order-type-modal h3{ color:#EAE0C8 !important; }
+  html.priority #order-type-modal .modal-card{ background:var(--pt-brown) !important; color:var(--pt-ivory) !important; border:2.5px solid var(--pt-gold) !important; }
+  html.priority #order-type-modal h3{ color:var(--pt-cream) !important; }
   html.priority #order-type-modal #otm-step1 > div > button:first-child{
-    background:#D4B886 !important; border:2px solid #F0D9A1 !important; color:#2A2018 !important;
+    background:var(--pt-gold) !important; border:2px solid var(--pt-gold-hi) !important; color:var(--pt-deep) !important;
   }
   html.priority #order-type-modal #otm-step1 > div > button:nth-child(2){
-    background:#8B6546 !important; border:2px solid #C99A70 !important; color:#FAF9F6 !important;
+    background:var(--pt-bronze) !important; border:2px solid #C99A70 !important; color:var(--pt-ivory) !important;
   }
   html.priority #order-type-modal #otm-cash[style*="#2e9e5b"], html.priority #order-pay-modal [id$="-cash"][style*="#2e9e5b"]{
-    background:#D4B886 !important; border-color:#F0D9A1 !important; color:#2A2018 !important; box-shadow:0 0 0 3px rgba(212,184,134,.22) !important;
+    background:var(--pt-gold) !important; border-color:var(--pt-gold-hi) !important; color:var(--pt-deep) !important; box-shadow:0 0 0 3px rgba(212,184,134,.22) !important;
   }
   html.priority #order-type-modal #otm-cash[style*="background:#fff"], html.priority #order-pay-modal [id$="-cash"][style*="background:#fff"]{
-    background:#F5F5F0 !important; border-color:#D4B886 !important; color:#65442d !important;
+    background:var(--pt-ivory) !important; border-color:var(--pt-gold) !important; color:var(--pt-deep-text) !important;
   }
   html.priority #order-type-modal #otm-bank[style*="#2f6fd6"], html.priority #order-pay-modal [id$="-bank"][style*="#2f6fd6"]{
-    background:#8B6546 !important; border-color:#C99A70 !important; color:#FAF9F6 !important; box-shadow:0 0 0 3px rgba(139,101,70,.28) !important;
+    background:var(--pt-bronze) !important; border-color:#C99A70 !important; color:var(--pt-ivory) !important; box-shadow:0 0 0 3px rgba(139,101,70,.28) !important;
   }
   html.priority #order-type-modal #otm-bank[style*="background:#fff"], html.priority #order-pay-modal [id$="-bank"][style*="background:#fff"]{
-    background:#F5F5F0 !important; border-color:#8B6546 !important; color:#65442d !important;
+    background:var(--pt-ivory) !important; border-color:var(--pt-bronze) !important; color:var(--pt-deep-text) !important;
   }
-  html.priority #order-type-modal #otm-confirm{ background:linear-gradient(135deg,#EAE0C8,#D4B886) !important; color:#2A2018 !important; border:2px solid #F0D9A1 !important; }
-  html.priority #order-type-modal #otm-qr{ background:#F5F5F0 !important; color:#2A2018 !important; border-radius:12px; padding:9px; }
-  html.priority #order-type-modal #otm-qr *{ color:#2A2018 !important; }
+  html.priority #order-type-modal #otm-confirm{ background:linear-gradient(135deg,var(--pt-cream),var(--pt-gold)) !important; color:var(--pt-deep) !important; border:2px solid var(--pt-gold-hi) !important; }
+  html.priority #order-type-modal #otm-qr{ background:var(--pt-ivory) !important; color:var(--pt-deep) !important; border-radius:12px; padding:9px; }
+  html.priority #order-type-modal #otm-qr *{ color:var(--pt-deep) !important; }
   @media(max-width:768px){
     html.priority #tab-order .order-container > div:first-child{ padding:9px; }
     html.priority #tab-order .bill-card{ border-width:2.5px !important; }
     html.priority #tab-order .bill-card > div:last-child{ padding:10px; }
+  }
+
+
+  /* ===== Priority theme palette · persistent color tokens + decorative wallpapers ===== */
+  html.priority{
+    --pt-bg:#120d09; --pt-panel:#1d150f; --pt-card:#231a14; --pt-surface:#2a2018; --pt-line:#5e4a30;
+    --pt-ink:#f2e8d5; --pt-muted:#b5a486; --pt-accent:#d9b66f; --pt-good:#7dd3a0; --pt-warn:#e8b64d; --pt-bad:#ff8f86;
+    --pt-gold:#D4B886; --pt-gold-hi:#F0D9A1; --pt-cream:#EAE0C8; --pt-brown:#3A2D28; --pt-brown-dark:#30241f;
+    --pt-bronze:#8B6546; --pt-ivory:#F5F5F0; --pt-deep:#2A2018; --pt-secondary:#D9C8A5; --pt-hover:#514036;
+    --pt-sep:#D8CEBB; --pt-deep-text:#65442d; --priority-chart-grid:rgba(217,182,111,.17);
+    --pt-wallpaper:var(--bg-doodle);
+  }
+  html.priority[data-priority-theme="classic"]{ --paper:var(--pt-bg); --card:var(--pt-card); --line:var(--pt-line); --ink:var(--pt-ink); --muted:var(--pt-muted); --accent:var(--pt-accent); --good:var(--pt-good); --warn:var(--pt-warn); --bad:var(--pt-bad); --soft:var(--pt-surface); }
+  html.priority[data-priority-theme="ocean"]{
+    --pt-bg:#081522; --pt-panel:#0D1D2D; --pt-card:#13263A; --pt-surface:#1B3148; --pt-line:#41617C;
+    --pt-ink:#EDF5FC; --pt-muted:#A5BAD0; --pt-accent:#90C7F2; --pt-good:#84D1B0; --pt-warn:#F0C879; --pt-bad:#FF9CA8;
+    --pt-gold:#91C6EA; --pt-gold-hi:#C3E3F7; --pt-cream:#DCECF6; --pt-brown:#20364A; --pt-brown-dark:#172A3B;
+    --pt-bronze:#567F9D; --pt-ivory:#F2F7FA; --pt-deep:#172A3B; --pt-secondary:#B6D1E4; --pt-hover:#34536D;
+    --pt-sep:#C7D8E5; --pt-deep-text:#284960; --priority-chart-grid:rgba(144,199,242,.18);
+    --pt-wallpaper:radial-gradient(ellipse at 12% 10%,rgba(73,142,194,.20),transparent 42%),radial-gradient(ellipse at 92% 82%,rgba(42,94,140,.20),transparent 40%),repeating-linear-gradient(135deg,rgba(144,199,242,.045) 0 1px,transparent 1px 28px),linear-gradient(145deg,#071321,#0C1B2B 55%,#102339);
+    --paper:var(--pt-bg); --card:var(--pt-card); --line:var(--pt-line); --ink:var(--pt-ink); --muted:var(--pt-muted); --accent:var(--pt-accent); --good:var(--pt-good); --warn:var(--pt-warn); --bad:var(--pt-bad); --soft:var(--pt-surface); --bg-doodle:var(--pt-wallpaper);
+  }
+  html.priority[data-priority-theme="ruby"]{
+    --pt-bg:#1A0D12; --pt-panel:#251117; --pt-card:#301820; --pt-surface:#3B2029; --pt-line:#75444F;
+    --pt-ink:#F8ECEC; --pt-muted:#C9A3A7; --pt-accent:#E99AA0; --pt-good:#8DD2AC; --pt-warn:#F0C16A; --pt-bad:#FF9EA0;
+    --pt-gold:#E7A0A0; --pt-gold-hi:#F4C5BE; --pt-cream:#F3D9D5; --pt-brown:#44252C; --pt-brown-dark:#351C24;
+    --pt-bronze:#A76562; --pt-ivory:#FCF5F2; --pt-deep:#351C24; --pt-secondary:#E2B9B6; --pt-hover:#5A333A;
+    --pt-sep:#DDC8C4; --pt-deep-text:#693A3C; --priority-chart-grid:rgba(233,154,160,.17);
+    --pt-wallpaper:radial-gradient(ellipse at 18% 16%,rgba(164,59,76,.25),transparent 42%),radial-gradient(ellipse at 85% 90%,rgba(112,39,54,.22),transparent 44%),repeating-linear-gradient(45deg,rgba(233,154,160,.04) 0 2px,transparent 2px 30px),linear-gradient(145deg,#190B10,#281018 58%,#33151D);
+    --paper:var(--pt-bg); --card:var(--pt-card); --line:var(--pt-line); --ink:var(--pt-ink); --muted:var(--pt-muted); --accent:var(--pt-accent); --good:var(--pt-good); --warn:var(--pt-warn); --bad:var(--pt-bad); --soft:var(--pt-surface); --bg-doodle:var(--pt-wallpaper);
+  }
+  html.priority[data-priority-theme="forest"]{
+    --pt-bg:#0B1711; --pt-panel:#102017; --pt-card:#182B20; --pt-surface:#21392A; --pt-line:#476B51;
+    --pt-ink:#EEF6EF; --pt-muted:#A6BEAA; --pt-accent:#A8D2A5; --pt-good:#8FDBA8; --pt-warn:#E9C66E; --pt-bad:#F58F87;
+    --pt-gold:#A6D0A2; --pt-gold-hi:#CBE7C5; --pt-cream:#DCEBDD; --pt-brown:#263C2C; --pt-brown-dark:#1C3023;
+    --pt-bronze:#638B69; --pt-ivory:#F3F7F0; --pt-deep:#1C3023; --pt-secondary:#BED5B9; --pt-hover:#3A5840;
+    --pt-sep:#CADBC8; --pt-deep-text:#31533B; --priority-chart-grid:rgba(168,210,165,.17);
+    --pt-wallpaper:radial-gradient(ellipse at 10% 18%,rgba(68,130,78,.22),transparent 42%),radial-gradient(ellipse at 92% 80%,rgba(38,104,73,.18),transparent 44%),repeating-linear-gradient(120deg,rgba(168,210,165,.045) 0 1px,transparent 1px 33px),linear-gradient(145deg,#09150F,#11251A 56%,#163022);
+    --paper:var(--pt-bg); --card:var(--pt-card); --line:var(--pt-line); --ink:var(--pt-ink); --muted:var(--pt-muted); --accent:var(--pt-accent); --good:var(--pt-good); --warn:var(--pt-warn); --bad:var(--pt-bad); --soft:var(--pt-surface); --bg-doodle:var(--pt-wallpaper);
+  }
+  html.priority[data-priority-theme="violet"]{
+    --pt-bg:#130E1E; --pt-panel:#1C142B; --pt-card:#261C38; --pt-surface:#302448; --pt-line:#5A4778;
+    --pt-ink:#F2EEFA; --pt-muted:#B7A8CE; --pt-accent:#C4A5F3; --pt-good:#86D2B3; --pt-warn:#E6C16E; --pt-bad:#F39CA8;
+    --pt-gold:#C4A5F3; --pt-gold-hi:#DDC9FA; --pt-cream:#EAE0F8; --pt-brown:#342844; --pt-brown-dark:#281E38;
+    --pt-bronze:#80649F; --pt-ivory:#F7F4FB; --pt-deep:#281E38; --pt-secondary:#D0C0E4; --pt-hover:#49365F;
+    --pt-sep:#D5CBE0; --pt-deep-text:#48365F; --priority-chart-grid:rgba(196,165,243,.18);
+    --pt-wallpaper:radial-gradient(ellipse at 18% 14%,rgba(119,78,170,.25),transparent 42%),radial-gradient(ellipse at 88% 83%,rgba(76,52,126,.23),transparent 43%),repeating-linear-gradient(45deg,rgba(196,165,243,.045) 0 1px,transparent 1px 27px),linear-gradient(145deg,#110C1B,#201631 58%,#2A1C3D);
+    --paper:var(--pt-bg); --card:var(--pt-card); --line:var(--pt-line); --ink:var(--pt-ink); --muted:var(--pt-muted); --accent:var(--pt-accent); --good:var(--pt-good); --warn:var(--pt-warn); --bad:var(--pt-bad); --soft:var(--pt-surface); --bg-doodle:var(--pt-wallpaper);
+  }
+  html.priority[data-priority-theme="jade"]{
+    --pt-bg:#0A1818; --pt-panel:#102222; --pt-card:#17302F; --pt-surface:#20403E; --pt-line:#46716D;
+    --pt-ink:#EDF7F5; --pt-muted:#A5C3BF; --pt-accent:#83D0C4; --pt-good:#86D3A5; --pt-warn:#E9C36B; --pt-bad:#F1938C;
+    --pt-gold:#83D0C4; --pt-gold-hi:#B5E6DC; --pt-cream:#D9EFEB; --pt-brown:#24413F; --pt-brown-dark:#1A3332;
+    --pt-bronze:#528781; --pt-ivory:#F1F8F6; --pt-deep:#1A3332; --pt-secondary:#B3D8D2; --pt-hover:#345B58;
+    --pt-sep:#C8DFDA; --pt-deep-text:#28514D; --priority-chart-grid:rgba(131,208,196,.18);
+    --pt-wallpaper:radial-gradient(ellipse at 15% 12%,rgba(47,130,123,.24),transparent 42%),radial-gradient(ellipse at 90% 88%,rgba(34,106,104,.20),transparent 44%),repeating-linear-gradient(0deg,rgba(131,208,196,.045) 0 1px,transparent 1px 32px),linear-gradient(145deg,#081616,#112827 56%,#173532);
+    --paper:var(--pt-bg); --card:var(--pt-card); --line:var(--pt-line); --ink:var(--pt-ink); --muted:var(--pt-muted); --accent:var(--pt-accent); --good:var(--pt-good); --warn:var(--pt-warn); --bad:var(--pt-bad); --soft:var(--pt-surface); --bg-doodle:var(--pt-wallpaper);
+  }
+  html.priority[data-priority-theme] body{ background:var(--pt-wallpaper) !important; background-attachment:fixed !important; color:var(--pt-ink) !important; }
+  html.priority[data-priority-theme] header.top, html.priority[data-priority-theme] nav.tabs{ background:var(--pt-panel) !important; border-color:var(--pt-line) !important; }
+  html.priority[data-priority-theme] header.top .titles h1 .l1, html.priority[data-priority-theme] .panel .card h2{ color:var(--pt-accent) !important; }
+  html.priority[data-priority-theme] header.top .titles h1 .l2, html.priority[data-priority-theme] header.top .titles p{ color:var(--pt-ink) !important; }
+  html.priority[data-priority-theme] .panel:not(#tab-order) .card, html.priority[data-priority-theme] .modal-card, html.priority[data-priority-theme] .login-card, html.priority[data-priority-theme] .topup-card, html.priority[data-priority-theme] .noti-dropdown, html.priority[data-priority-theme] .toast{
+    background:var(--pt-card) !important; border-color:var(--pt-line) !important; color:var(--pt-ink) !important;
+  }
+  html.priority[data-priority-theme] .day-group, html.priority[data-priority-theme] .log-row, html.priority[data-priority-theme] .metric-box, html.priority[data-priority-theme] .edit-order-item-row, html.priority[data-priority-theme] .denom-card, html.priority[data-priority-theme] .calendar-nav, html.priority[data-priority-theme] .calendar-cell, html.priority[data-priority-theme] .customer-search-bar, html.priority[data-priority-theme] .ing-searchbar{
+    background:var(--pt-surface) !important; border-color:var(--pt-line) !important; color:var(--pt-ink) !important;
+  }
+  html.priority[data-priority-theme] nav.tabs button, html.priority[data-priority-theme] nav.tabs button[data-tab]{ background:var(--pt-surface) !important; color:var(--pt-ink) !important; border-color:var(--pt-line) !important; }
+  html.priority[data-priority-theme] nav.tabs button.active, html.priority[data-priority-theme] nav.tabs button.active[data-tab]{ background:linear-gradient(135deg,var(--pt-cream),var(--pt-gold)) !important; color:var(--pt-deep) !important; border-color:var(--pt-gold-hi) !important; }
+  html.priority[data-priority-theme] .pos-item, html.priority[data-priority-theme] .product-item, html.priority[data-priority-theme] .chip, html.priority[data-priority-theme] .size-tabs button, html.priority[data-priority-theme] .icon-btn{
+    background:var(--pt-surface) !important; border-color:var(--pt-bronze) !important; color:var(--pt-ink) !important;
+  }
+  html.priority[data-priority-theme] .chip.active, html.priority[data-priority-theme] .product-item.active, html.priority[data-priority-theme] .size-tabs button.active{
+    background:linear-gradient(135deg,var(--pt-cream),var(--pt-gold)) !important; color:var(--pt-deep) !important; border-color:var(--pt-gold-hi) !important;
+  }
+  html.priority[data-priority-theme] .btn:not(.success):not(.danger){ background:linear-gradient(135deg,var(--pt-cream),var(--pt-gold)) !important; color:var(--pt-deep) !important; border-color:var(--pt-bronze) !important; }
+  html.priority[data-priority-theme] .btn.ghost{ background:var(--pt-surface) !important; color:var(--pt-ink) !important; border-color:var(--pt-bronze) !important; }
+  html.priority[data-priority-theme] input, html.priority[data-priority-theme] select, html.priority[data-priority-theme] textarea{ background:var(--pt-bg) !important; border-color:var(--pt-line) !important; color:var(--pt-ink) !important; }
+  html.priority[data-priority-theme] ::placeholder{ color:var(--pt-muted) !important; }
+  html.priority[data-priority-theme] .day-group-head{ background:linear-gradient(90deg,var(--pt-surface),var(--pt-accent)) !important; color:var(--pt-deep) !important; }
+  html.priority[data-priority-theme] .calendar-cell.today{ background:var(--pt-surface) !important; border-color:var(--pt-accent) !important; }
+  html.priority[data-priority-theme] .priority-switch, html.priority[data-priority-theme] .priority-theme-picker > summary{ background:var(--pt-surface); color:var(--pt-ink); border-color:var(--pt-line); }
+  html.priority[data-priority-theme] .priority-theme-picker{ color:var(--pt-ink); }
+  html.priority[data-priority-theme] .priority-theme-options{ background:var(--pt-card); border-color:var(--pt-line); }
+  html.priority[data-priority-theme] .priority-theme-options button{ background:var(--pt-surface); color:var(--pt-ink); border-color:var(--pt-line); }
+  html.priority[data-priority-theme] .priority-theme-options button.selected{ border-color:var(--pt-accent); box-shadow:0 0 0 2px color-mix(in srgb,var(--pt-accent) 40%,transparent); }
+  html.priority[data-priority-theme] #tab-order .pos-item{ background:linear-gradient(145deg,var(--pt-brown),var(--pt-brown-dark)) !important; border-color:var(--pt-bronze) !important; color:var(--pt-ivory) !important; }
+  html.priority[data-priority-theme] #tab-order .pos-item:hover{ background:linear-gradient(145deg,var(--pt-hover),var(--pt-brown)) !important; border-color:var(--pt-gold) !important; }
+  html.priority[data-priority-theme] #tab-order #pos-cat-chips .chip{ background:var(--pt-brown) !important; border-color:var(--pt-bronze) !important; color:var(--pt-cream) !important; }
+  html.priority[data-priority-theme] #tab-order #pos-cat-chips .chip.active{ background:linear-gradient(135deg,var(--pt-cream),var(--pt-gold)) !important; border-color:var(--pt-gold-hi) !important; color:var(--pt-deep) !important; }
+  html.priority[data-priority-theme] #tab-order .bill-card{ background:var(--pt-brown) !important; border-color:var(--pt-gold) !important; }
+  html.priority[data-priority-theme] #tab-order #bill-items-list, html.priority[data-priority-theme] #tab-order .bill-card > div:last-child{ background:var(--pt-ivory) !important; color:var(--pt-deep) !important; border-color:var(--pt-sep) !important; }
+  html.priority[data-priority-theme] #tab-order #bill-items-list *, html.priority[data-priority-theme] #tab-order .bill-card > div:last-child *{ color:var(--pt-deep) !important; }
+  html.priority[data-priority-theme] #tab-order #btn-submit-order, html.priority[data-priority-theme] #product-option-modal #btn-confirm-add-item, html.priority[data-priority-theme] #order-type-modal #otm-confirm{ background:linear-gradient(135deg,var(--pt-cream),var(--pt-gold)) !important; color:var(--pt-deep) !important; border-color:var(--pt-gold-hi) !important; }
+  html.priority[data-priority-theme] .settings-fold{ background:var(--pt-card) !important; border-color:var(--pt-line) !important; }
+  html.priority[data-priority-theme] .settings-fold > summary{ color:var(--pt-ink); }
+  html.priority[data-priority-theme] .settings-fold > summary h2{ color:var(--pt-accent) !important; }
+  html.priority[data-priority-theme] .settings-fold .ing-fold-arrow{ color:var(--pt-accent); }
+  html.priority[data-priority-theme] .ing-owed-panel, html.priority[data-priority-theme] .ipur-owed-panel{ background:var(--pt-surface) !important; border-color:var(--pt-accent) !important; }
+  html.priority[data-priority-theme] .ipur-owed-heading, html.priority[data-priority-theme] .ipur-month-heading{ color:var(--pt-accent) !important; }
+  .priority-theme-picker{ display:none; position:relative; flex:0 0 auto; z-index:160; }
+  html.priority .priority-theme-picker{ display:block; }
+  .priority-theme-picker > summary{ list-style:none; display:flex; align-items:center; gap:7px; border:1.5px solid #6b5535; background:#2a2018; color:#f2e8d5; border-radius:12px; padding:7px 10px; font-size:12px; font-weight:850; cursor:pointer; white-space:nowrap; }
+  .priority-theme-picker > summary::-webkit-details-marker{ display:none; }
+  .priority-theme-picker > summary b{ color:#d9b66f; }
+  .priority-theme-caret{ font-size:10px; opacity:.8; }
+  .priority-theme-options{ position:absolute; right:0; top:calc(100% + 7px); width:min(310px,88vw); display:none; grid-template-columns:1fr 1fr; gap:7px; padding:9px; background:#231a14; border:1.5px solid #6b5535; border-radius:14px; box-shadow:0 12px 28px rgba(0,0,0,.46); }
+  .priority-theme-picker[open] .priority-theme-options{ display:grid; }
+  .priority-theme-options button{ min-width:0; display:flex; align-items:center; gap:8px; padding:8px 9px; border:1px solid #4f3d2a; border-radius:10px; background:#2a2018; color:#f2e8d5; font-size:11.5px; font-weight:800; text-align:left; cursor:pointer; }
+  .priority-theme-options button:hover{ transform:translateY(-1px); border-color:#d9b66f; }
+  .priority-theme-options button.selected{ border:2px solid #d9b66f; background:#35291d; }
+  .theme-dot{ width:22px; height:22px; flex:none; border-radius:50%; border:2px solid rgba(255,255,255,.54); box-shadow:0 1px 5px rgba(0,0,0,.32); }
+  .theme-cacao{ background:linear-gradient(135deg,#3a2d28 0 48%,#d4b886 49%); }
+  .theme-ocean{ background:linear-gradient(135deg,#13263a 0 48%,#90c7f2 49%); }
+  .theme-ruby{ background:linear-gradient(135deg,#301820 0 48%,#e99aa0 49%); }
+  .theme-forest{ background:linear-gradient(135deg,#182b20 0 48%,#a8d2a5 49%); }
+  .theme-violet{ background:linear-gradient(135deg,#261c38 0 48%,#c4a5f3 49%); }
+  .theme-jade{ background:linear-gradient(135deg,#17302f 0 48%,#83d0c4 49%); }
+  html:not(.priority) .priority-theme-picker{ display:none !important; }
+  .settings-fold > summary h2{ margin:0; flex:1; min-width:0; font-size:15px; }
+  .settings-fold > summary{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; list-style:none; cursor:pointer; user-select:none; }
+  .settings-fold > summary::-webkit-details-marker{ display:none; }
+  .settings-fold[open] > summary{ margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed var(--line); }
+  @media(max-width:768px){
+    .priority-theme-picker > summary{ padding:7px 8px; font-size:11px; }
+    .priority-theme-options{ right:-20px; width:min(300px,90vw); }
+    #tab-settings .settings-fold{ padding:12px 11px; }
+  }
+
+
+  html.priority[data-priority-theme] .priority-switch[aria-checked="true"]{ background:var(--pt-surface) !important; border-color:var(--pt-accent) !important; }
+  html.priority[data-priority-theme] .priority-switch[aria-checked="true"] .lite-switch-state{ color:var(--pt-accent) !important; }
+  html.priority[data-priority-theme] .priority-switch[aria-checked="true"] .lite-switch-track{ background:var(--pt-accent) !important; }
+  html.priority[data-priority-theme] #order-type-modal #otm-cash[style*="#2e9e5b"], html.priority[data-priority-theme] #order-pay-modal [id$="-cash"][style*="#2e9e5b"]{
+    background:var(--pt-gold) !important; border-color:var(--pt-gold-hi) !important; color:var(--pt-deep) !important;
+  }
+  html.priority[data-priority-theme] #order-type-modal #otm-cash[style*="background:#fff"], html.priority[data-priority-theme] #order-pay-modal [id$="-cash"][style*="background:#fff"]{
+    background:var(--pt-ivory) !important; border-color:var(--pt-gold) !important; color:var(--pt-deep-text) !important;
+  }
+  html.priority[data-priority-theme] #order-type-modal #otm-bank[style*="#2f6fd6"], html.priority[data-priority-theme] #order-pay-modal [id$="-bank"][style*="#2f6fd6"]{
+    background:var(--pt-bronze) !important; border-color:var(--pt-accent) !important; color:var(--pt-ivory) !important;
+  }
+  html.priority[data-priority-theme] #order-type-modal #otm-bank[style*="background:#fff"], html.priority[data-priority-theme] #order-pay-modal [id$="-bank"][style*="background:#fff"]{
+    background:var(--pt-ivory) !important; border-color:var(--pt-bronze) !important; color:var(--pt-deep-text) !important;
   }
 
 </style>
@@ -1565,9 +1710,20 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
       <button type="button" class="lite-switch" data-lite-toggle role="switch" aria-checked="false" title="Bật khi máy bị lag: giảm hiệu ứng đồ họa, giữ nguyên mọi tính năng">
         <span>⚡ Chế độ nhẹ</span><span class="lite-switch-state">TẮT</span><span class="lite-switch-track"><span class="lite-switch-knob"></span></span>
       </button>
-      <button type="button" class="lite-switch priority-switch" data-priority-toggle role="switch" aria-checked="false" aria-disabled="false" title="Giao diện Priority (nâu đen – vàng champagne)">
+      <button type="button" class="lite-switch priority-switch" data-priority-toggle role="switch" aria-checked="false" aria-disabled="false" title="Giao diện Priority — mở bảng Chủ đề để chọn màu và nền">
         <span>👑 Priority</span><span class="lite-switch-state">TẮT</span><span class="lite-switch-track"><span class="lite-switch-knob"></span></span>
       </button>
+      <details class="priority-theme-picker" id="priority-theme-picker">
+        <summary title="Chọn bảng màu và họa tiết nền Priority">🎨 Chủ đề <b id="priority-theme-current">Cacao · Gold</b><span class="priority-theme-caret">▾</span></summary>
+        <div class="priority-theme-options" role="group" aria-label="Chọn theme Priority">
+          <button type="button" data-priority-theme-choice="classic" aria-pressed="false"><i class="theme-dot theme-cacao"></i><span>Cacao Gold</span></button>
+          <button type="button" data-priority-theme-choice="ocean" aria-pressed="false"><i class="theme-dot theme-ocean"></i><span>Đại dương</span></button>
+          <button type="button" data-priority-theme-choice="ruby" aria-pressed="false"><i class="theme-dot theme-ruby"></i><span>Ruby đỏ</span></button>
+          <button type="button" data-priority-theme-choice="forest" aria-pressed="false"><i class="theme-dot theme-forest"></i><span>Rừng xanh</span></button>
+          <button type="button" data-priority-theme-choice="violet" aria-pressed="false"><i class="theme-dot theme-violet"></i><span>Tím hoàng gia</span></button>
+          <button type="button" data-priority-theme-choice="jade" aria-pressed="false"><i class="theme-dot theme-jade"></i><span>Ngọc lam</span></button>
+        </div>
+      </details>
       <div class="live-clock-badge" id="live-clock-display">🕒 <span id="clock-time-span">00:00:00</span></div>
       <div class="notification-bell-container" id="noti-bell-container" style="display:none;">
         <button class="bell-btn" id="btn-toggle-noti">🔔<span class="bell-badge" id="noti-badge-count">0</span></button>
@@ -1826,8 +1982,8 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
   </section>
 
 <section class="panel staff-visible" id="tab-settings">
-    <div class="card" id="printer-settings-card">
-      <h2>🖨️ Máy In Bill (chỉ cài cho máy này)</h2>
+    <details class="settings-fold ing-fold card" id="printer-settings-card"><summary class="settings-fold-summary"><h2>🖨️ Máy In Bill (chỉ cài cho máy này)</h2><span class="ing-fold-arrow"></span></summary>
+      
       <p style="font-size:12.5px; color:var(--muted); margin:-4px 0 14px;">Cài ở máy Sunmi đặt tại quầy. Các máy khác (điện thoại, iPhone...) cứ để "Tắt". Cài đặt này lưu riêng trên từng máy.</p>
       <div class="prn-grid">
         <div class="prn-full"><label class="lbl">Cách in:</label>
@@ -1855,9 +2011,9 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
           <li>Vào tab 1, tick <b>"In bill khi gửi order"</b> là mỗi lần bấm GỬI ORDER sẽ ra bill.</li>
         </ol>
       </details>
-    </div>
-    <div class="card owner-only" id="weekly-export-card" style="border:2px solid #2f8f5b; background:#f3fbf6;">
-      <h2 style="margin:0 0 4px;">📥 Xuất Báo Cáo Ra Excel</h2>
+    </details>
+    <details class="settings-fold ing-fold card owner-only" id="weekly-export-card" style="border:2px solid #2f8f5b; background:#f3fbf6;"><summary class="settings-fold-summary"><h2>📥 Xuất Báo Cáo Ra Excel</h2><span class="ing-fold-arrow"></span></summary>
+      
       <p style="font-size:12.5px; color:var(--muted); margin:0 0 10px;">Chọn khoảng thời gian muốn xuất (theo tuần, theo tháng hoặc tự chọn từ ngày nào đến ngày nào), app tải về 1 file Excel để bạn lưu trên máy tính: doanh thu, đơn hàng, mua nguyên liệu, chấm công, giờ làm &amp; lương, kết ca &amp; lệch quỹ, nhật ký quỹ.</p>
       <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
         <select id="wk-mode" style="max-width:190px; font-weight:700;">
@@ -1881,15 +2037,15 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
         <button class="btn success" type="button" id="btn-export-week">📥 XUẤT EXCEL</button>
         <span id="wk-export-label" style="font-size:12.5px; font-weight:700; color:#2f8f5b;"></span>
       </div>
-    </div>
+    </details>
     <div id="owner-settings-view" class="owner-only">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;" class="card">
         <h2 style="margin:0;">⚙️ Thiết Lập Hệ Thống &amp; Tài Khoản</h2>
         <button class="btn success" id="btn-save-settings-tab">💾 LƯU THIẾT LẬP</button>
       </div>
       <div class="settings-account-cards" style="display:grid; grid-template-columns:1fr; gap:14px;">
-        <div class="card owner-password-settings-card" style="order:2;">
-          <h2>🔑 Đổi Mật Khẩu Chủ Quán</h2>
+        <details class="settings-fold ing-fold card owner-password-settings-card" style="order:2;"><summary class="settings-fold-summary"><h2>🔑 Đổi Mật Khẩu Chủ Quán</h2><span class="ing-fold-arrow"></span></summary>
+          
           <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Biệt danh (Tên hiển thị):</label><input type="text" id="owner-alias-input" oninput="markDirty('settings')"></div>
           <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Tên Thật (Bắt buộc phía sau):</label><input type="text" id="owner-realname-input" oninput="markDirty('settings')"></div>
           <div style="margin-bottom:14px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Avatar Emoji:</label><input type="text" id="owner-emoji-input" style="text-align:center; font-size:18px;" oninput="markDirty('settings')"></div>
@@ -1898,17 +2054,17 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
           <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Mã PIN Cấp Hai:</label><input type="password" id="security-pin-setting-input" oninput="markDirty('settings')"></div>
           <hr style="border:none; border-top:1px dashed var(--line); margin:16px 0;">
           <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Mã PIN Cấp Ba:</label><input type="password" id="level3-pin-setting-input" oninput="markDirty('settings')"></div>
-        </div>
-        <div class="card staff-account-settings-card" style="order:1;">
-          <h2>👥 Quản Lý Tài Khoản Nhân Viên</h2>
+        </details>
+        <details class="settings-fold ing-fold card staff-account-settings-card" style="order:1;"><summary class="settings-fold-summary"><h2>👥 Quản Lý Tài Khoản Nhân Viên</h2><span class="ing-fold-arrow"></span></summary>
+          
           <p style="font-size:11.5px; color:var(--muted); margin:-4px 0 9px;">🏷️ Tag 6 · Tích các chỉ số nhân viên được xem trong Lịch sử. Bỏ tích để ẩn từng loại doanh thu/số liệu; nhấn <b>LƯU THIẾT LẬP</b> để áp dụng. Doanh thu hệ thống toàn chuỗi vẫn chỉ chủ quán xem được.</p>
           <table style="margin-bottom:10px;"><thead><tr><th>Biệt Danh</th><th>Tên Thật</th><th>Emoji</th><th>PIN</th><th></th></tr></thead><tbody id="staff-accounts-tbody"></tbody></table>
           <button class="btn small ghost" id="btn-add-staff-account">+ Thêm NV</button>
-        </div>
+        </details>
       </div>
 
-      <div class="card" style="margin-top:14px; border:2px solid #8dbb96;">
-        <h2>🏪 Quản Lý Các Quán / Chi Nhánh</h2>
+      <details class="settings-fold ing-fold card" style="margin-top:14px; border:2px solid #8dbb96;"><summary class="settings-fold-summary"><h2>🏪 Quản Lý Các Quán / Chi Nhánh</h2><span class="ing-fold-arrow"></span></summary>
+        
         <p style="font-size:12.5px; color:var(--muted); margin:-3px 0 12px;">Thêm tên quán để mọi tài khoản chọn sau khi đăng nhập. Mỗi quán có doanh thu, lịch sử, quỹ và lương riêng; tài khoản nhân viên khởi tạo từ quán chính. Không xóa được quán để tránh mất dữ liệu.</p>
         <div id="shop-branches-list" style="display:grid; gap:8px; margin-bottom:12px;"></div>
         <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
@@ -1916,9 +2072,9 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
           <button type="button" class="btn success" id="btn-add-shop-branch">＋ Thêm quán</button>
         </div>
         <div style="font-size:11.5px; color:var(--muted); margin-top:10px;">Tài khoản dùng chung giữa các quán; chi nhánh mới được ghi nhận với tag dùng chung 3, 6 và 9.</div>
-      </div>
-      <div class="card" style="margin-top:14px;">
-        <h2>📱 Mã QR Chuyển Khoản Của Quán</h2>
+      </details>
+      <details class="settings-fold ing-fold card" style="margin-top:14px;"><summary class="settings-fold-summary"><h2>📱 Mã QR Chuyển Khoản Của Quán</h2><span class="ing-fold-arrow"></span></summary>
+        
         <p style="font-size:12.5px; color:var(--muted); margin:-2px 0 12px;">Khi khách chọn chuyển khoản, app hiện mã QR có sẵn số tiền (VietQR, cần có mạng). Nếu chưa nhập ngân hàng / STK, có thể tải ảnh mã QR của quán lên để dùng thay.</p>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
           <div><label style="font-size:12px; font-weight:700; color:var(--muted);">Ngân hàng:</label><select id="qr-bank-select" onchange="markDirty('settings')"></select></div>
@@ -1932,9 +2088,9 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
           <button class="btn ghost" onclick="qrClearImage()">🗑️ Xóa ảnh QR đã tải</button>
         </div>
         <div id="qr-test-box" style="text-align:center; margin-top:12px;"></div>
-      </div>
-      <div class="card" style="margin-top:14px;">
-        <h2>📸 Chấm Công Bằng Ảnh &amp; Vị Trí</h2>
+      </details>
+      <details class="settings-fold ing-fold card" style="margin-top:14px;"><summary class="settings-fold-summary"><h2>📸 Chấm Công Bằng Ảnh &amp; Vị Trí</h2><span class="ing-fold-arrow"></span></summary>
+        
         <p style="font-size:12.5px; color:var(--muted); margin:-2px 0 12px;">Khi vào ca, nhân viên phải chụp selfie bằng camera trực tiếp (không chọn ảnh có sẵn). Ảnh được đóng dấu giờ theo máy chủ Firebase cùng khoảng cách tới quán, và tự xóa sau 45 ngày.</p>
         <div id="att-shop-coords-label" style="background:var(--soft); padding:10px 12px; border-radius:10px; font-size:13px; margin-bottom:10px;">---</div>
         <button class="btn small ghost" id="btn-set-shop-location" onclick="setShopLocationFromHere()">📍 Lấy vị trí hiện tại làm vị trí quán</button>
@@ -1944,12 +2100,12 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
           <label style="font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; cursor:pointer; padding-bottom:8px;"><input type="checkbox" id="att-require-photo" style="width:auto;"> Bắt buộc chụp ảnh khi vào ca</label>
         </div>
         <button class="btn success small" style="margin-top:14px;" onclick="saveAttendanceCfg()">💾 Lưu Cài Đặt Chấm Công</button>
-      </div>
+      </details>
 
 
-<div class="card" style="margin-top:14px;">
+<details class="settings-fold ing-fold card" style="margin-top:14px;"><summary class="settings-fold-summary"><h2>👥 Quản Lý Khách Hàng</h2><span class="ing-fold-arrow"></span></summary>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
-          <h2 style="margin:0;">👥 Quản Lý Khách Hàng</h2>
+          
           <button class="btn small success" onclick="forceRefreshCustomerList()">🔄 Làm mới</button>
         </div>
         <div class="customer-search-bar">
@@ -1963,10 +2119,10 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
           </select>
         </div>
         <div id="customer-list-container" style="max-height:400px; overflow-y:auto; border:1.5px solid #e4ded0; border-radius:10px;"></div>
-      </div>
+      </details>
 
-      <div class="card" style="margin-top:14px;">
-        <h2>🎟️ Cấu Hình Vòng Quay Cụ Thể (Đồng bộ Web Order)</h2>
+      <details class="settings-fold ing-fold card" style="margin-top:14px;"><summary class="settings-fold-summary"><h2>🎟️ Cấu Hình Vòng Quay Cụ Thể (Đồng bộ Web Order)</h2><span class="ing-fold-arrow"></span></summary>
+        
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; margin-bottom: 14px; background:var(--soft); padding:10px; border-radius:10px;">
           <div><label style="font-size:11.5px; font-weight:700;">Tỷ lệ nhận Ticket khi khách mua hàng (%):</label><input type="number" id="cfg-ticket-spin-rate" min="0" max="100" style="margin-top:4px;"></div>
           <div><label style="font-size:11.5px; font-weight:700;">Số Ticket tặng thêm cho khách (nếu có):</label><input type="number" id="cfg-ticket-reward-amount" min="1" style="margin-top:4px;"></div>
@@ -1985,12 +2141,12 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
             <button class="btn small ghost" onclick="safeAddWheelItem()">+ Thêm Phần Thưởng Mới</button>
             <button class="btn success small" onclick="safeSaveWheelConfig()">💾 Lưu Cấu Hình Vòng Quay</button>
         </div>
-      </div>
+      </details>
 
     </div>
     <div id="staff-settings-view" style="display:none; max-width:500px; margin:0 auto;">
-      <div class="card">
-        <h2>👤 Cài Đặt Tài Khoản Cá Nhân</h2>
+      <details class="settings-fold ing-fold card"><summary class="settings-fold-summary"><h2>👤 Cài Đặt Tài Khoản Cá Nhân</h2><span class="ing-fold-arrow"></span></summary>
+        
         <p style="font-size:12.5px; color:var(--muted); margin-top:-4px; margin-bottom:16px;">Tài khoản hiện tại: <b id="staff-self-name">---</b></p>
         <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Biệt Danh Hiển Thị:</label><input type="text" id="staff-self-alias-input"></div>
         <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Tên Thật:</label><input type="text" id="staff-self-realname-input"></div>
@@ -2001,7 +2157,7 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
         <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">PIN Mới:</label><input type="password" id="staff-new-pin"></div>
         <div style="margin-bottom:16px;"><label style="font-size:12px; font-weight:700; color:var(--muted);">Xác Nhận PIN:</label><input type="password" id="staff-confirm-pin"></div>
         <button class="btn success" id="btn-staff-change-pin" style="width:100%;">💾 CẬP NHẬT THÔNG TIN</button>
-      </div>
+      </details>
     </div>
   </section>
 
@@ -2137,6 +2293,7 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
    (Chủ quán / Nhân viên) cũng chạy nhẹ. Tắt là về giao diện đầy đủ như cũ. */
 const LITE_KEY = 'meoxam_lite_mode';
 const PRIORITY_KEY = 'meoxam_priority_mode';
+const PRIORITY_THEME_KEY = 'meoxam_priority_theme';
 let _liteLogTick = 0, _liteRefreshTimer = null, _liteBackupTimer = null, _liteBackupPayload = null;
 function isLiteMode(){ return document.documentElement.classList.contains('lite'); }
 function getActiveTabName(){
@@ -2164,11 +2321,39 @@ function setLiteMode(on){
 }
 /* ============ GIAO DIỆN PRIORITY (mọi tài khoản đã đăng nhập; không dùng cùng Chế độ nhẹ) ============ */
 function isPriorityMode(){ return document.documentElement.classList.contains('priority'); }
+const PRIORITY_THEME_NAMES = { classic:'Cacao · Gold', ocean:'Đại dương · Xanh lam', ruby:'Ruby · Đỏ rượu', forest:'Rừng xanh · Ngọc lục', violet:'Hoàng gia · Tím', jade:'Ngọc lam · Teal' };
+function getPriorityTheme(){
+  try{ const v=localStorage.getItem(PRIORITY_THEME_KEY); return Object.prototype.hasOwnProperty.call(PRIORITY_THEME_NAMES,v) ? v : 'classic'; }
+  catch(e){ return 'classic'; }
+}
+function syncPriorityThemeUI(){
+  const theme=getPriorityTheme();
+  document.documentElement.setAttribute('data-priority-theme',theme);
+  const name=document.getElementById('priority-theme-current'); if(name) name.textContent=PRIORITY_THEME_NAMES[theme];
+  document.querySelectorAll('[data-priority-theme-choice]').forEach(function(b){
+    const selected=b.getAttribute('data-priority-theme-choice')===theme;
+    b.setAttribute('aria-pressed',selected?'true':'false');
+    b.classList.toggle('selected',selected);
+  });
+}
+function setPriorityTheme(theme){
+  if(!Object.prototype.hasOwnProperty.call(PRIORITY_THEME_NAMES,theme)) theme='classic';
+  try{ localStorage.setItem(PRIORITY_THEME_KEY,theme); }catch(e){}
+  syncPriorityThemeUI();
+  const picker=document.getElementById('priority-theme-picker'); if(picker) picker.open=false;
+  try{ recolorCharts(isPriorityMode()); }catch(e){}
+  try{ showToast('🎨 Đã chọn theme <b>'+PRIORITY_THEME_NAMES[theme]+'</b>'); }catch(e){}
+}
+document.querySelectorAll('[data-priority-theme-choice]').forEach(function(b){
+  b.addEventListener('click',function(){ setPriorityTheme(b.getAttribute('data-priority-theme-choice')); });
+});
 function priorityWanted(){ try{ return localStorage.getItem(PRIORITY_KEY) === '1'; }catch(e){ return false; } }
 function recolorCharts(on){
   try{
     if(typeof Chart === 'undefined') return;
-    const txt = on ? '#cbb994' : '#666', grid = on ? 'rgba(217,182,111,.16)' : 'rgba(0,0,0,0.1)';
+    const rootStyle = getComputedStyle(document.documentElement);
+    const txt = on ? (rootStyle.getPropertyValue('--ink').trim() || '#cbb994') : '#666';
+    const grid = on ? (rootStyle.getPropertyValue('--priority-chart-grid').trim() || 'rgba(217,182,111,.16)') : 'rgba(0,0,0,0.1)';
     if(Chart.defaults){ Chart.defaults.color = txt; Chart.defaults.borderColor = grid; }
     const inst = Chart.instances ? Object.values(Chart.instances) : [];
     inst.forEach(function(c){
@@ -2187,6 +2372,7 @@ function applyPriorityState(){
   const isLoggedIn = !!CURRENT_USER;
   const lite = isLiteMode();
   const on = isLoggedIn && !lite && priorityWanted();
+  syncPriorityThemeUI();
   document.documentElement.classList.toggle('priority', on);
   document.querySelectorAll('[data-priority-toggle]').forEach(function(b){
     b.classList.toggle('show', isLoggedIn);
