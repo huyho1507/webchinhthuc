@@ -1319,6 +1319,234 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
     background:var(--pt-ivory) !important; border-color:var(--pt-bronze) !important; color:var(--pt-deep-text) !important;
   }
 
+
+  /* =====================================================================
+     V11 · Chữ nổi rõ ở mọi theme + ô Ping + ô Nhân viên đang trong ca
+     ===================================================================== */
+  html.priority{ --info:#8fb4ee; }
+  html.priority[data-priority-theme="latte"]{ --info:#1f4f94; color-scheme:light; }
+
+  /* Các ô ở header lấy nền + chữ từ CÙNG bộ màu của theme => luôn đủ tương phản (sáng/tối đều đúng) */
+  html.priority .owner-money-badge, html.priority .shift-money-badge, html.priority .views-badge,
+  html.priority .live-clock-badge, html.priority .user-badge, html.priority .lite-switch,
+  html.priority .priority-theme-picker > summary, html.priority .bell-btn,
+  html.priority .ping-orb, html.priority .onshift-box, html.priority .me-chip{
+    background:var(--soft) !important; color:var(--ink) !important; border-color:var(--line) !important;
+  }
+  html.priority .user-badge, html.priority .user-badge #user-display, html.priority .user-badge span{ color:var(--ink) !important; }
+  html.priority .owner-money-badge .money-row span, html.priority .shift-money-badge .money-row span,
+  html.priority .views-badge .money-row span{ color:var(--muted) !important; }
+  html.priority .owner-money-badge .money-row b{ color:var(--ink); }
+  html.priority #hdr-shift-cash{ color:var(--good) !important; }
+  html.priority #hdr-shift-bank, html.priority #hdr-bank-amount, html.priority .views-badge .money-row b{ color:var(--info) !important; }
+  html.priority #hdr-float-amount{ color:var(--warn) !important; }
+  html.priority .views-badge .vb-title{ color:var(--good) !important; }
+  html.priority .shift-money-badge > div:first-child, html.priority .owner-money-badge > div:first-child{ color:var(--accent) !important; }
+  html.priority .views-badge .vb-date{ background:var(--card) !important; color:var(--ink) !important; border-color:var(--line) !important; }
+  html.priority .lite-switch-state{ color:var(--muted); }
+  html.priority .lite-switch[aria-checked="true"] .lite-switch-state{ color:var(--good); }
+  html.priority .priority-switch[aria-checked="true"] .lite-switch-state{ color:var(--accent) !important; }
+  html.priority .priority-theme-picker > summary b{ color:var(--accent) !important; }
+
+  html.priority .lite-switch[aria-checked="true"]{ border-color:#22c55e !important; }
+  html.priority .priority-switch[aria-checked="true"]{ border-color:var(--accent) !important; }
+  /* ---------- Thanh công cụ header: 1 hàng đều nhau + 1 dải "đang trong ca" ---------- */
+  .header-right-area::before{ display:none !important; }
+  .header-right-area{ gap:8px 10px; align-items:center; }
+  .header-right-area > .user-badge{ order:-2 !important; gap:8px; padding:0 12px 0 6px; min-height:50px; max-width:100%; }
+  .header-right-area > .lite-switch, .header-right-area > .priority-theme-picker > summary,
+  .header-right-area > .live-clock-badge, .header-right-area > .notification-bell-container .bell-btn{ min-height:50px; box-sizing:border-box; }
+  .header-right-area > .live-clock-badge{ display:inline-flex; align-items:center; }
+  .header-right-area > .priority-theme-picker > summary{ display:flex; align-items:center; }
+  .header-right-area > .notification-bell-container .bell-btn{ display:flex; align-items:center; justify-content:center; width:50px; padding:0; }
+  .user-badge .user-avatar-emoji{ display:none !important; }
+  .user-badge #user-display{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px; }
+
+  .ping-orb{
+    --pc:#16a34a; position:relative; width:42px; height:42px; border-radius:50%; flex:none;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; box-sizing:border-box;
+    background:var(--soft); color:var(--ink); border:3px solid var(--pc);
+    font-variant-numeric:tabular-nums; cursor:default; transition:border-color .25s;
+  }
+  .ping-orb b{ font-size:14px; font-weight:900; letter-spacing:-.03em; color:var(--pc); }
+  .ping-orb small{ font-size:8px; font-weight:800; color:var(--muted); margin-top:1px; }
+  .ping-orb.p-good{ --pc:#16a34a; } .ping-orb.p-mid{ --pc:#ca8a04; } .ping-orb.p-slow{ --pc:#ea580c; }
+  .ping-orb.p-bad{ --pc:#dc2626; } .ping-orb.p-off{ --pc:#6b7280; }
+  html.priority .ping-orb.p-good{ --pc:#4ade80; } html.priority .ping-orb.p-mid{ --pc:#facc15; }
+  html.priority .ping-orb.p-slow{ --pc:#fb923c; } html.priority .ping-orb.p-bad{ --pc:#f87171; }
+  html.priority[data-priority-theme="latte"] .ping-orb.p-good{ --pc:#15803d; }
+  html.priority[data-priority-theme="latte"] .ping-orb.p-mid{ --pc:#a16207; }
+  html.priority[data-priority-theme="latte"] .ping-orb.p-slow{ --pc:#c2410c; }
+  html.priority[data-priority-theme="latte"] .ping-orb.p-bad{ --pc:#b91c1c; }
+
+  .on-dot{ width:9px; height:9px; border-radius:50%; background:#22c55e; flex:none; box-shadow:0 0 0 3px rgba(34,197,94,.28); }
+  .on-dot.off{ background:#9ca3af; box-shadow:0 0 0 3px rgba(156,163,175,.25); }
+  html:not(.lite) .on-dot:not(.off){ animation:onPulse 2.4s ease-in-out infinite; }
+  @keyframes onPulse{ 50%{ box-shadow:0 0 0 5px rgba(34,197,94,.10); } }
+  @media (prefers-reduced-motion:reduce){ .on-dot{ animation:none !important; } }
+
+  .onshift-box{
+    order:99; flex:1 1 100%; display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px;
+    background:var(--soft); color:var(--ink); border:1.5px solid var(--line); border-radius:14px;
+    padding:8px 12px; font-size:12.5px; font-weight:700; box-sizing:border-box;
+  }
+  .onshift-head{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:900; color:var(--accent); }
+  .onshift-head .cnt{ background:var(--line); color:var(--ink); border-radius:999px; padding:0 8px; font-size:11px; }
+  .onshift-list{ display:flex; flex-wrap:wrap; gap:6px 8px; }
+  .onshift-chip{ display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--line); border-radius:999px; padding:3px 11px 3px 9px; }
+  .onshift-chip b{ color:var(--ink); font-weight:900; }
+  .onshift-chip em{ font-style:normal; color:var(--muted); font-weight:700; }
+  .onshift-empty{ color:var(--muted); font-weight:700; }
+  @media (max-width:768px){ .header-right-area > .user-badge{ flex:1 1 100%; } .user-badge #user-display{ max-width:none; flex:1; } }
+
+  /* ===== V13 · Theme Cà phê sữa (nền sáng): lật mọi khung nền tối cứng sang tông sáng + chữ đậm để đọc được ===== */
+  html.priority[data-priority-theme="latte"] .am-topping-list{ background:#ebe2dc; border-color:#ded0c2 }
+  html.priority[data-priority-theme="latte"] ::placeholder{ color:#9b8b72 }
+  html.priority[data-priority-theme="latte"] option{ background:#f1eae5; color:#2a200d }
+  html.priority[data-priority-theme="latte"] header.top{ background:rgba(240,232,226,.90); border-color:rgba(144,109,38,.30) }
+  html.priority[data-priority-theme="latte"] header.top .titles h1 .l1{ color:#906d26 }
+  html.priority[data-priority-theme="latte"] header.top .titles h1 .l2{ color:#271d09 }
+  html.priority[data-priority-theme="latte"] .owner-money-badge, html.priority[data-priority-theme="latte"] .shift-money-badge, html.priority[data-priority-theme="latte"] .views-badge, html.priority[data-priority-theme="latte"] .live-clock-badge, html.priority[data-priority-theme="latte"] .user-badge{ background:#e7ddd5; border-color:rgba(144,109,38,.38) }
+  html.priority[data-priority-theme="latte"] #hdr-bank-amount{ color:#113670 }
+  html.priority[data-priority-theme="latte"] .bell-btn{ border-color:rgba(144,109,38,.38) }
+  html.priority[data-priority-theme="latte"] .lite-switch{ background:#e7ddd5; border-color:rgba(144,109,38,.38); color:#2a200d }
+  html.priority[data-priority-theme="latte"] .lite-switch-track{ background:#c9b9a5 }
+  html.priority[data-priority-theme="latte"] nav.tabs{ background:rgba(240,232,226,.90); border-color:rgba(144,109,38,.30) }
+  html.priority[data-priority-theme="latte"] nav.tabs button, html.priority[data-priority-theme="latte"] nav.tabs button[data-tab]{ background:#e4dad0; color:#3d3016 }
+  html.priority[data-priority-theme="latte"] nav.tabs button.active, html.priority[data-priority-theme="latte"] nav.tabs button.active[data-tab]{ color:#f3e6d5; background:linear-gradient(135deg,#57420f,#b08636) }
+  html.priority[data-priority-theme="latte"] .panel .card{ border-color:#d5c3b0 !important }
+  html.priority[data-priority-theme="latte"] .panel .card h2{ color:#6c5219 !important }
+  html.priority[data-priority-theme="latte"] .card, html.priority[data-priority-theme="latte"] .bill-card, html.priority[data-priority-theme="latte"] .image-card, html.priority[data-priority-theme="latte"] .topup-card{ background:#ebe2dc; border-color:#d5c3b0 }
+  html.priority[data-priority-theme="latte"] .bill-card{ border-color:#cfbaa4 }
+  html.priority[data-priority-theme="latte"] .day-group{ background:#e7ddd5; border-color:#d6c6b5 }
+  html.priority[data-priority-theme="latte"] .day-group-head{ background:linear-gradient(90deg,#d8c1a3,#c8a873); color:#271d09 }
+  html.priority[data-priority-theme="latte"] .day-group.today .day-group-head{ background:linear-gradient(90deg,#a5d0bb,#85c0a3) }
+  html.priority[data-priority-theme="latte"] .log-row{ background:#e7ddd5; border-color:#ded0c2 }
+  html.priority[data-priority-theme="latte"] .log-row.pos{ background:linear-gradient(90deg,rgba(85,175,135,.16),#e7ddd5) }
+  html.priority[data-priority-theme="latte"] .log-row.neg{ background:linear-gradient(90deg,rgba(176,42,38,.18),#e7ddd5) }
+  html.priority[data-priority-theme="latte"] .log-row.info{ background:linear-gradient(90deg,rgba(39,89,175,.16),#e7ddd5) }
+  html.priority[data-priority-theme="latte"] .log-row.warn{ background:linear-gradient(90deg,rgba(255,199,31,.16),#e7ddd5) }
+  html.priority[data-priority-theme="latte"] .order-actions, html.priority[data-priority-theme="latte"] .bill-items{ border-color:#d6c6b5 }
+  html.priority[data-priority-theme="latte"] .bill-row{ border-bottom-color:#ded0c2 }
+  html.priority[data-priority-theme="latte"] td{ border-bottom-color:#dfd2c5 }
+  html.priority[data-priority-theme="latte"] th{ border-bottom-color:#cfbba1 }
+  html.priority[data-priority-theme="latte"] .metric-box, html.priority[data-priority-theme="latte"] .edit-order-item-row, html.priority[data-priority-theme="latte"] .topping-select-list, html.priority[data-priority-theme="latte"] .denom-card{ background:#e7ddd5; border-color:#d6c6b5 }
+  html.priority[data-priority-theme="latte"] .edit-order-item-row .eo-topping-list{ background:#ebe2dc; border-color:#ded0c2 }
+  html.priority[data-priority-theme="latte"] .denom-card:focus-within{ background:#e5d9cc; border-color:#906d26 }
+  html.priority[data-priority-theme="latte"] .denom-card .denom-inp{ background:#f1eae5; border-color:#cfbba5; color:#2a200d }
+  html.priority[data-priority-theme="latte"] .denom-card .denom-btn-minus, html.priority[data-priority-theme="latte"] .denom-card .denom-btn-plus{ background:#e4d8cc; border-color:#cfbba5; color:#2a200d }
+  html.priority[data-priority-theme="latte"] .calendar-nav, html.priority[data-priority-theme="latte"] .customer-search-bar{ background:#e7ddd5; border-color:#d6c6b5 }
+  html.priority[data-priority-theme="latte"] .calendar-weekday{ background:#e4d8cc }
+  html.priority[data-priority-theme="latte"] .calendar-cell{ background:#e7ddd5; border-color:#ded0c2 }
+  html.priority[data-priority-theme="latte"] .calendar-cell.other-month{ background:#f0e9e3 }
+  html.priority[data-priority-theme="latte"] .calendar-cell.today{ background:#e5d8c5; border-color:#906d26 }
+  html.priority[data-priority-theme="latte"] .calendar-cell.my-shift-day{ background:#d2e0d7 }
+  html.priority[data-priority-theme="latte"] .customer-row{ border-bottom-color:#dfd2c5 }
+  html.priority[data-priority-theme="latte"] .customer-row:hover, html.priority[data-priority-theme="latte"] .noti-item:hover{ background:#e7ddd3 }
+  html.priority[data-priority-theme="latte"] .noti-item{ border-bottom-color:#dfd2c5 }
+  html.priority[data-priority-theme="latte"] .noti-item.unread{ background:#e5d8cb }
+  html.priority[data-priority-theme="latte"] .image-card .img-wrap{ background:#f0e9e3 }
+  html.priority[data-priority-theme="latte"] .image-card .img-actions{ border-top-color:#dfd2c5 }
+  html.priority[data-priority-theme="latte"] .ticket-badge{ background:#e8d8c5; border-color:#caaa75; color:#955a0f }
+  html.priority[data-priority-theme="latte"] .voucher-badge{ background:#d2e0d7; border-color:#85c0a3; color:#2c824f }
+  html.priority[data-priority-theme="latte"] .rank-badge{ background:#d2c7db; border-color:#8567a0; color:#31114c }
+  html.priority[data-priority-theme="latte"] .checkin-gps.ok{ background:#d2e0d7 }
+  html.priority[data-priority-theme="latte"] .checkin-gps.warn, html.priority[data-priority-theme="latte"] .att-flag, html.priority[data-priority-theme="latte"] .ing-status-warn{ background:#e7ddc5; border-color:#dfc994; color:#85640f }
+  html.priority[data-priority-theme="latte"] .print-check{ background:#e7ddd5; border-color:#d6c6b5 }
+  html.priority[data-priority-theme="latte"] .pos-item, html.priority[data-priority-theme="latte"] .product-item, html.priority[data-priority-theme="latte"] .chip, html.priority[data-priority-theme="latte"] .size-tabs button, html.priority[data-priority-theme="latte"] .icon-btn{ background:#e7ddd5; border-color:#d5c3b0; color:#2a200d }
+  html.priority[data-priority-theme="latte"] .pos-item:hover{ background:#e4d8cc }
+  html.priority[data-priority-theme="latte"] .chip.active, html.priority[data-priority-theme="latte"] .product-item.active, html.priority[data-priority-theme="latte"] .size-tabs button.active{ background:linear-gradient(135deg,#57420f,#b08636); color:#f3e6d5; border-color:#906d26 }
+  html.priority[data-priority-theme="latte"] input, html.priority[data-priority-theme="latte"] select, html.priority[data-priority-theme="latte"] textarea{ background:#f1eae5; border-color:#cfbba5; color:#2a200d }
+  html.priority[data-priority-theme="latte"] input:focus, html.priority[data-priority-theme="latte"] select:focus, html.priority[data-priority-theme="latte"] textarea:focus{ border-color:#906d26 }
+  html.priority[data-priority-theme="latte"] .btn{ background:linear-gradient(180deg,#57420f,#b08636); color:#f3e6d5; border-color:#c09c57 }
+  html.priority[data-priority-theme="latte"] .btn.ghost{ background:#e7ddd5; color:#2a200d; border-color:#cab494 }
+  html.priority[data-priority-theme="latte"] .btn.success{ background:linear-gradient(180deg,#64c08f,#85d3a8); color:#0f0f0f; border-color:#85d3a8 }
+  html.priority[data-priority-theme="latte"] .btn.danger{ background:linear-gradient(180deg,#c2524a,#da7973); color:#0f0f0f; border-color:#e39691 }
+  html.priority[data-priority-theme="latte"] .pin-input{ border-color:#cfbba5 }
+  html.priority[data-priority-theme="latte"] .modal-overlay{ background:rgba(242,242,242,.62) }
+  html.priority[data-priority-theme="latte"] .topup-overlay{ background:rgba(242,242,242,.5) }
+  html.priority[data-priority-theme="latte"] .login-card, html.priority[data-priority-theme="latte"] .modal-card{ background:#ebe2dc; border-color:rgba(144,109,38,.30) }
+  html.priority[data-priority-theme="latte"] .login-card h2{ color:#6c5219 }
+  html.priority[data-priority-theme="latte"] .toast, html.priority[data-priority-theme="latte"] .noti-dropdown{ background:#e7ddd5; border-color:rgba(144,109,38,.40); color:#2a200d }
+  html.priority[data-priority-theme="latte"] .noti-header{ background:#e4d8cc }
+  html.priority[data-priority-theme="latte"] #staff-chat-panel{ background:#ebe2dc !important; border-color:rgba(144,109,38,.35) !important }
+  html.priority[data-priority-theme="latte"] .ing-searchbar{ background:#ebe2dc; border-color:#cfbba1 }
+  html.priority[data-priority-theme="latte"] .ing-searchbar:focus-within{ border-color:#906d26 }
+  html.priority[data-priority-theme="latte"] .ing-searchbar .s-count{ color:#906d26 }
+  html.priority[data-priority-theme="latte"] .ing-searchbar .s-clear{ background:#e4d8cc; color:#906d26 }
+  html.priority[data-priority-theme="latte"] .ipur-summary-box, html.priority[data-priority-theme="latte"] .ipur-month-row{ background:#e8e0da; border-color:#d0beaa }
+  html.priority[data-priority-theme="latte"] .ipur-summary-box div, html.priority[data-priority-theme="latte"] .ipur-month-meta, html.priority[data-priority-theme="latte"] .ipur-owed-meta{ color:#60543b }
+  html.priority[data-priority-theme="latte"] .ipur-owed-panel{ background:#e8ddcc; border-color:#cd9936 }
+  html.priority[data-priority-theme="latte"] .ipur-owed-heading{ color:#5f4000 }
+  html.priority[data-priority-theme="latte"] .ipur-owed-hint{ color:#5b4a26 }
+  html.priority[data-priority-theme="latte"] .ipur-owed-row{ background:#eae2db; border-color:#d2bea6 }
+  html.priority[data-priority-theme="latte"] .ipur-owed-amount{ color:#6c0b00 }
+  html.priority[data-priority-theme="latte"] .ipur-pending-badge{ background:#e8d7b6; border-color:#e0bb69; color:#755600 }
+  html.priority[data-priority-theme="latte"] .ipur-month-heading{ color:#6c5219; border-top-color:#d0beaa }
+  html.priority[data-priority-theme="latte"] .ipur-method.method-cash{ background:#c4ead9; color:#1f7040 }
+  html.priority[data-priority-theme="latte"] .ipur-method.method-bank{ background:#afc2e5; color:#001e56 }
+  html.priority[data-priority-theme="latte"] .ipur-method.method-staff{ background:#c6b5d8; color:#1f0046 }
+  html.priority[data-priority-theme="latte"] .btn.ipur-refund-cash{ background:#79dfac !important; border-color:#46aa72 !important; color:#0f0f0f !important }
+  html.priority[data-priority-theme="latte"] .btn.ipur-refund-bank{ background:#4472ce !important; border-color:#1f458f !important; color:#0f0f0f !important }
+  html.priority[data-priority-theme="latte"] .ipur-no-debt, html.priority[data-priority-theme="latte"] .ipur-empty{ background:#ebe2dc; color:#50432b }
+  html.priority[data-priority-theme="latte"] #tab-ing td.c-cost{ color:#906d26 }
+  html.priority[data-priority-theme="latte"] #tab-ing tbody tr:hover{ background:#e7ddd5 }
+  @media (max-width:768px){ html.priority[data-priority-theme="latte"] #tab-ing tbody tr.ing-row, html.priority[data-priority-theme="latte"] #tab-ing tbody tr.ing-row:hover{ background:linear-gradient(180deg,#e6dcd4,#ebe2dc); border-color:#d6c6b5 } }
+  @media (max-width:768px){ html.priority[data-priority-theme="latte"] #tab-ing td.c-cost{ background:#e5dbcc } }
+  @media (max-width:768px){ html.priority[data-priority-theme="latte"] #tab-ing td.c-status{ border-top-color:#d6c6b5 } }
+  @media (max-width:768px){ html.priority[data-priority-theme="latte"] #tab-ing td[data-label]::before, html.priority[data-priority-theme="latte"] .ing-buy-cap{ color:#8c7b56 } }
+  @media (max-width:768px){ html.priority[data-priority-theme="latte"] #tab-ing td.c-del .icon-btn{ background:#e2c8c5; border-color:#ca8b85; color:#790900 } }
+  html.priority[data-priority-theme="latte"] [style*="background:#fffdf8"], html.priority[data-priority-theme="latte"] [style*="background: #fffdf8"], html.priority[data-priority-theme="latte"] [style*="background: rgb(255, 253, 248)"], html.priority[data-priority-theme="latte"] [style*="background:#fdfbf7"], html.priority[data-priority-theme="latte"] [style*="background: #fdfbf7"], html.priority[data-priority-theme="latte"] [style*="background: rgb(253, 251, 247)"], html.priority[data-priority-theme="latte"] [style*="background:#fffefc"], html.priority[data-priority-theme="latte"] [style*="background: #fffefc"], html.priority[data-priority-theme="latte"] [style*="background: rgb(255, 254, 252)"], html.priority[data-priority-theme="latte"] [style*="background:#fffdf9"], html.priority[data-priority-theme="latte"] [style*="background: #fffdf9"], html.priority[data-priority-theme="latte"] [style*="background: rgb(255, 253, 249)"], html.priority[data-priority-theme="latte"] [style*="background:#fff9f0"], html.priority[data-priority-theme="latte"] [style*="background: #fff9f0"], html.priority[data-priority-theme="latte"] [style*="background: rgb(255, 249, 240)"], html.priority[data-priority-theme="latte"] [style*="background:#fff7ec"], html.priority[data-priority-theme="latte"] [style*="background: #fff7ec"], html.priority[data-priority-theme="latte"] [style*="background: rgb(255, 247, 236)"], html.priority[data-priority-theme="latte"] [style*="background:#fff6ea"], html.priority[data-priority-theme="latte"] [style*="background: #fff6ea"], html.priority[data-priority-theme="latte"] [style*="background: rgb(255, 246, 234)"], html.priority[data-priority-theme="latte"] [style*="background:#fffaf0"], html.priority[data-priority-theme="latte"] [style*="background: #fffaf0"], html.priority[data-priority-theme="latte"] [style*="background: rgb(255, 250, 240)"], html.priority[data-priority-theme="latte"] [style*="background:#f0eada"], html.priority[data-priority-theme="latte"] [style*="background: #f0eada"], html.priority[data-priority-theme="latte"] [style*="background: rgb(240, 234, 218)"], html.priority[data-priority-theme="latte"] [style*="background:#fcf9ff"], html.priority[data-priority-theme="latte"] [style*="background: #fcf9ff"], html.priority[data-priority-theme="latte"] [style*="background: rgb(252, 249, 255)"]{ background:#e7ddd5 !important }
+  html.priority[data-priority-theme="latte"] [style*="background:#fff8e1"], html.priority[data-priority-theme="latte"] [style*="background: #fff8e1"], html.priority[data-priority-theme="latte"] [style*="background: rgb(255, 248, 225)"], html.priority[data-priority-theme="latte"] [style*="background:#f4ebd9"], html.priority[data-priority-theme="latte"] [style*="background: #f4ebd9"], html.priority[data-priority-theme="latte"] [style*="background: rgb(244, 235, 217)"]{ background:#e5d9ca !important }
+  html.priority[data-priority-theme="latte"] [style*="background:#eaf4ed"], html.priority[data-priority-theme="latte"] [style*="background: #eaf4ed"], html.priority[data-priority-theme="latte"] [style*="background: rgb(234, 244, 237)"], html.priority[data-priority-theme="latte"] [style*="background:#f4fbf5"], html.priority[data-priority-theme="latte"] [style*="background: #f4fbf5"], html.priority[data-priority-theme="latte"] [style*="background: rgb(244, 251, 245)"], html.priority[data-priority-theme="latte"] [style*="background:#f0f7f3"], html.priority[data-priority-theme="latte"] [style*="background: #f0f7f3"], html.priority[data-priority-theme="latte"] [style*="background: rgb(240, 247, 243)"], html.priority[data-priority-theme="latte"] [style*="background:#f0fbf5"], html.priority[data-priority-theme="latte"] [style*="background: #f0fbf5"], html.priority[data-priority-theme="latte"] [style*="background: rgb(240, 251, 245)"]{ background:#d2e0d7 !important }
+  html.priority[data-priority-theme="latte"] [style*="background:#eef2fa"], html.priority[data-priority-theme="latte"] [style*="background: #eef2fa"], html.priority[data-priority-theme="latte"] [style*="background: rgb(238, 242, 250)"], html.priority[data-priority-theme="latte"] [style*="background:#f3f7fd"], html.priority[data-priority-theme="latte"] [style*="background: #f3f7fd"], html.priority[data-priority-theme="latte"] [style*="background: rgb(243, 247, 253)"], html.priority[data-priority-theme="latte"] [style*="background:#f2f5fa"], html.priority[data-priority-theme="latte"] [style*="background: #f2f5fa"], html.priority[data-priority-theme="latte"] [style*="background: rgb(242, 245, 250)"]{ background:#ccd4e0 !important }
+  html.priority[data-priority-theme="latte"] [style*="background:#fbe9e7"], html.priority[data-priority-theme="latte"] [style*="background: #fbe9e7"], html.priority[data-priority-theme="latte"] [style*="background: rgb(251, 233, 231)"]{ background:#e2c8c5 !important }
+  html.priority[data-priority-theme="latte"] [style*="background:#fff3cd"], html.priority[data-priority-theme="latte"] [style*="background: #fff3cd"], html.priority[data-priority-theme="latte"] [style*="background: rgb(255, 243, 205)"]{ background:#e7ddc5 !important }
+  html.priority[data-priority-theme="latte"] [style*="background:#e4ded0"], html.priority[data-priority-theme="latte"] [style*="background: #e4ded0"], html.priority[data-priority-theme="latte"] [style*="background: rgb(228, 222, 208)"]{ background:#dfd2c5 !important }
+  html.priority[data-priority-theme="latte"] [style*="background:#fff;"], html.priority[data-priority-theme="latte"] [style$="background:#fff"], html.priority[data-priority-theme="latte"] [style*="background: #fff;"], html.priority[data-priority-theme="latte"] [style$="background: #fff"], html.priority[data-priority-theme="latte"] [style*="background: rgb(255, 255, 255)"]{ background:#e7ddd5 !important }
+  html.priority[data-priority-theme="latte"] [style*="background:linear-gradient(180deg"], html.priority[data-priority-theme="latte"] [style*="background: linear-gradient(180deg"]{ background:#e7ddd5 !important }
+  html.priority[data-priority-theme="latte"] [style*="#f4f8ff"], html.priority[data-priority-theme="latte"] [style*="rgb(244, 248, 255)"]{ background:#ccd4e0 !important }
+  html.priority[data-priority-theme="latte"] [style*="#f1fbf5"], html.priority[data-priority-theme="latte"] [style*="rgb(241, 251, 245)"]{ background:#d2e0d7 !important }
+  html.priority[data-priority-theme="latte"] [style*="#fff5cc"], html.priority[data-priority-theme="latte"] [style*="rgb(255, 245, 204)"]{ background:#e7ddc5 !important }
+  html.priority[data-priority-theme="latte"] [style*="#e7effb"], html.priority[data-priority-theme="latte"] [style*="rgb(231, 239, 251)"]{ background:#b9c6db !important }
+  html.priority[data-priority-theme="latte"] [style*="#e6f4ea"], html.priority[data-priority-theme="latte"] [style*="rgb(230, 244, 234)"]{ background:#c9ded1 !important }
+  html.priority[data-priority-theme="latte"] [style*="color:#2f5fa6"], html.priority[data-priority-theme="latte"] [style*="color: #2f5fa6"], html.priority[data-priority-theme="latte"] [style*="color: rgb(47, 95, 166)"]{ color:#113670 !important }
+  html.priority[data-priority-theme="latte"] [style*="color:#c2410c"], html.priority[data-priority-theme="latte"] [style*="color: #c2410c"], html.priority[data-priority-theme="latte"] [style*="color: rgb(194, 65, 12)"]{ color:#90430f !important }
+  html.priority[data-priority-theme="latte"] [style*="color:#6d28d9"], html.priority[data-priority-theme="latte"] [style*="color: #6d28d9"], html.priority[data-priority-theme="latte"] [style*="color: rgb(109, 40, 217)"]{ color:#1d0057 !important }
+  html.priority[data-priority-theme="latte"] [style*="color:#1e7d3c"], html.priority[data-priority-theme="latte"] [style*="color: #1e7d3c"], html.priority[data-priority-theme="latte"] [style*="color: rgb(30, 125, 60)"]{ color:#2c824f !important }
+  html.priority[data-priority-theme="latte"] [style*="color:#e65100"], html.priority[data-priority-theme="latte"] [style*="color: #e65100"], html.priority[data-priority-theme="latte"] [style*="color: rgb(230, 81, 0)"]{ color:#8b3c00 !important }
+  html.priority[data-priority-theme="latte"] [style*="color:#856404"], html.priority[data-priority-theme="latte"] [style*="color: #856404"], html.priority[data-priority-theme="latte"] [style*="color: rgb(133, 100, 4)"]{ color:#85640f !important }
+  html.priority[data-priority-theme="latte"] [style*="color:#0f0f0f"], html.priority[data-priority-theme="latte"] [style*="color: #0f0f0f"], html.priority[data-priority-theme="latte"] [style*="color: rgb(15, 15, 15)"]{ color:#2a200d !important }
+  html.priority[data-priority-theme="latte"] [style*="color:#6b675e"], html.priority[data-priority-theme="latte"] [style*="color: #6b675e"], html.priority[data-priority-theme="latte"] [style*="color: rgb(107, 103, 94)"]{ color:#79684a !important }
+  html.priority[data-priority-theme="latte"] [style*="color:#000000"], html.priority[data-priority-theme="latte"] [style*="color: #000000"], html.priority[data-priority-theme="latte"] [style*="color: rgb(0, 0, 0)"]{ color:#2a200d !important }
+  html.priority[data-priority-theme="latte"] [style*="solid #000000"], html.priority[data-priority-theme="latte"] [style*="solid rgb(0, 0, 0)"]{ border-color:#790900 !important }
+  html.priority[data-priority-theme="latte"] [style*="#dcd5c2"], html.priority[data-priority-theme="latte"] [style*="rgb(220, 213, 194)"], html.priority[data-priority-theme="latte"] [style*="#e4ded0"], html.priority[data-priority-theme="latte"] [style*="rgb(228, 222, 208)"], html.priority[data-priority-theme="latte"] [style*="#e6e0d0"], html.priority[data-priority-theme="latte"] [style*="rgb(230, 224, 208)"], html.priority[data-priority-theme="latte"] [style*="#ccc"], html.priority[data-priority-theme="latte"] [style*="rgb(204, 204, 204)"], html.priority[data-priority-theme="latte"] [style*="#e6c9a0"], html.priority[data-priority-theme="latte"] [style*="rgb(230, 201, 160)"], html.priority[data-priority-theme="latte"] [style*="#cfc7b2"], html.priority[data-priority-theme="latte"] [style*="rgb(207, 199, 178)"]{ border-color:#cfbba5 !important }
+  html.priority[data-priority-theme="latte"] #tab-order .order-container > div:first-child{ background:rgba(241,232,227,.56); border:1px solid rgba(185,147,116,.55) }
+  html.priority[data-priority-theme="latte"] #order-type-modal #otm-step1 > div > button:nth-child(2){ border:2px solid #8f6036 !important }
+  html.priority[data-priority-theme="latte"] #order-type-modal #otm-bank[style*="#2f6fd6"], html.priority[data-priority-theme="latte"] #order-pay-modal [id$="-bank"][style*="#2f6fd6"]{ border-color:#8f6036 !important }
+  html.priority[data-priority-theme="latte"] .lite-switch[aria-checked="true"]{ border-color:#3add76 !important }
+
+  /* logo mèo luôn nền kem để nét đen không chìm */
+  html.priority[data-priority-theme="latte"] header.top .cat{ background:#f1e6d0 !important; border-color:#c99f4f !important; }
+
+  /* ===== V14 · sửa ô đếm "Đang trong ca" ở Chế độ nhẹ / theme sáng (trước đây lấy --line = đen) ===== */
+  .onshift-head .cnt, html.priority .onshift-head .cnt{
+    background:color-mix(in srgb, var(--ink) 14%, transparent) !important; color:var(--ink) !important;
+    min-width:22px; text-align:center; font-weight:900;
+  }
+  .onshift-head{ color:var(--ink); }
+  .onshift-head > span:first-child{ color:var(--ink); }
+
+  /* ===== V14 · bảng chọn Chủ đề: tách ra khỏi header (không bị cắt/che), luôn nằm trọn trong màn hình ===== */
+  .priority-theme-picker[open] .priority-theme-options{ display:none !important; }
+  .priority-theme-options.is-floating{
+    display:grid !important; position:fixed !important; right:auto !important; bottom:auto !important;
+    transform:none !important; margin:0 !important; z-index:100000 !important;
+    overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+    background:var(--card, #231a14); border:1.5px solid var(--line, #6b5535);
+  }
+  html:not(.priority) .priority-theme-options.is-floating{ display:none !important; }
+  header.top.theme-menu-open{ z-index:3000 !important; }
 </style>
 </head>
 <body>
@@ -1866,10 +2094,16 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
           <div class="noti-body" id="noti-list-body"><div style="padding:16px; text-align:center; font-size:12px; color:var(--muted);">Không có thông báo nào</div></div>
         </div>
       </div>
-      <div class="user-badge">
-        <span class="user-avatar-emoji" id="user-avatar-display">🐱</span>
+      <div class="user-badge" id="user-badge">
+        <div class="ping-orb p-off" id="ping-orb" role="status" aria-live="off" title="Tốc độ kết nối tới máy chủ"><b id="ping-val">--</b><small>ms</small></div>
+        <span class="user-avatar-emoji" id="user-avatar-display" hidden>🐱</span>
+        <i class="on-dot" id="me-dot"></i>
         <span id="user-display">---</span>
         <button class="btn small ghost" id="btn-logout">Thoát</button>
+      </div>
+      <div class="onshift-box" id="onshift-box" aria-live="polite">
+        <span class="onshift-head"><span>👥 Đang trong ca</span><span class="cnt" id="onshift-cnt">0</span></span>
+        <div class="onshift-list" id="onshift-list"><span class="onshift-empty">Đang tải…</span></div>
       </div>
     </div>
   </header>
@@ -10282,6 +10516,198 @@ function renderCheckoutOverview(){
 })();
 posRefreshShiftClockControls();
 posRenderProductSalesRanking();
+</script>
+
+<script>
+/* ===== V11: Ping + tên đang trong ca + danh sách nhân viên đang trong ca (mọi quán) ===== */
+(function(){
+  var DB_URL = 'https://tra-sua-meo-xam-default-rtdb.asia-southeast1.firebasedatabase.app';
+  var PING_PATH = '/meoxam_data/shiftCashFund/zMoney.json';
+  var orb = document.getElementById('ping-orb'), val = document.getElementById('ping-val');
+  var meDot = document.getElementById('me-dot');
+  var box = document.getElementById('onshift-box'), list = document.getElementById('onshift-list'), cnt = document.getElementById('onshift-cnt');
+  if(!orb || !box) return;
+
+  /* ---- PING: đo thời gian 1 request nhỏ tới máy chủ Firebase (nhận 401 cũng tính, vì vẫn là 1 vòng đi-về) ---- */
+  var samples = [], failStreak = 0, pingTimer = null;
+  function setOrb(ms){
+    var cls = 'p-off', txt = '--', tip = 'Mất kết nối máy chủ';
+    if(ms != null){
+      txt = String(ms);
+      if(ms <= 70){ cls='p-good'; tip='Mạng tốt'; } else if(ms <= 120){ cls='p-mid'; tip='Mạng ổn'; }
+      else if(ms <= 200){ cls='p-slow'; tip='Mạng chậm'; } else { cls='p-bad'; tip='Mạng rất chậm'; }
+      tip += ' — ping ' + ms + ' ms';
+    } else if(window.__fbConnected === false || failStreak >= 2){ cls='p-bad'; txt='×'; }
+    orb.className = 'ping-orb ' + cls; val.textContent = txt; orb.title = tip;
+  }
+  function measure(){
+    if(document.hidden || typeof CURRENT_USER === 'undefined' || !CURRENT_USER){ return; }
+    var t0 = performance.now();
+    var ctl = ('AbortController' in window) ? new AbortController() : null;
+    var to = setTimeout(function(){ if(ctl) ctl.abort(); }, 8000);
+    fetch(DB_URL + PING_PATH + '?_=' + Date.now(), { cache:'no-store', signal: ctl ? ctl.signal : undefined })
+      .then(function(r){ return r.text(); })
+      .then(function(){
+        clearTimeout(to); failStreak = 0;
+        var ms = Math.max(1, Math.round(performance.now() - t0));
+        samples.push(ms); if(samples.length > 3) samples.shift();
+        var sorted = samples.slice().sort(function(a,b){ return a-b; });
+        setOrb(sorted[Math.floor(sorted.length/2)]);   /* trung vị 3 lần đo gần nhất cho đỡ giật số */
+      })
+      .catch(function(){ clearTimeout(to); failStreak++; samples = []; setOrb(null); });
+  }
+  function schedulePing(){
+    clearInterval(pingTimer);
+    var lite = document.documentElement.classList.contains('lite');
+    pingTimer = setInterval(measure, lite ? 15000 : 5000);
+  }
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) measure(); });
+  window.addEventListener('online', measure);
+  window.addEventListener('offline', function(){ failStreak = 2; setOrb(null); });
+  new MutationObserver(schedulePing).observe(document.documentElement, { attributes:true, attributeFilter:['class'] });
+  schedulePing(); setTimeout(measure, 1200);
+
+  /* ---- Tên mình + chấm xanh online ---- */
+  function renderMe(){
+    if(typeof CURRENT_USER === 'undefined' || !CURRENT_USER) return;
+    var inShift = true;
+    if(CURRENT_USER.role === 'staff' && typeof posIsStaffClockedIn === 'function'){ try{ inShift = posIsStaffClockedIn(CURRENT_USER); }catch(e){} }
+    meDot.className = 'on-dot' + (inShift ? '' : ' off');
+    meDot.title = inShift ? 'Đang online' : 'Chưa vào ca';
+  }
+
+  /* ---- Nhân viên đang trong ca ---- */
+  var shopRecs = {};          /* shopId -> mảng chấm công mới nhất của quán đó */
+  var shopRefs = [];          /* [{ref, fn}] để gỡ listener khi đổi danh sách quán */
+  var listenKey = '';
+  function esc(x){ return (typeof escapeHtml === 'function') ? escapeHtml(x) : String(x||'').replace(/[&<>"']/g,''); }
+  function shortShop(name){
+    var n = String(name||'').replace(/^\s*Tiệm\s+Trà\s+Mèo\s+Xám\s*/i,'').trim();
+    return n || String(name||'Quán');
+  }
+  function shiftDayOf(a){ try{ return posClockShiftDay(a); }catch(e){ return a && a.shiftDay || ''; } }
+  function computeOnShift(){
+    var out = [], today = '';
+    try{ today = getShiftDayStr(); }catch(e){ return out; }
+    (typeof SHOP_LIST !== 'undefined' ? SHOP_LIST : []).forEach(function(shop){
+      var recs = shopRecs[shop.id]; if(!Array.isArray(recs)) return;
+      var latest = {};
+      recs.forEach(function(a){
+        if(!a || (a.type !== 'Vào ca làm' && a.type !== 'Ra ca làm')) return;
+        var k = a.staffId || a.staffName; if(!k) return;
+        var t = Number(a.timestamp) || 0;
+        if(!latest[k] || t > (Number(latest[k].timestamp)||0)) latest[k] = a;
+      });
+      Object.keys(latest).forEach(function(k){
+        var a = latest[k];
+        if(a.type === 'Vào ca làm' && shiftDayOf(a) === today){
+          out.push({ name:a.staffName || '---', shop:shop.name, ts:Number(a.timestamp)||0 });
+        }
+      });
+    });
+    out.sort(function(x,y){ return x.ts - y.ts; });
+    return out;
+  }
+  function renderOnShift(){
+    renderMe();
+    var rows = computeOnShift();
+    cnt.textContent = rows.length;
+    if(!rows.length){ list.innerHTML = '<span class="onshift-empty">Chưa có ai vào ca</span>'; return; }
+    list.innerHTML = rows.map(function(r){
+      return '<span class="onshift-chip"><i class="on-dot"></i><b>' + esc(r.name) + '</b><em>quán ' + esc(shortShop(r.shop)) + '</em></span>';
+    }).join('');
+  }
+  function detach(){
+    shopRefs.forEach(function(x){ try{ x.ref.off('value', x.fn); }catch(e){} });
+    shopRefs = []; shopRecs = {};
+  }
+  function attach(){
+    if(typeof db === 'undefined' || !db || typeof CURRENT_USER === 'undefined' || !CURRENT_USER || typeof SHOP_LIST === 'undefined') return;
+    /* Chủ quán xem tất cả quán; nhân viên chỉ thấy quán mình đang đăng nhập */
+    var shops = (CURRENT_USER.role === 'owner') ? SHOP_LIST : SHOP_LIST.filter(function(s){ return s.id === CURRENT_SHOP_ID; });
+    var key = CURRENT_USER.role + '|' + shops.map(function(s){ return s.id; }).join(',');
+    if(key === listenKey) return;
+    detach(); listenKey = key;
+    shops.forEach(function(shop){
+      /* chỉ tải 80 bản ghi chấm công mới nhất của mỗi quán (mảng lưu mới nhất ở đầu) */
+      var ref = db.ref(shopDataPath(shop.id) + '/attendance').orderByKey().limitToFirst(80);
+      var fn = function(snap){
+        var v = snap.val(), arr = [];
+        if(Array.isArray(v)) arr = v.filter(Boolean); else if(v && typeof v === 'object') arr = Object.keys(v).map(function(k){ return v[k]; });
+        shopRecs[shop.id] = arr; renderOnShift();
+      };
+      ref.on('value', fn, function(){ shopRecs[shop.id] = []; renderOnShift(); });
+      shopRefs.push({ ref:ref, fn:fn });
+    });
+  }
+  function tick(){
+    var logged = (typeof CURRENT_USER !== 'undefined' && CURRENT_USER);
+    box.style.display = logged ? '' : 'none';
+    if(!logged){ detach(); listenKey = ''; renderMe(); return; }
+    attach(); renderOnShift();
+  }
+  setInterval(tick, 3000);       /* theo dõi đăng nhập/đổi quán + tự cập nhật khi qua mốc ca mới */
+  setTimeout(tick, 800);
+  window.meoxamRefreshOnShift = tick;
+})();
+</script>
+
+<script>
+/* ===== V14: bảng chọn Chủ đề — tự đóng khi chọn / bấm ra ngoài / nhấn Esc, luôn nằm trọn trong màn hình ===== */
+(function(){
+  var picker = document.getElementById('priority-theme-picker'); if(!picker) return;
+  var panel = picker.querySelector('.priority-theme-options'), sum = picker.querySelector('summary');
+  var hdr = document.querySelector('header.top'); if(!panel || !sum) return;
+  var raf = 0;
+  function place(){
+    if(!panel.classList.contains('is-floating')) return;
+    var vw = window.innerWidth, vh = window.innerHeight, m = 12;
+    var w = Math.min(340, vw - 2*m);
+    panel.style.width = w + 'px';
+    panel.style.maxHeight = (vh - 2*m) + 'px';
+    var r = sum.getBoundingClientRect();
+    var left = Math.max(m, Math.min(r.right - w, vw - w - m));
+    var h = panel.offsetHeight, below = vh - r.bottom - m - 7, above = r.top - m - 7, top;
+    if(h <= below){ top = r.bottom + 7; }
+    else if(h <= above){ top = r.top - 7 - h; }
+    else if(below >= above){ top = r.bottom + 7; panel.style.maxHeight = Math.max(180, below) + 'px'; }
+    else { var mh = Math.max(180, above); panel.style.maxHeight = mh + 'px'; top = r.top - 7 - mh; }
+    panel.style.left = left + 'px';
+    panel.style.top = Math.max(m, top) + 'px';
+  }
+  function schedule(){ if(raf) return; raf = requestAnimationFrame(function(){ raf = 0; place(); }); }
+  function openPanel(){
+    document.body.appendChild(panel);            /* gắn vào body: không bị header che/cắt */
+    panel.classList.add('is-floating');
+    if(hdr) hdr.classList.add('theme-menu-open');
+    place(); schedule();
+  }
+  function closePanel(){
+    if(panel.classList.contains('is-floating')){
+      panel.classList.remove('is-floating');
+      panel.removeAttribute('style');
+      picker.appendChild(panel);                 /* trả về chỗ cũ */
+    }
+    if(picker.hasAttribute('open')){ picker.open = false; picker.removeAttribute('open'); }
+    if(hdr) hdr.classList.remove('theme-menu-open');
+  }
+  picker.addEventListener('toggle', function(){ if(picker.open) openPanel(); else closePanel(); });
+  /* chọn theme => đóng bảng NGAY (trước khi áp theme), tránh bảng bị kẹt nếu bước sau gặp lỗi */
+  panel.addEventListener('click', function(e){
+    if(e.target.closest && e.target.closest('[data-priority-theme-choice]')) closePanel();
+  }, true);
+  document.addEventListener('pointerdown', function(e){
+    if(!picker.open) return;
+    if(panel.contains(e.target) || picker.contains(e.target)) return;
+    closePanel();
+  }, true);
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && picker.open){ closePanel(); try{ sum.focus(); }catch(_){} } });
+  window.addEventListener('resize', schedule);
+  window.addEventListener('scroll', schedule, true);
+  /* tắt Priority / bật Chế độ nhẹ khi bảng đang mở => đóng luôn */
+  new MutationObserver(function(){ if(!document.documentElement.classList.contains('priority')) closePanel(); })
+    .observe(document.documentElement, { attributes:true, attributeFilter:['class'] });
+})();
 </script>
 </body>
 </html>
