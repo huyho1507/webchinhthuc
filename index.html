@@ -1548,6 +1548,62 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
   html:not(.priority) .priority-theme-options.is-floating{ display:none !important; }
   header.top.theme-menu-open{ z-index:3000 !important; }
 </style>
+<style id="mx-v15">
+:root{--doodle-mask:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNDIwIiB2aWV3Qm94PSIwIDAgNDIwIDQyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWY1YzNhIiBzdHJva2Utb3BhY2l0eT0iMC4zMCIgc3Ryb2tlLXdpZHRoPSIyLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI4LDMwKSByb3RhdGUoLTggNDAgNDApIj48cGF0aCBkPSJNOCA0MCBRNSAxMiAxNCA4IEwyNyAyMSBRNDAgMTcgNTMgMjEgTDY2IDggUTc1IDEyIDcyIDQwIFE3MiA2OCA0MCA2OCBROCA2OCA4IDQwWiIvPjxwYXRoIGQ9Ik0yOCA0MWguMU01MiA0MWguMSIgc3Ryb2tlLXdpZHRoPSI1Ii8+PHBhdGggZD0iTTM1IDUxIFE0MCA1NiA0NSA1MSIvPjxwYXRoIGQ9Ik00IDQ0IEwxOCA0Nk00IDUzIEwxOCA1MU03NiA0NCBMNjIgNDZNNzYgNTMgTDYyIDUxIi8+PC9nPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNjIsMjQpIHJvdGF0ZSg4IDM1IDQ1KSI+PHBhdGggZD0iTTEwIDIySDYwTDU0IDg2UTUzIDkyIDQ3IDkySDIzUTE3IDkyIDE2IDg2WiIvPjxwYXRoIGQ9Ik02IDIySDY0Ii8+PHBhdGggZD0iTTQyIDIyTDU0IDAiLz48Y2lyY2xlIGN4PSIyOCIgY3k9Ijc2IiByPSI0LjUiLz48Y2lyY2xlIGN4PSI0MSIgY3k9IjgwIiByPSI0LjUiLz48Y2lyY2xlIGN4PSI0OCIgY3k9IjY5IiByPSI0LjUiLz48Y2lyY2xlIGN4PSIzNCIgY3k9IjY2IiByPSI0LjUiLz48cGF0aCBkPSJNMTQgMzhINTYiIHN0cm9rZS1kYXNoYXJyYXk9IjMgNiIvPjwvZz4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTUwLDQwKSI+PHBhdGggZD0iTTAgMTJRLTktNi0yMiAyUS0zMCAxNiAwIDM4UTMwIDE2IDIyIDJROS02IDAgMTJaIi8+PC9nPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNjAsMTUwKSI+PHBhdGggZD0iTTAtMjAgNi03IDIwLTcgOSAzIDEzIDE4IDAgMTAtMTMgMTgtOSAzLTIwLTctNi03WiIvPjwvZz4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjAsMTcwKSByb3RhdGUoLTE0IDMwIDMwKSI+PHBhdGggZD0iTTQgMzBRMjggMiA1NCAzMFEyOCA1OCA0IDMwWiIvPjxwYXRoIGQ9Ik01NCAzMEw3NiAxMlY0OFoiLz48Y2lyY2xlIGN4PSIxOSIgY3k9IjI2IiByPSIyLjYiLz48cGF0aCBkPSJNMzAgMjBRMzQgMzAgMzAgNDAiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE1MCwxNjApIj48cGF0aCBkPSJNMCAzNFEtNSAxNCAxNCAxNFExNi00IDM0IDRRNDgtNiA1OCAxMlE3NiAxMiA3MCAzNFoiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI1OCwyMTIpIHJvdGF0ZSgxNCAzMCA0MCkiPjxlbGxpcHNlIGN4PSIzMCIgY3k9IjUwIiByeD0iMTciIHJ5PSIxNCIvPjxlbGxpcHNlIGN4PSI3IiBjeT0iMjgiIHJ4PSI2IiByeT0iOC41Ii8+PGVsbGlwc2UgY3g9IjIyIiBjeT0iMTQiIHJ4PSI2IiByeT0iOC41Ii8+PGVsbGlwc2UgY3g9IjM5IiBjeT0iMTQiIHJ4PSI2IiByeT0iOC41Ii8+PGVsbGlwc2UgY3g9IjU0IiBjeT0iMjgiIHJ4PSI2IiByeT0iOC41Ii8+PC9nPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNCwzMTgpIHJvdGF0ZSg2IDQwIDMwKSI+PGNpcmNsZSBjeD0iMzQiIGN5PSIzNCIgcj0iMjYiLz48cGF0aCBkPSJNMTIgMjJRMzQgNDAgNTYgMjBNMTAgMzZRMzQgNTIgNTggMzRNMjAgNTZRNDAgMzAgNTAgMTIiLz48cGF0aCBkPSJNNTggNTBRNzYgNTggODQgNDRROTAgMzQgMTAwIDQwIiAvPjwvZz4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYwLDMwMCkgcm90YXRlKC0xMCAzMCAzMCkiPjxwYXRoIGQ9Ik02IDQ0UTYgOCA0MiA2UTQ0IDQ0IDYgNDRaIi8+PHBhdGggZD0iTTYgNDRMMzAgMjAiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI1MCwzMjYpIHJvdGF0ZSgtNiA0MCAzMCkiPjxwYXRoIGQ9Ik02IDE0SDMwTDM2IDRINjJMNjggMTRIODZROTQgMTQgOTQgMjJWNTJROTQgNjAgODYgNjBIMTRRNiA2MCA2IDUyVjIyUTYgMTQgNiAxNFoiIHRyYW5zZm9ybT0ic2NhbGUoLjgpIi8+PGNpcmNsZSBjeD0iNDQiIGN5PSIzNCIgcj0iMTIiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1MiwyNjIpIj48cGF0aCBkPSJNMC0xNFYxNE0tMTQgMEgxNCIvPjwvZz4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTIwLDExOCkiPjxwYXRoIGQ9Ik0wLTlWOU0tOSAwSDkiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM5Miw0MCkiPjxwYXRoIGQ9Ik0wLTlWOU0tOSAwSDkiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyMCwxNTApIj48Y2lyY2xlIHI9IjMiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOTAsMjkwKSI+PGNpcmNsZSByPSIzIi8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMzMCwyNDApIj48Y2lyY2xlIHI9IjMiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjAwLDI1OCkiPjxjaXJjbGUgcj0iMyIvPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzOTUsMzYwKSI+PGNpcmNsZSByPSIzIi8+PC9nPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNDAsMzQwKSByb3RhdGUoMTApIj48cGF0aCBkPSJNMCA4US02LTYtMTUgMFEtMjEgOSAwIDI1UTIxIDkgMTUgMFE2LTYgMCA4WiIgdHJhbnNmb3JtPSJzY2FsZSguNykiLz48L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIwNiwzOTgpIHJvdGF0ZSgtMjApIj48cGF0aCBkPSJNMCAwSDM2TTgtOCAwIDAgOCA4TTI4LTggMzYgMCAyOCA4Ii8+PC9nPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5NiwzOTIpIj48cGF0aCBkPSJNMCAwUTEyLTE0IDI0IDBUNDggMCIvPjwvZz4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTEwLDI1MCkiPjxwYXRoIGQ9Ik0wIDBRNi0xMiAxNCAwUTYgMTIgMCAwWiIvPjwvZz4KPC9zdmc+Cg==")}
+/* ô bạc chuyển quán + đồng bộ chiều cao các ô đầu trang */
+.header-stats>.quick-z-badge,.header-stats>.shift-money-badge,.header-stats>.owner-money-badge,.header-stats>.views-badge{min-height:92px;border-radius:14px}
+.quick-z-badge.quick-shop-badge{background:linear-gradient(135deg,#fdfdfe,#d5dae0 52%,#b4bcc6)!important;border-color:#8b95a1!important;box-shadow:0 4px 12px rgba(70,82,98,.30)!important}
+.quick-shop-badge .z-quick-title{color:#38424d!important;border-bottom-color:rgba(56,66,77,.32)!important}
+.quick-shop-badge .z-quick-value{color:#1d2630!important;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quick-shop-badge .z-quick-hint{color:#46515d!important}
+/* thống kê nguyên liệu theo quán */
+.mx-shop-tag{font-size:.7em;font-weight:800;opacity:.8;margin-left:4px}
+.mx-ips{margin-top:12px;border:1.5px dashed var(--line);border-radius:14px;padding:8px 12px;background:var(--soft)}
+.mx-ips>summary{cursor:pointer;font-weight:900;font-size:14px}
+.mx-ips-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.mx-ips-bar input[type=month]{width:auto;font-weight:700}
+.mx-scroll{overflow-x:auto}
+.mx-ips-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:540px}
+.mx-ips-table th,.mx-ips-table td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.mx-ips-table th:first-child,.mx-ips-table td:first-child{text-align:left}
+.mx-ips-table tr.cur{background:rgba(128,128,128,.14)}
+.mx-ips-table tfoot td{font-weight:900;border-top:2px solid var(--line);border-bottom:0}
+.mx-shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.mx-shop-card{border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--card);min-width:0}
+.mx-shop-card.cur{border-color:var(--accent);box-shadow:0 0 0 2px rgba(230,126,34,.18)}
+.mx-sc-top{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:13px}
+.mx-sc-top small{font-size:10px;font-weight:800;color:var(--accent)}
+.mx-sc-top .btn{padding:3px 10px;font-size:11px}
+.mx-sc-total{font-size:19px;font-weight:900;margin:4px 0;color:var(--accent);font-variant-numeric:tabular-nums}
+.mx-sc-chips{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11.5px;font-weight:700}
+.mx-sc-n{font-size:11px;color:var(--muted);margin-top:3px}
+.mx-sc-sum{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-top:8px;padding:8px 10px;border-radius:12px;background:var(--card);border:1.5px dashed var(--line);font-size:12.5px;font-weight:800}
+.mx-sc-sum b{font-size:17px;color:var(--accent)}
+.mx-sc-sum small{flex-basis:100%;font-size:11px;font-weight:700;color:var(--muted)}
+/* chấm công theo từng quán */
+.mx-att-cur{font-weight:900;color:var(--accent);margin:-2px 0 8px;font-size:13px}
+.mx-att-card{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;background:var(--soft);font-size:13px}
+.mx-att-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.mx-att-row label{display:flex;align-items:center;gap:6px;font-weight:700}
+.mx-att-row input[type=number]{width:92px;margin:0}
+.mx-att-row input[type=checkbox]{width:auto}
+/* theme Priority: nền gốc của từng theme + họa tiết mèo/trà sữa như nền xanh gốc */
+html.priority[data-priority-theme]:not([data-priority-theme="classic"]){
+  --pt-wallpaper:
+    radial-gradient(circle at 6% 0%,color-mix(in srgb,var(--pt-accent) 22%,transparent) 0,transparent 46%),
+    radial-gradient(circle at 100% 100%,color-mix(in srgb,var(--pt-accent) 15%,transparent) 0,transparent 42%),
+    radial-gradient(circle at 28% 82%,color-mix(in srgb,var(--pt-line) 40%,transparent) 0,transparent 56%),
+    linear-gradient(150deg,color-mix(in srgb,var(--pt-bg) 80%,#000),var(--pt-bg) 48%,var(--pt-panel));
+  --bg-doodle:var(--pt-wallpaper);--pt-doodle-o:.62;
+  background-color:var(--pt-bg)!important;background-image:var(--pt-wallpaper)!important;background-attachment:fixed!important;
+}
+html.priority[data-priority-theme="latte"]{--pt-doodle-o:.85}
+html.priority[data-priority-theme]:not([data-priority-theme="classic"]) body{background:transparent!important}
+html.priority[data-priority-theme]:not([data-priority-theme="classic"]) body::before{
+  background:var(--pt-accent);opacity:var(--pt-doodle-o);
+  -webkit-mask:var(--doodle-mask) 0 0/420px 420px repeat;mask:var(--doodle-mask) 0 0/420px 420px repeat;
+}
+</style>
 </head>
 <body>
 
@@ -2041,6 +2097,11 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
       <div class="z-quick-value" id="hdr-quick-shift" style="font-size:16px;">Hôm nay</div>
       <div class="z-quick-hint">＋ Mở bảng xếp ca hôm nay</div>
     </div>
+    <div class="quick-z-badge quick-shop-badge owner-only" id="quick-shop-badge" onclick="mxOpenShopSwitch()" title="Bấm để chuyển nhanh giữa các quán">
+      <div class="z-quick-title">🏪 CHUYỂN QUÁN NHANH</div>
+      <div class="z-quick-value" id="hdr-shop-name">…</div>
+      <div class="z-quick-hint" id="hdr-shop-hint">⇄ Bấm để đổi quán</div>
+    </div>
     <div class="shift-money-badge owner-only" id="shift-money-badge">
       <div style="font-size:11px; font-weight:800; color:var(--accent); margin-bottom:2px; border-bottom:1px dashed #dcd5c2; padding-bottom:2px;">⚡ TIỀN TRONG CA (HÔM NAY)</div>
       <div class="money-row"><span>💵 Tiền mặt:</span><b id="hdr-shift-cash" style="color:var(--good);">0đ</b></div>
@@ -2300,7 +2361,7 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
 
   <section class="panel staff-visible" id="tab-ing">
     <details class="card ing-fold" id="ing-purchase-card" style="border-color:#f5c26b;">
-      <summary><h2 style="color:#b45309;">🧾 Tiền Mua Nguyên Liệu</h2><span class="ing-fold-badge" id="ipur-sum-badge"></span><span class="ing-fold-arrow"></span></summary>
+      <summary><h2 style="color:#b45309;">🧾 Tiền Mua Nguyên Liệu<span class="mx-shop-tag"></span></h2><span class="ing-fold-badge" id="ipur-sum-badge"></span><span class="ing-fold-arrow"></span></summary>
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:8px;">
         <div><label style="font-size:12px; font-weight:700; color:var(--muted);">💵 Số tiền mua (đ):</label><input type="number" id="ipur-amount" class="num" min="0" step="1000" value="" placeholder="VD: 250.000" style="margin-top:4px; font-weight:800; font-size:15px;"></div>
         <div><label style="font-size:12px; font-weight:700; color:var(--muted);">💳 Thanh toán bằng:</label>
@@ -2313,11 +2374,16 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
       </div>
       <button class="btn success" style="margin-top:12px; width:100%; font-size:15px;" onclick="ingPurStart()">📸 CHỤP BILL &amp; LƯU</button>
       <div style="font-size:11.5px; color:var(--muted); margin-top:6px;">Bắt buộc chụp bill mới lưu được. Tiền mặt trừ vào Quỹ Tiền Mặt Tổng, chuyển khoản trừ vào Quỹ Tài Khoản Tổng; tiền nhân viên ứng sẽ ghi quán nợ lại nhân viên.</div>
+      <details class="mx-ips owner-only" id="mx-ips" ontoggle="if(this.open) mxIngLoad(false)">
+        <summary>🏪 Thống kê chi phí nguyên liệu theo từng quán</summary>
+        <div class="mx-ips-bar"><input type="month" id="mx-ips-month" onchange="mxIngShopUi()"><button type="button" class="btn small ghost" onclick="mxIngLoad(true)">🔄 Tải lại</button></div>
+        <div id="mx-ips-body"></div>
+      </details>
       <div id="ipur-summary" style="margin-top:12px; display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px;"></div>
       <div id="ipur-list" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;"></div>
     </details>
     <details class="card ing-fold" id="ing-main-fold">
-      <summary><h2>📦 Quản Lý Tồn Kho &amp; Giá Vốn Nguyên Liệu</h2><span class="ing-fold-arrow"></span></summary>
+      <summary><h2>📦 Quản Lý Tồn Kho &amp; Giá Vốn Nguyên Liệu<span class="mx-shop-tag"></span></h2><span class="ing-fold-arrow"></span></summary>
       <div class="ing-head" style="justify-content:flex-end;">
         <button class="btn success owner-only" id="btn-save-all-ingredients">💾 LƯU GIÁ VỐN KHO</button>
       </div>
@@ -2460,6 +2526,7 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
       <details class="settings-fold ing-fold card" style="margin-top:14px;"><summary class="settings-fold-summary"><h2>📸 Chấm Công Bằng Ảnh &amp; Vị Trí</h2><span class="ing-fold-arrow"></span></summary>
         
         <p style="font-size:12.5px; color:var(--muted); margin:-2px 0 12px;">Khi vào ca, nhân viên phải chụp selfie bằng camera trực tiếp (không chọn ảnh có sẵn). Ảnh được đóng dấu giờ theo máy chủ Firebase cùng khoảng cách tới quán, và tự xóa sau 45 ngày.</p>
+        <div class="mx-att-cur" id="mx-att-cur"></div>
         <div id="att-shop-coords-label" style="background:var(--soft); padding:10px 12px; border-radius:10px; font-size:13px; margin-bottom:10px;">---</div>
         <button class="btn small ghost" id="btn-set-shop-location" onclick="setShopLocationFromHere()">📍 Lấy vị trí hiện tại làm vị trí quán</button>
         <span style="font-size:11.5px; color:var(--muted); margin-left:6px;">(bấm khi đang đứng trong quán, bằng điện thoại)</span>
@@ -2468,6 +2535,7 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
           <label style="font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; cursor:pointer; padding-bottom:8px;"><input type="checkbox" id="att-require-photo" style="width:auto;"> Bắt buộc chụp ảnh khi vào ca</label>
         </div>
         <button class="btn success small" style="margin-top:14px;" onclick="saveAttendanceCfg()">💾 Lưu Cài Đặt Chấm Công</button>
+        <div id="mx-att-shops"></div>
       </details>
 
 
@@ -4412,6 +4480,7 @@ function initShopRegistry(){
   });
 }
 function renderShopBranchesSettings(){
+  try{ mxShopBadge(); }catch(e){}
   const box = document.getElementById('shop-branches-list'); if(!box) return;
   box.innerHTML = SHOP_LIST.map(shop => `<div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap; padding:7px 9px; background:var(--soft); border-radius:9px;"><span style="font-size:12px; font-weight:800; min-width:68px;">${shop.id==='main'?'Quán gốc':'Chi nhánh'}</span><input type="text" value="${escapeHtml(shop.name)}" data-shop-name-id="${escapeHtml(shop.id)}" style="flex:1; min-width:180px;"><button type="button" class="btn small ghost" onclick="renameShopBranch('${escapeHtml(shop.id)}')">Lưu tên</button>${shop.id!=='main'?`<button type="button" class="btn small danger" onclick="deleteShopBranch('${escapeHtml(shop.id)}')">🗑️ Xóa</button>`:''}</div>`).join('');
 }
@@ -4461,7 +4530,7 @@ function addShopBranch(){
   initial.orders = []; initial.monthlySchedules = []; initial.attendance = []; initial.closedPayrolls = []; initial.inventoryLogs = [];
   initial.cashFund = {cash:0, bank:0, float:0};
   initial.shiftCashFund = {cash:0, bank:0, manualAdjustCash:0, manualAdjustBank:0, lastSettledDate:toVNDateStr(getVietnamTimeNow()), zMoney:0};
-  initial.cashFundLogs = []; initial.notifications = [];
+  initial.cashFundLogs = []; initial.notifications = []; initial.ingredientPurchases = [];
   db.ref(shopDataPath(id)).set(initial).then(() => db.ref(SHOP_REGISTRY_PATH + '/' + id).set({name:name, createdAt:Date.now(), sharedTags:['3','6','9']})).then(() => {
     input.value = ''; showToast('✅ Đã tạo quán mới với doanh thu/lương riêng.');
   }).catch(err => alert('Không tạo được quán: ' + (err.message || err)));
@@ -4539,7 +4608,7 @@ function applyRolePermissions(){
   try{ applyPriorityState(); }catch(e){}
   document.getElementById('user-avatar-display').textContent = CURRENT_USER.emoji || (isOwner ? '👑' : '🐱');
   document.getElementById('user-display').textContent = `${CURRENT_USER.name} (${isOwner?'Chủ quán':'Nhân viên'})`;
-  document.getElementById('role-subtitle').textContent = (isOwner ? 'Quyền Chủ Quán — Quản lý toàn diện' : 'Quyền Nhân Viên — Order, Chấm công & Đổi PIN') + ' | 🏪 ' + CURRENT_SHOP_NAME;
+  document.getElementById('role-subtitle').textContent = (isOwner ? 'Quyền Chủ Quán — Quản lý toàn diện' : 'Quyền Nhân Viên — Order, Chấm công & Đổi PIN') + ' | 🏪 ' + CURRENT_SHOP_NAME; try{ mxShopBadge(); }catch(e){}
   document.querySelectorAll('.owner-only').forEach(el=>{ el.style.display = isOwner ? 'block' : 'none'; });
   const bellContainer = document.getElementById('noti-bell-container');
   if (bellContainer) bellContainer.style.display = isOwner ? 'inline-block' : 'none';
@@ -7000,6 +7069,7 @@ function renderAttendanceCfg(){
     : '⚠️ Chưa đặt vị trí quán nên chưa tính được khoảng cách (ảnh và GPS thô vẫn được ghi).';
   _cid('att-radius-input').value = getAttRadius();
   _cid('att-require-photo').checked = c.requireCheckinPhoto !== false;
+  try{ mxAttShops(); if(!MX_ATT.t){ MX_ATT.t = 1; mxAttLoad(); } }catch(e){}
 }
 function _restoreCfgKey(key, val){ if(val === undefined) delete DATA.config[key]; else DATA.config[key] = val; }
 function setShopLocationFromHere(){
@@ -7720,7 +7790,7 @@ function ingPurConfirm(){
   const pd = IPUR.pending, id = uid('ipur'), photoId = 'bill_' + id, nowVN = getVietnamTimeNow(), p2 = n => String(n).padStart(2,'0');
   ensureFundStructure();
   const rec = { id, date: getShiftDayStr(), timestamp: nowVN.getTime(), time: `${p2(nowVN.getHours())}:${p2(nowVN.getMinutes())} (${p2(nowVN.getDate())}/${p2(nowVN.getMonth()+1)})`,
-    amount: pd.amount, method: pd.method, note: pd.note, staffId: CURRENT_USER.id, staffName: getFormattedUserDisplayName(CURRENT_USER) || CURRENT_USER.name, photoId };
+    amount: pd.amount, method: pd.method, note: pd.note, shopId: CURRENT_SHOP_ID, shopName: CURRENT_SHOP_NAME, staffId: CURRENT_USER.id, staffName: getFormattedUserDisplayName(CURRENT_USER) || CURRENT_USER.name, photoId };
   rec.fund = pd.method === 'bank' ? 'bank' : 'cash';
   if(pd.method === 'staff') rec.reimbursed = false;
   Promise.resolve(saveAttPhoto(photoId, IPUR.shot, rec.timestamp)).catch(e => { try{ showToast('⚠️ Ảnh bill chưa lưu lên máy chủ, kiểm tra mạng.'); }catch(x){} });
@@ -7746,7 +7816,7 @@ function renderIngPurchases(){
   if(!list || !DATA) return;
   const isOwner = CURRENT_USER && CURRENT_USER.role === 'owner';
   const mk = getShiftDayStr().slice(0, 7);
-  const all = DATA.ingredientPurchases || [], rows = all.filter(r => (r.date || '').slice(0, 7) === mk);
+  const all = (DATA.ingredientPurchases || []).filter(ingPurOwn), rows = all.filter(r => (r.date || '').slice(0, 7) === mk);
   const outstanding = all.filter(r => r.method === 'staff' && !r.reimbursed).sort((a,b) => (Number(b.timestamp)||0) - (Number(a.timestamp)||0));
   const tot = m => rows.filter(r => !m || r.method === m).reduce((a, r) => a + (r.amount || 0), 0);
   const owed = outstanding.reduce((a, r) => a + (r.amount || 0), 0);
@@ -7757,6 +7827,7 @@ function renderIngPurchases(){
   const pendingHtml = outstanding.length ? `<section class="ipur-owed-panel"><div class="ipur-owed-heading"><span>💳 Khoản quán cần hoàn cho nhân viên</span><b>${outstanding.length} khoản · ${fmt(owed)}đ</b></div><div class="ipur-owed-hint">Các khoản ứng chưa hoàn từ mọi tháng. Chủ quán chọn đúng hình thức đã trả; số tiền sẽ được trừ khỏi quỹ tương ứng và khoản nợ chuyển sang “đã hoàn”.</div>${outstanding.map(r => `<article class="ipur-owed-row"><div class="ipur-owed-info"><div class="ipur-owed-person">${staffChip(r.staffName)}</div><div class="ipur-owed-meta">${escapeHtml(r.date || '')} · ${escapeHtml(r.time || '')}${r.note ? ' · ' + escapeHtml(r.note) : ''}</div>${r.photoId ? `<button class="btn ghost ipur-bill-btn" onclick="ingPurViewBill('${r.id}')">🧾 Xem bill</button>` : ''}</div><div class="ipur-owed-actions"><strong class="ipur-owed-amount">${fmt(r.amount)}đ</strong>${isOwner ? `<div class="ipur-refund-actions"><button class="btn ipur-refund-cash" onclick="ingPurReimburse('${r.id}','cash')">💵 Hoàn tiền mặt</button><button class="btn ipur-refund-bank" onclick="ingPurReimburse('${r.id}','bank')">📱 Hoàn chuyển khoản</button></div>` : '<span class="ipur-pending-badge">⏳ Chưa hoàn</span>'}</div></article>`).join('')}</section>` : `<div class="ipur-no-debt">✅ Không còn khoản nhân viên ứng nào đang chờ hoàn.</div>`;
   const monthRows = rows.length === 0 ? '<div class="ipur-empty">Tháng này chưa có lần mua nào.</div>' : rows.slice(0, 40).map(r => `<article class="ipur-month-row"><div class="ipur-month-info"><strong>${fmt(r.amount)}đ</strong><span class="ipur-method method-${escapeHtml(r.method || 'other')}">${escapeHtml(IPUR_METHODS[r.method] || '')}</span>${staffChip(r.staffName)}${r.note ? `<span class="ipur-note">${escapeHtml(r.note)}</span>` : ''}<div class="ipur-month-meta">${escapeHtml(r.date || '')} · ${escapeHtml(r.time || '')}${r.method === 'staff' ? (r.reimbursed ? ` · ✅ Đã hoàn${r.reimbursedBy ? ' bởi ' + escapeHtml(r.reimbursedBy) : ''}` : ' · ⏳ Chưa hoàn') : ''}</div></div><div class="ipur-month-actions">${r.photoId ? `<button class="btn ghost ipur-bill-btn" onclick="ingPurViewBill('${r.id}')">🧾 Xem bill</button>` : ''}${isOwner ? `<button class="btn ghost ipur-delete-btn" onclick="ingPurDelete('${r.id}')">🗑 Xóa</button>` : ''}</div></article>`).join('');
   list.innerHTML = pendingHtml + `<div class="ipur-month-heading">🗓️ Giao dịch mua nguyên liệu — tháng ${escapeHtml(mk)}</div>` + monthRows;
+  try{ mxIngShopUi(); }catch(e){}
 }
 function ingPurViewBill(id){
   const r = (DATA.ingredientPurchases || []).find(x => x.id === id); if(!r) return;
@@ -8123,7 +8194,7 @@ function initAnalyticsUI(){
   setRawNum('da-manual-staff-salary', DATA.config.manualStaffSalary !== undefined ? DATA.config.manualStaffSalary : 6000000);
   /* Chi phí nguyên liệu = tiền mua thực tế trong tháng (mục Tiền Mua Nguyên Liệu + nút Mua thêm ở bảng kho) */
   const _mk = getShiftDayStr().slice(0, 7);
-  let calculatedIngCost = (DATA.ingredientPurchases || []).filter(r => (r.date || '').slice(0, 7) === _mk).reduce((a, r) => a + (r.amount || 0), 0)
+  let calculatedIngCost = (DATA.ingredientPurchases || []).filter(ingPurOwn).filter(r => (r.date || '').slice(0, 7) === _mk).reduce((a, r) => a + (r.amount || 0), 0)
     + (DATA.inventoryLogs || []).filter(l => l.type === 'mua thành công' && l.timestamp && wkTsShiftDay(l.timestamp).slice(0, 7) === _mk).reduce((a, l) => a + (l.totalPrice || 0), 0);
   if(calculatedIngCost === 0) (DATA.ingredients || []).forEach(i => { calculatedIngCost += (i.pkgPrice || 0) * (i.restockCount || 1); });
   if(calculatedIngCost === 0) calculatedIngCost = DATA.config.ingredientCostTotal || 3000000;
@@ -9012,6 +9083,14 @@ function chatDayLabel(ts){
 
 let staffChatUnread = {};            // khóa = khóa nhóm (1 khách = 1 nhóm)
 let staffChatSeen = (function(){ try { return JSON.parse(localStorage.getItem('meoxam_chat_seen') || '{}') || {}; } catch(e) { return {}; } })();
+let staffChatSeenReady = !(typeof useFirebase !== 'undefined' && useFirebase && typeof db !== 'undefined' && db);   // chờ tải trạng thái "đã xem" dùng chung trước khi báo tin mới
+let CHAT_SEEN_REMOTE = {};
+function chatSeenKey(oid){ return String(oid).replace(/[.#$\[\]\/]/g, '_'); }
+function pushChatSeen(ids){
+  if(!(useFirebase && db)) return;
+  const upd = {}; ids.forEach(function(oid){ if(staffChatSeen[oid]) upd[chatSeenKey(oid)] = staffChatSeen[oid]; });
+  if(Object.keys(upd).length) db.ref('meoxam_chat_seen').update(upd).catch(function(){});
+}
 function saveStaffChatSeen() { try { localStorage.setItem('meoxam_chat_seen', JSON.stringify(staffChatSeen)); } catch(e) {} }
 
 /* ---- Gộp mọi cuộc chat của cùng 1 khách (chat theo đơn + chat theo tài khoản) thành 1 nhóm ---- */
@@ -9058,7 +9137,7 @@ function rebuildChatGroups(){
     g.ids.push(oid);
     const lk = ks[ks.length - 1], lm = ms[lk] || {}, ts = lm.timestamp || 0;
     if(!g.lastMsg || ts >= g.lastTs){ g.lastTs = ts; g.lastMsg = lm; g.lastId = oid; }
-    if(lm.sender === 'customer' && staffChatSeen[oid] !== lk) g.unread = true;   // tin cuối là của khách và chưa được xem
+    if(staffChatSeenReady && lm.sender === 'customer' && staffChatSeen[oid] !== lk && CHAT_SEEN_REMOTE[chatSeenKey(oid)] !== lk) g.unread = true;   // tin cuối là của khách và chưa được xem
   });
   CHAT_GROUPS = Object.keys(groups).map(function(k){ return groups[k]; }).sort(function(a, b){ return b.lastTs - a.lastTs; });
   CHAT_GROUP_MAP = groups; CHAT_ID_GROUP = {};
@@ -9079,7 +9158,7 @@ function markStaffChatSeen(ref) {
       if(m && m.sender === 'customer'){ if(staffChatSeen[oid] !== ks[i]){ staffChatSeen[oid] = ks[i]; changed = true; } break; }
     }
   });
-  if(changed) saveStaffChatSeen();
+  if(changed){ saveStaffChatSeen(); pushChatSeen(ids); }
   delete staffChatUnread[gk];
 }
 function updateStaffChatBadge() {
@@ -9136,10 +9215,20 @@ function staffChatRefreshSoon(){
 
 function initStaffChat() {
   if(!useFirebase || !db) return;
+  /* "Đã xem" lưu chung trên máy chủ: ai xem rồi thì mọi máy/tài khoản đều hết báo, đăng xuất/đăng nhập lại cũng không báo lại */
+  db.ref('meoxam_chat_seen').on('value', snap => {
+    const remote = snap.val() || {}, firstLoad = !staffChatSeenReady, missing = [];
+    CHAT_SEEN_REMOTE = remote;
+    if(firstLoad) Object.keys(staffChatSeen).forEach(function(oid){ if(!remote[chatSeenKey(oid)]) missing.push(oid); });
+    staffChatSeenReady = true; saveStaffChatSeen();
+    if(missing.length) pushChatSeen(missing);
+    rebuildChatGroups(); updateStaffChatBadge(); staffChatRefreshSoon();
+  });
   db.ref('meoxam_data/chats').on('value', snap => {
     ALL_CHATS = snap.val() || {};
     rememberAllChatMetaSoon();
     rebuildChatGroups();
+    { const pn = document.getElementById('staff-chat-panel'); if(staffChatActiveOrderId && pn && pn.classList.contains('open')){ markStaffChatSeen(staffChatActiveOrderId); } }
     const btn = document.getElementById('staff-chat-btn');
     if(btn) btn.style.display = 'flex';
     updateStaffChatBadge();
@@ -10708,6 +10797,109 @@ posRenderProductSalesRanking();
   new MutationObserver(function(){ if(!document.documentElement.classList.contains('priority')) closePanel(); })
     .observe(document.documentElement, { attributes:true, attributeFilter:['class'] });
 })();
+</script>
+<script>
+/* ===== v15: tách dữ liệu theo quán / chi nhánh ===== */
+const MX_IPUR={cache:{}}, MX_ATT={cache:{},t:0};
+const MX_MAIN={ids:null,loading:false};
+function mxCopied(r,shopId){ return !!(r && !r.shopId && shopId!=='main' && MX_MAIN.ids && MX_MAIN.ids[r.id]); }
+function ingPurOwn(r){ if(!r) return true; if(r.shopId) return r.shopId===CURRENT_SHOP_ID; return !mxCopied(r,CURRENT_SHOP_ID); }
+function mxEnsureMainIds(){
+  if(MX_MAIN.ids||MX_MAIN.loading) return;
+  const build=arr=>{ const o={}; arr.forEach(x=>{ if(x&&x.id) o[x.id]=1; }); return o; };
+  if(CURRENT_SHOP_ID==='main'){ MX_MAIN.ids=build(DATA&&DATA.ingredientPurchases||[]); return; }
+  if(!(useFirebase&&db)) return;
+  MX_MAIN.loading=true;
+  db.ref(shopDataPath('main')+'/ingredientPurchases').once('value').then(sn=>{ MX_MAIN.ids=build(mxArr(sn.val())); MX_MAIN.loading=false; try{ renderIngPurchases(); }catch(e){} }).catch(()=>{ MX_MAIN.loading=false; });
+}
+function mxShort(n){ const t=String(n||'').replace(/^Tiệm Trà Mèo Xám\s*/i,'').trim(); return t||String(n||''); }
+function mxShopBadge(){
+  const v=document.getElementById('hdr-shop-name'); if(v) v.textContent=mxShort(CURRENT_SHOP_NAME);
+  const h=document.getElementById('hdr-shop-hint'); if(h) h.textContent=SHOP_LIST.length>1?('⇄ Bấm để đổi quán ('+SHOP_LIST.length+')'):'Chỉ có 1 quán';
+  document.querySelectorAll('.mx-shop-tag').forEach(e=>{ e.textContent='· '+mxShort(CURRENT_SHOP_NAME); });
+}
+function mxCloseShopSwitch(){ const m=document.getElementById('mx-shop-modal'); if(m) m.style.display='none'; }
+function mxOpenShopSwitch(){
+  if(!CURRENT_USER||CURRENT_USER.role!=='owner') return;
+  let m=document.getElementById('mx-shop-modal');
+  if(!m){ m=document.createElement('div'); m.id='mx-shop-modal'; m.className='modal-overlay'; m.style.zIndex=1300; m.addEventListener('click',e=>{ if(e.target===m) mxCloseShopSwitch(); }); document.body.appendChild(m); }
+  m.innerHTML='<div class="modal-card" style="max-width:380px;width:92%;"><h2 style="margin:0 0 4px;">🏪 Chuyển quán nhanh</h2><p style="margin:0 0 6px;font-size:12px;color:var(--muted);">Doanh thu, kho, quỹ, chấm công… tách riêng từng quán.</p>'
+   +SHOP_LIST.map(s=>{ const cur=s.id===CURRENT_SHOP_ID; return `<button type="button" class="btn ${cur?'success':'ghost'}" style="width:100%;margin-top:8px;text-align:left;" onclick="mxSwitchShop('${s.id}')">${cur?'✅':'🏪'} ${escapeHtml(s.name)}${cur?' · đang mở':''}</button>`; }).join('')
+   +'<button type="button" class="btn ghost" style="width:100%;margin-top:12px;" onclick="mxCloseShopSwitch()">Đóng</button></div>';
+  m.style.display='flex';
+}
+function mxSwitchShop(id){
+  if(!CURRENT_USER||CURRENT_USER.role!=='owner') return;
+  mxCloseShopSwitch();
+  if(id===CURRENT_SHOP_ID) return;
+  if(Object.keys(dirtyTabs).some(k=>dirtyTabs[k]) && !confirm('Quán hiện tại còn thay đổi chưa lưu. Vẫn chuyển quán?')) return;
+  MX_IPUR.cache={}; MX_ATT.cache={}; MX_ATT.t=0; MX_MAIN.ids=null; MX_MAIN.loading=false;
+  try{ showToast('🏪 Đang chuyển sang '+getShopName(id)+'…'); }catch(e){}
+  selectShopAfterLogin(id);
+}
+/* --- chi phí nguyên liệu theo quán --- */
+function mxIngMonth(){ const i=document.getElementById('mx-ips-month'); const d=getShiftDayStr().slice(0,7); if(i&&!i.value) i.value=d; return (i&&i.value)||d; }
+function mxArr(v){ return Array.isArray(v)?v.filter(Boolean):(v&&typeof v==='object'?Object.keys(v).map(k=>v[k]).filter(Boolean):[]); }
+function mxIngLoad(force){
+  if(!(CURRENT_USER&&CURRENT_USER.role==='owner'&&useFirebase&&db)) { mxIngShopUi(); return; }
+  Promise.all(SHOP_LIST.filter(s=>s.id!==CURRENT_SHOP_ID&&(force||!MX_IPUR.cache[s.id])).map(s=>
+    db.ref(shopDataPath(s.id)+'/ingredientPurchases').once('value').then(sn=>{ MX_IPUR.cache[s.id]=mxArr(sn.val()); }).catch(()=>{ MX_IPUR.cache[s.id]=[]; })
+  )).then(mxIngShopUi);
+}
+function mxIngShopUi(){
+  mxEnsureMainIds();
+  const box=document.getElementById('mx-ips-body'); if(!box||!DATA) return;
+  const mk=mxIngMonth(), f=n=>fmt(n)+'đ', T={c:0,b:0,s:0,n:0};
+  const cards=SHOP_LIST.map(s=>{
+    const cur=s.id===CURRENT_SHOP_ID, ok=cur||MX_IPUR.cache[s.id];
+    const arr=(cur?(DATA.ingredientPurchases||[]):(MX_IPUR.cache[s.id]||[])).filter(r=>(r.shopId?r.shopId===s.id:!mxCopied(r,s.id))&&(r.date||'').slice(0,7)===mk);
+    const sum=m=>arr.filter(x=>x.method===m).reduce((a,x)=>a+(x.amount||0),0), c=sum('cash'), b=sum('bank'), st=sum('staff');
+    T.c+=c; T.b+=b; T.s+=st; T.n+=arr.length;
+    const v=x=>ok?x:'…';
+    return `<div class="mx-shop-card${cur?' cur':''}"><div class="mx-sc-top"><b>${escapeHtml(mxShort(s.name))}</b>${cur?'<small>đang mở</small>':`<button type="button" class="btn small ghost" onclick="mxSwitchShop('${s.id}')">Mở</button>`}</div><div class="mx-sc-total">${v(f(c+b+st))}</div><div class="mx-sc-chips"><span>💵 ${v(f(c))}</span><span>📱 ${v(f(b))}</span><span>🙋 ${v(f(st))}</span></div><div class="mx-sc-n">${v(arr.length)} lần mua</div></div>`;
+  }).join('');
+  box.innerHTML=`<div class="mx-shop-grid">${cards}</div><div class="mx-sc-sum"><span>Tất cả quán · ${T.n} lần</span><b>${f(T.c+T.b+T.s)}</b><small>💵 ${f(T.c)} · 📱 ${f(T.b)} · 🙋 ${f(T.s)}</small></div>`;
+}
+/* --- chấm công: vị trí / bán kính riêng từng quán --- */
+function mxAttLoad(){
+  if(!(useFirebase&&db)) return;
+  Promise.all(SHOP_LIST.filter(s=>s.id!==CURRENT_SHOP_ID).map(s=>
+    db.ref(shopDataPath(s.id)+'/config').once('value').then(sn=>{ MX_ATT.cache[s.id]=sn.val()||{}; }).catch(()=>{ MX_ATT.cache[s.id]={}; })
+  )).then(mxAttShops);
+}
+function mxAttShops(){
+  const box=document.getElementById('mx-att-shops'); if(!box||!DATA) return;
+  const cur=document.getElementById('mx-att-cur'); if(cur) cur.textContent='🏪 Đang cài đặt cho: '+CURRENT_SHOP_NAME;
+  const others=SHOP_LIST.filter(s=>s.id!==CURRENT_SHOP_ID);
+  if(!(CURRENT_USER&&CURRENT_USER.role==='owner')||!others.length){ box.innerHTML=''; return; }
+  box.innerHTML='<div style="font-weight:900;margin:18px 0 2px;">📍 Các quán khác — mỗi quán có vị trí & bán kính riêng</div>'+others.map(s=>{
+    const c=MX_ATT.cache[s.id]; if(!c) return `<div class="mx-att-card">⏳ ${escapeHtml(s.name)}…</div>`;
+    const has=typeof c.shopLat==='number'&&typeof c.shopLng==='number';
+    return `<div class="mx-att-card"><b>${escapeHtml(s.name)}</b><div style="margin-top:4px;">${has?`✅ ${c.shopLat.toFixed(5)}, ${c.shopLng.toFixed(5)} — <a href="https://www.google.com/maps?q=${c.shopLat},${c.shopLng}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:800;">xem bản đồ</a>`:'⚠️ Chưa đặt vị trí quán'}</div>
+    <div class="mx-att-row"><button type="button" class="btn small ghost" onclick="mxAttSetPos('${s.id}',this)">📍 Lấy vị trí hiện tại</button><label>Bán kính (m) <input type="number" id="mx-r-${s.id}" min="20" max="5000" step="10" value="${c.checkinRadius>0?c.checkinRadius:100}"></label><label><input type="checkbox" id="mx-p-${s.id}" ${c.requireCheckinPhoto!==false?'checked':''}> Bắt buộc chụp ảnh</label><button type="button" class="btn success small" onclick="mxAttSave('${s.id}')">💾 Lưu</button></div></div>`;
+  }).join('');
+}
+function mxAttWrite(id,patch){
+  const pin=(DATA&&DATA.config&&DATA.config.securityPin)||'9999';
+  if(prompt('🔒 Nhập Mã PIN Cấp Hai để xác nhận lưu thay đổi:')!==pin){ alert('❌ Mã PIN Cấp Hai không chính xác!'); return; }
+  db.ref(shopDataPath(id)+'/config').update(patch).then(()=>{ MX_ATT.cache[id]=Object.assign({},MX_ATT.cache[id],patch); mxAttShops(); alert('✅ Đã lưu cho '+getShopName(id)); }).catch(e=>alert('Không lưu được: '+(e.message||e)));
+}
+function mxAttSave(id){
+  const r=parseInt(document.getElementById('mx-r-'+id).value,10);
+  if(!(r>=20&&r<=5000)){ alert('⚠️ Bán kính nên từ 20m đến 5000m!'); return; }
+  mxAttWrite(id,{checkinRadius:r,requireCheckinPhoto:document.getElementById('mx-p-'+id).checked});
+}
+function mxAttSetPos(id,btn){
+  if(!navigator.geolocation){ alert('⚠️ Thiết bị này không hỗ trợ GPS.'); return; }
+  const old=btn.textContent; btn.disabled=true; btn.textContent='⏳ Đang lấy vị trí...';
+  const back=()=>{ btn.disabled=false; btn.textContent=old; };
+  navigator.geolocation.getCurrentPosition(pos=>{
+    back(); const c=pos.coords;
+    if(!confirm('Đặt vị trí hiện tại làm vị trí của '+getShopName(id)+'?\n(GPS ±'+Math.round(c.accuracy||0)+'m)\nChỉ làm khi bạn đang đứng đúng tại quán đó.')) return;
+    mxAttWrite(id,{shopLat:+c.latitude.toFixed(6),shopLng:+c.longitude.toFixed(6)});
+  },()=>{ back(); alert('⚠️ Không lấy được vị trí, hãy bật quyền Vị trí và thử lại.'); },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+}
+setTimeout(()=>{ try{ mxShopBadge(); }catch(e){} },1500);
 </script>
 </body>
 </html>
