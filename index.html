@@ -1580,6 +1580,13 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
 .mx-sc-sum{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-top:8px;padding:8px 10px;border-radius:12px;background:var(--card);border:1.5px dashed var(--line);font-size:12.5px;font-weight:800}
 .mx-sc-sum b{font-size:17px;color:var(--accent)}
 .mx-sc-sum small{flex-basis:100%;font-size:11px;font-weight:700;color:var(--muted)}
+/* chọn quán: ô vuông to, dễ bấm */
+#shop-picker-list{grid-template-columns:repeat(auto-fit,minmax(138px,1fr))!important;gap:12px!important}
+#shop-picker-list .shop-picker-choice{aspect-ratio:1/1;min-height:0!important;width:100%;padding:12px!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center!important;font-size:15px!important;line-height:1.25}
+#shop-picker-list .spc-icon{width:clamp(50px,34%,76px);aspect-ratio:1/1;border-radius:20px;display:grid;place-items:center;font-size:clamp(28px,6vw,42px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+#shop-picker-list .spc-tag{font-size:10px;letter-spacing:1.2px;opacity:.85;font-weight:800;margin-top:4px}
+#shop-picker-list .spc-name{font-size:inherit;font-weight:900;overflow-wrap:anywhere}
+#shop-picker-modal .modal-card{padding:20px!important}
 /* chấm công theo từng quán */
 .mx-att-cur{font-weight:900;color:var(--accent);margin:-2px 0 8px;font-size:13px}
 .mx-att-card{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;background:var(--soft);font-size:13px}
@@ -4429,7 +4436,7 @@ function renderShopPicker(){
   ];
   list.innerHTML = SHOP_LIST.map((shop,i) => {
     const color = shopColors[i % shopColors.length];
-    return `<button type="button" class="btn shop-picker-choice" style="width:100%; text-align:left; color:#fff; background:${color[0]}; border:2px solid rgba(255,255,255,.55);" onclick="selectShopAfterLogin('${escapeHtml(shop.id)}')"><span style="display:flex; align-items:center; gap:14px;"><span style="width:48px;height:48px;flex:none;border-radius:15px;background:${color[1]};display:grid;place-items:center;font-size:27px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);">🏪</span><span><span style="display:block;font-size:10px;letter-spacing:1.2px;opacity:.82;">${i===0?'QUÁN GỐC':'CHI NHÁNH '+i}</span><span style="display:block;line-height:1.25;margin-top:3px;">${escapeHtml(shop.name)}</span></span><span style="margin-left:auto;font-size:23px;opacity:.75;">›</span></span></button>`;
+    return `<button type="button" class="btn shop-picker-choice" style="color:#fff; background:${color[0]}; border:2px solid rgba(255,255,255,.55);" onclick="selectShopAfterLogin('${escapeHtml(shop.id)}')"><span class="spc-icon" style="background:${color[1]};">🏪</span><span class="spc-tag">${i===0?'QUÁN GỐC':'CHI NHÁNH '+i}</span><span class="spc-name">${escapeHtml(shop.name)}</span></button>`;
   }).join('');
 }
 function showShopPicker(){
