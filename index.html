@@ -32,6 +32,8 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+<link rel="preconnect" href="https://tra-sua-meo-xam-default-rtdb.asia-southeast1.firebasedatabase.app" crossorigin>
+<link rel="dns-prefetch" href="https://tra-sua-meo-xam-default-rtdb.asia-southeast1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
@@ -1611,6 +1613,118 @@ html.priority[data-priority-theme]:not([data-priority-theme="classic"]) body::be
   -webkit-mask:var(--doodle-mask) 0 0/420px 420px repeat;mask:var(--doodle-mask) 0 0/420px 420px repeat;
 }
 </style>
+<script>
+function mxAdj(p){ try{ const a=Number(DATA&&DATA.config&&DATA.config.priceAdjust)||0; return (p&&p.category!=='Topping')?a:0; }catch(e){ return 0; } }
+function mxForeignOrder(o){ try{ return !!(o && o.assignedShopId && !o.webMirror && o.assignedShopId !== CURRENT_SHOP_ID); }catch(e){ return false; } }
+function mxPx(p,price){ return Math.max(0,(Number(price)||0)+mxAdj(p)); }
+</script>
+<style id="mx-v17">
+.mx-wo-card{background:#fff;border:2px solid #2f80ed;border-left:6px solid #2f80ed;border-radius:12px;padding:10px 12px;margin-bottom:10px;color:#222}
+.mx-wo-card.mine{border-color:#2e9e5b;border-left-color:#2e9e5b}
+.mx-wo-hd{display:flex;justify-content:space-between;gap:8px;font-weight:900;font-size:14.5px}
+.mx-wo-hd b:last-child{color:#b45309;white-space:nowrap}
+.mx-wo-meta{font-size:12px;color:#666;margin:3px 0 6px;line-height:1.45}
+.mx-wo-items{font-size:12.5px;background:#f6f9ff;border:1px dashed #b9d0f5;border-radius:8px;padding:6px 8px;line-height:1.5}
+.mx-wo-tag{display:inline-block;font-size:11px;font-weight:800;border-radius:6px;padding:2px 7px;margin-top:6px;background:#fff1c9;color:#8a6d00;border:1px solid #e0c040}
+.mx-wo-tag.ok{background:#e3f6ea;color:#1c7a43;border-color:#9bd5b3}
+.mx-shop-big{display:inline-block;font-size:16px;font-weight:900;line-height:1.3;padding:7px 14px;border-radius:10px;border:2.5px solid;margin:2px 0;letter-spacing:.2px}
+.mx-shop-big small{display:block;font-size:11.5px;font-weight:700;opacity:.8}
+.mx-wo-act{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.mx-wo-act .btn{padding:7px 12px;font-size:13px}
+.mx-wo-act small{font-weight:800;color:#555;width:100%}
+.mx-wo-pop{width:calc(100vw - 16px)!important;max-width:520px!important;max-height:90vh;overflow:auto;padding:14px!important;box-sizing:border-box}
+</style>
+<style id="mx-v16">
+.mx-qs-card{width:calc(100vw - 16px)!important;max-width:1120px!important;max-height:92vh;overflow:auto;padding:14px!important;box-sizing:border-box}
+.mx-qs-top{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.mx-qs-title{font-weight:900;font-size:14px;flex:1;line-height:1.25}
+.mx-qs-top .btn{padding:6px 10px;font-size:13px}
+.mx-qs-grid{display:flex;flex-direction:column;gap:5px}
+.mx-qs-col{display:flex;gap:8px;align-items:flex-start;border:1.5px solid var(--line);border-radius:10px;padding:6px 8px;background:var(--soft)}
+.mx-qs-col.today{border-color:var(--accent);background:rgba(230,126,34,.10)}
+.mx-qs-h{flex:none;width:44px;display:flex;flex-direction:column;line-height:1.2;font-size:13px}
+.mx-qs-h span{font-size:11px;color:var(--muted);font-weight:700}
+.mx-qs-list{flex:1;display:flex;flex-wrap:wrap;gap:4px;min-width:0;align-items:center}
+.mx-qs-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-left:4px solid var(--c,#999);background:var(--card);border-radius:8px;padding:3px 4px 3px 7px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.mx-qs-chip b{font-weight:800}
+.mx-qs-chip small{font-weight:700;color:var(--muted);font-size:11.5px}
+.mx-qs-chip i{font-style:normal;color:#c0392b;font-weight:900;padding:0 3px}
+.mx-qs-add{border:1.5px dashed var(--line);background:transparent;border-radius:8px;padding:3px 9px;font-weight:900;cursor:pointer;color:var(--accent);font-size:13px}
+@media(min-width:760px){
+.mx-qs-title{font-size:17px}
+.mx-qs-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
+.mx-qs-col{flex-direction:column;gap:8px;padding:10px;min-height:150px;min-width:0}
+.mx-qs-h{width:auto;flex-direction:row;justify-content:space-between;align-items:baseline;border-bottom:1px dashed var(--line);padding-bottom:6px;font-size:14px}
+.mx-qs-list{flex-direction:column;align-items:stretch;flex-wrap:nowrap;width:100%;gap:6px}
+.mx-qs-chip{display:grid;grid-template-columns:1fr auto;grid-template-areas:'n x' 't x';gap:0 6px;padding:5px 6px 5px 9px;white-space:normal;min-width:0}
+.mx-qs-chip b{grid-area:n;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-qs-chip small{grid-area:t;font-size:12px}
+.mx-qs-chip i{grid-area:x;align-self:center}
+.mx-qs-add{width:100%;margin-top:auto;padding:6px}
+}
+.mx-pa-row{display:grid;grid-template-columns:1fr 110px auto;gap:6px;align-items:center;margin-top:8px;padding:8px;border:1.5px solid var(--line);border-radius:10px;background:var(--soft)}
+.mx-pa-row.cur{border-color:var(--accent)}
+.mx-pa-row input{margin:0;font-weight:800;text-align:right}
+.mx-pa-row small{display:block;color:var(--accent);font-weight:800;font-size:10.5px}
+
+#shift-modal{z-index:1100!important}
+.mx-pa-prev-old{margin-top:8px;font-size:13px;font-weight:700;color:var(--muted)}
+</style>
+
+<style id="mx-header-layout-test">
+/* Thử nghiệm: thao tác trạng thái trước, các ô quỹ sau; lưu riêng trên thiết bị. */
+.header-sortable{cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;}
+.header-sortable.header-dragging{opacity:.97!important;transform:scale(1.035) translateY(-8px);outline:2px solid var(--accent);outline-offset:2px;z-index:100000;box-shadow:0 18px 36px rgba(0,0,0,.32)!important;transform-origin:center center;}
+.header-sortable.header-drop-target{outline:2px solid color-mix(in srgb,var(--accent) 72%,transparent);outline-offset:2px;transition:outline-color 240ms ease,box-shadow 240ms ease;}
+.header-drag-placeholder{position:relative;box-sizing:border-box;border:2px dashed var(--accent);border-radius:14px;background:rgba(230,126,34,.12);opacity:.78;transition:opacity 280ms ease,background 280ms ease;}
+.header-drag-placeholder::after{content:"Thả vào đây";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;font-weight:800;opacity:.72;}
+.header-sortable.header-dropped{animation:headerSortDrop 300ms cubic-bezier(.22,.72,.22,1);}
+@keyframes headerSortDrop{0%{transform:translateY(-9px) scale(1.025)}55%{transform:translateY(2px) scale(.995)}100%{transform:none}}
+.header-stats > .quick-z-badge.header-sortable:active{cursor:grabbing;}
+.priority-theme-picker > summary{white-space:nowrap;gap:5px;}
+#priority-theme-current{display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;white-space:nowrap;}
+@media(max-width:600px){
+  header.top{gap:10px;padding:12px 10px;}
+  .header-right-area{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px 6px;align-items:stretch;width:100%;min-width:0;flex:1 1 100%;}
+  .header-right-area > #user-badge{grid-column:1/-1;width:100%;min-width:0;max-width:none;flex:initial!important;min-height:44px;padding:4px 7px;gap:6px;justify-content:space-between;}
+  .header-right-area > #user-badge .ping-orb{width:36px;height:36px;min-width:36px;border-width:2px;}
+  .header-right-area > #user-badge #user-display{flex:1 1 auto;min-width:0;max-width:clamp(90px,calc(100vw - 260px),240px);font-size:11.5px;}
+  .header-right-area > #user-badge #btn-logout{flex:none;padding:5px 10px;font-size:11px;}
+  .header-right-area > .lite-switch{grid-column:span 3;width:100%;min-width:0;min-height:44px!important;padding:7px 8px;gap:6px;justify-content:flex-start;font-size:10.5px;white-space:nowrap;}
+  .header-right-area > .priority-theme-picker{grid-column:span 3;min-width:0;}
+  .header-right-area > .priority-theme-picker > summary{width:100%;min-width:0;min-height:44px!important;padding:7px 8px;gap:4px;font-size:11px;overflow:hidden;}
+  .priority-theme-label{display:none;}
+  #priority-theme-current{max-width:calc(100% - 34px);font-size:10.5px;}
+  .header-right-area > .live-clock-badge{grid-column:span 2;width:100%;min-width:0;min-height:44px!important;padding:6px 5px;font-size:10.5px;justify-content:center;white-space:nowrap;}
+  .header-right-area > #noti-bell-container[style*="inline-block"]{grid-column:span 1;display:flex!important;justify-content:stretch;min-width:0;}
+  .header-right-area > #noti-bell-container[style*="inline-block"] .bell-btn{width:100%!important;min-width:40px;height:44px;min-height:44px!important;padding:0;}
+  .header-right-area > .onshift-box{grid-column:1/-1;width:100%;}
+  .header-stats{gap:8px;}
+  .header-stats > .quick-z-badge,.header-stats > .shift-money-badge,.header-stats > .owner-money-badge,.header-stats > .views-badge{min-height:86px;}
+}
+@media(max-width:360px){
+  .header-right-area{gap:6px 4px;}
+  .header-right-area > .lite-switch{padding:5px;gap:4px;font-size:9px;}
+  .header-right-area > .lite-switch .lite-switch-track{width:30px;height:20px;}
+  .header-right-area > .lite-switch .lite-switch-knob{width:16px;height:16px;}
+  .header-right-area > .lite-switch[aria-checked="true"] .lite-switch-knob{transform:translateX(10px);}
+  .header-right-area > .lite-switch .lite-switch-state{min-width:20px;font-size:9px;}
+  .header-right-area > .priority-theme-picker > summary{padding:6px;font-size:10px;}
+  .header-right-area > .live-clock-badge{font-size:9.5px;}
+}
+@media(prefers-reduced-motion:reduce){.header-sortable.header-dragging,.header-sortable.header-dropped,.header-drag-placeholder{transition:none!important;animation:none!important;}}
+
+.header-drag-placeholder{box-sizing:border-box;border:2px dashed var(--accent);border-radius:14px;background:rgba(230,126,34,.12);opacity:.75;}
+.header-sortable.header-dragging{opacity:.96!important;transform:scale(1.035) translateY(-7px);outline:2px solid var(--accent);outline-offset:2px;box-shadow:0 18px 36px rgba(0,0,0,.32)!important;transition:transform 140ms cubic-bezier(.2,.8,.2,1),box-shadow 140ms ease;}
+.header-sortable.header-drag-lifted{filter:saturate(1.08);}
+.header-sortable.header-dropped{animation:headerSortDrop 230ms cubic-bezier(.2,.8,.2,1);}
+@keyframes headerSortDrop{0%{transform:translateY(-8px) scale(1.025)}65%{transform:translateY(2px) scale(.995)}100%{transform:none}}
+.header-lite-hint{display:none;}
+html.lite .header-sortable{cursor:default!important;touch-action:auto;user-select:auto;-webkit-user-select:auto;}
+html.lite .header-drag-hint{display:none!important;}
+html.lite .header-lite-hint{display:inline!important;}
+</style>
+
 </head>
 <body>
 
@@ -2093,39 +2207,6 @@ html.priority[data-priority-theme]:not([data-priority-theme="classic"]) body::be
       </div>
     </div>
 
-    <div class="header-stats">
-    <div class="quick-z-badge owner-only" id="quick-z-badge" onclick="openQuickZMoney()" title="Bấm để nhập hoặc cập nhật quỹ đầu ngày">
-      <div class="z-quick-title">💵 QUỸ ĐẦU NGÀY</div>
-      <div class="z-quick-value" id="hdr-z-money">0đ</div>
-      <div class="z-quick-hint">＋ Nhập nhanh · Không cần PIN</div>
-    </div>
-    <div class="quick-z-badge owner-only" id="quick-shift-badge" onclick="openQuickShift()" title="Bấm để xếp ca cho hôm nay">
-      <div class="z-quick-title">⏰ XẾP CA NHANH</div>
-      <div class="z-quick-value" id="hdr-quick-shift" style="font-size:16px;">Hôm nay</div>
-      <div class="z-quick-hint">＋ Mở bảng xếp ca hôm nay</div>
-    </div>
-    <div class="quick-z-badge quick-shop-badge owner-only" id="quick-shop-badge" onclick="mxOpenShopSwitch()" title="Bấm để chuyển nhanh giữa các quán">
-      <div class="z-quick-title">🏪 CHUYỂN QUÁN NHANH</div>
-      <div class="z-quick-value" id="hdr-shop-name">…</div>
-      <div class="z-quick-hint" id="hdr-shop-hint">⇄ Bấm để đổi quán</div>
-    </div>
-    <div class="shift-money-badge owner-only" id="shift-money-badge">
-      <div style="font-size:11px; font-weight:800; color:var(--accent); margin-bottom:2px; border-bottom:1px dashed #dcd5c2; padding-bottom:2px;">⚡ TIỀN TRONG CA (HÔM NAY)</div>
-      <div class="money-row"><span>💵 Tiền mặt:</span><b id="hdr-shift-cash" style="color:var(--good);">0đ</b></div>
-      <div class="money-row"><span>📱 Chuyển khoản:</span><b id="hdr-shift-bank" style="color:#2f5fa6;">0đ</b></div>
-    </div>
-    <div class="owner-money-badge owner-only" id="owner-money-badge" onclick="switchTab('cashfund')">
-      <div style="font-size:11px; font-weight:800; color:var(--muted); margin-bottom:2px; border-bottom:1px dashed #dcd5c2; padding-bottom:2px;">💰 QUỸ TIỀN TỔNG QUÁN</div>
-      <div class="money-row"><span>💵 Tiền mặt</span><b id="hdr-cash-amount">0đ</b></div>
-      <div class="money-row"><span>🏦 Tài khoản</span><b id="hdr-bank-amount">0đ</b></div>
-      <div class="money-row"><span>🔄 Lưu động</span><b id="hdr-float-amount">0đ</b></div>
-    </div>
-    <div class="views-badge owner-only" id="menu-views-badge" onclick="openMenuViewsModal()" title="Bấm để xem lịch sử các ngày">
-      <div class="vb-title">👀 KHÁCH XEM MÓN</div>
-      <div class="money-row"><span>Hôm nay</span><b id="hdr-views-today">0</b></div>
-      <div class="money-row"><input type="date" class="vb-date" id="views-date-input" onclick="event.stopPropagation()" onchange="renderMenuViewsBadge()"><b id="hdr-views-picked">0</b></div>
-    </div>
-    </div>
     <div class="header-right-area">
       <button type="button" class="lite-switch" data-lite-toggle role="switch" aria-checked="false" title="Bật khi máy bị lag: giảm hiệu ứng đồ họa, giữ nguyên mọi tính năng">
         <span>⚡ Chế độ nhẹ</span><span class="lite-switch-state">TẮT</span><span class="lite-switch-track"><span class="lite-switch-knob"></span></span>
@@ -2134,7 +2215,7 @@ html.priority[data-priority-theme]:not([data-priority-theme="classic"]) body::be
         <span>👑 Priority</span><span class="lite-switch-state">TẮT</span><span class="lite-switch-track"><span class="lite-switch-knob"></span></span>
       </button>
       <details class="priority-theme-picker" id="priority-theme-picker">
-        <summary title="Chọn bảng màu và họa tiết nền Priority">🎨 Chủ đề <b id="priority-theme-current">Cacao · Gold</b><span class="priority-theme-caret">▾</span></summary>
+        <summary title="Chọn bảng màu và họa tiết nền Priority">🎨 <span class="priority-theme-label">Chủ đề</span><b id="priority-theme-current">Cacao</b><span class="priority-theme-caret">▾</span></summary>
         <div class="priority-theme-options" role="group" aria-label="Chọn theme Priority">
           <button type="button" data-priority-theme-choice="classic" aria-pressed="false"><i class="theme-dot theme-cacao"></i><span>Cacao Gold</span></button>
           <button type="button" data-priority-theme-choice="ocean" aria-pressed="false"><i class="theme-dot theme-ocean"></i><span>Đại dương</span></button>
@@ -2173,6 +2254,39 @@ html.priority[data-priority-theme]:not([data-priority-theme="classic"]) body::be
         <span class="onshift-head"><span>👥 Đang trong ca</span><span class="cnt" id="onshift-cnt">0</span></span>
         <div class="onshift-list" id="onshift-list"><span class="onshift-empty">Đang tải…</span></div>
       </div>
+    </div>
+    <div class="header-stats">
+    <div class="quick-z-badge owner-only" id="quick-z-badge" onclick="openQuickZMoney()" title="Bấm để nhập hoặc cập nhật quỹ đầu ngày">
+      <div class="z-quick-title">💵 QUỸ ĐẦU NGÀY</div>
+      <div class="z-quick-value" id="hdr-z-money">0đ</div>
+      <div class="z-quick-hint"><span class="header-drag-hint">＋ Nhập nhanh · Giữ để kéo</span><span class="header-lite-hint">＋ Nhập nhanh</span></div>
+    </div>
+    <div class="quick-z-badge owner-only" id="quick-shift-badge" onclick="openQuickShift()" title="Bấm để xếp ca cho hôm nay">
+      <div class="z-quick-title">⏰ XẾP CA NHANH</div>
+      <div class="z-quick-value" id="hdr-quick-shift" style="font-size:16px;">Hôm nay</div>
+      <div class="z-quick-hint">＋ Mở bảng xếp ca hôm nay</div>
+    </div>
+    <div class="quick-z-badge quick-shop-badge owner-only" id="quick-shop-badge" onclick="mxOpenShopSwitch()" title="Bấm để chuyển nhanh giữa các quán">
+      <div class="z-quick-title">🏪 CHUYỂN QUÁN NHANH</div>
+      <div class="z-quick-value" id="hdr-shop-name">…</div>
+      <div class="z-quick-hint" id="hdr-shop-hint">⇄ Bấm để đổi quán</div>
+    </div>
+    <div class="shift-money-badge owner-only" id="shift-money-badge">
+      <div style="font-size:11px; font-weight:800; color:var(--accent); margin-bottom:2px; border-bottom:1px dashed #dcd5c2; padding-bottom:2px;">⚡ TIỀN TRONG CA (HÔM NAY)</div>
+      <div class="money-row"><span>💵 Tiền mặt:</span><b id="hdr-shift-cash" style="color:var(--good);">0đ</b></div>
+      <div class="money-row"><span>📱 Chuyển khoản:</span><b id="hdr-shift-bank" style="color:#2f5fa6;">0đ</b></div>
+    </div>
+    <div class="owner-money-badge owner-only" id="owner-money-badge" onclick="switchTab('cashfund')">
+      <div style="font-size:11px; font-weight:800; color:var(--muted); margin-bottom:2px; border-bottom:1px dashed #dcd5c2; padding-bottom:2px;">💰 QUỸ TIỀN TỔNG QUÁN</div>
+      <div class="money-row"><span>💵 Tiền mặt</span><b id="hdr-cash-amount">0đ</b></div>
+      <div class="money-row"><span>🏦 Tài khoản</span><b id="hdr-bank-amount">0đ</b></div>
+      <div class="money-row"><span>🔄 Lưu động</span><b id="hdr-float-amount">0đ</b></div>
+    </div>
+    <div class="views-badge owner-only" id="menu-views-badge" onclick="openMenuViewsModal()" title="Bấm để xem lịch sử các ngày">
+      <div class="vb-title">👀 KHÁCH XEM MÓN</div>
+      <div class="money-row"><span>Hôm nay</span><b id="hdr-views-today">0</b></div>
+      <div class="money-row"><input type="date" class="vb-date" id="views-date-input" onclick="event.stopPropagation()" onchange="renderMenuViewsBadge()"><b id="hdr-views-picked">0</b></div>
+    </div>
     </div>
   </header>
 
@@ -2246,9 +2360,14 @@ html.priority[data-priority-theme]:not([data-priority-theme="classic"]) body::be
       <div id="merge-bar"></div>
       <div id="history-order-list"></div>
     </div>
+    <div class="card" id="mx-wo-card" style="display:none; border:2.5px solid #2f80ed; background:linear-gradient(180deg,#eaf3ff,#fbfdff);">
+      <h2>🌐 Đơn App Chung Các Quán <span id="mx-wo-count" style="font-size:13px; color:#1b5fbf; font-weight:800;"></span></h2>
+      <p style="font-size:12px;color:var(--muted);margin:-4px 0 8px;">Đơn từ app tính là <b>đơn ngoại</b>, tách khỏi đơn tại quán. Đơn <b>chưa có quán nào nhận</b> nằm ở đây cho mọi quán. Quán nào bấm <b>Nhận đơn</b> thì đơn chuyển xuống khung <b>Chờ Hoàn Thành</b> của quán đó. Chỉ <b>chủ quán</b> mới đổi đơn đang chờ từ quán này sang quán khác.</p>
+      <div id="mx-wo-list"></div>
+    </div>
     <div class="card" id="app-orders-card" style="border:2.5px solid #e0b020; background:linear-gradient(180deg,#fff9d9,#fffdf8);">
-      <h2>📱 Đơn Từ App — Chờ Hoàn Thành <span id="app-orders-count" style="font-size:13px; color:#b45309; font-weight:800;"></span></h2>
-      <p style="font-size:12px; color:var(--muted); margin:-4px 0 10px;">Tất cả đơn khách tự order trên app mà <b>chưa bấm Hoàn thành</b> (hiện mọi ngày, không phụ thuộc bộ lọc). Bấm <b>✅ Hoàn thành</b> khi đã giao xong — đơn sẽ tự biến mất khỏi khung này.</p>
+      <h2>📱 Đơn Từ App — Chờ Hoàn Thành <span id="app-orders-shop" style="font-size:12.5px; color:#8a6d00; font-weight:800;"></span> <span id="app-orders-count" style="font-size:13px; color:#b45309; font-weight:800;"></span></h2>
+      <p style="font-size:12px; color:var(--muted); margin:-4px 0 10px;">Đơn app mà <b>quán này đã nhận</b> nhưng <b>chưa bấm Hoàn thành</b> (hiện mọi ngày, không phụ thuộc bộ lọc). Bấm <b>✅ Hoàn thành</b> khi đã giao xong — đơn sẽ tự biến mất khỏi khung này. Đơn chưa ai nhận nằm ở khung "Đơn App Chung" phía trên.</p>
       <div id="app-order-list"></div>
     </div>
     <div class="card" id="cancelled-orders-card">
@@ -2263,6 +2382,7 @@ html.priority[data-priority-theme]:not([data-priority-theme="classic"]) body::be
       <div class="chips" id="cat-chips" style="margin-bottom:0;"></div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="btn ghost small" id="btn-print-menu">🖨️ In Menu</button>
+        <button class="btn ghost small owner-only" id="btn-price-adjust" onclick="mxPaOpen()" title="Cộng / trừ giá cho tất cả món nước (không đổi topping)">💲 Cộng/Trừ giá nước</button>
         <button class="btn success small owner-only" id="btn-open-add-category">📁 + Thêm Đề Mục Lớn</button>
       </div>
     </div>
@@ -2765,6 +2885,7 @@ function setLiteMode(on){
 /* ============ GIAO DIỆN PRIORITY (mọi tài khoản đã đăng nhập; không dùng cùng Chế độ nhẹ) ============ */
 function isPriorityMode(){ return document.documentElement.classList.contains('priority'); }
 const PRIORITY_THEME_NAMES = { classic:'Cacao · Gold', ocean:'Đại dương · Xanh lam', ruby:'Ruby · Đỏ rượu', forest:'Rừng xanh · Ngọc lục', violet:'Hoàng gia · Tím', jade:'Ngọc lam · Teal', sakura:'Hoa anh đào · Hồng', sunset:'Hoàng hôn · Cam', lavender:'Oải hương · Tím', mint:'Bạc hà · Xanh mint', sky:'Bầu trời · Xanh da trời', amber:'Hổ phách · Vàng', slate:'Than chì · Xám xanh', coral:'San hô · Đỏ cam', latte:'Cà phê sữa · Kem', indigo:'Biển đêm · Chàm' };
+const PRIORITY_THEME_SHORT_NAMES = { classic:'Cacao', ocean:'Đại dương', ruby:'Ruby', forest:'Rừng xanh', violet:'Tím', jade:'Ngọc lam', sakura:'Hoa anh đào', sunset:'Hoàng hôn', lavender:'Oải hương', mint:'Bạc hà', sky:'Bầu trời', amber:'Hổ phách', slate:'Than chì · Xám xanh', coral:'San hô', latte:'Cà phê sữa', indigo:'Biển đêm' };
 function getPriorityTheme(){
   try{ const v=localStorage.getItem(PRIORITY_THEME_KEY); return Object.prototype.hasOwnProperty.call(PRIORITY_THEME_NAMES,v) ? v : 'classic'; }
   catch(e){ return 'classic'; }
@@ -2772,7 +2893,7 @@ function getPriorityTheme(){
 function syncPriorityThemeUI(){
   const theme=getPriorityTheme();
   document.documentElement.setAttribute('data-priority-theme',theme);
-  const name=document.getElementById('priority-theme-current'); if(name) name.textContent=PRIORITY_THEME_NAMES[theme];
+  const name=document.getElementById('priority-theme-current'); if(name) { name.textContent=PRIORITY_THEME_SHORT_NAMES[theme] || theme; name.title=PRIORITY_THEME_NAMES[theme] || theme; }
   document.querySelectorAll('[data-priority-theme-choice]').forEach(function(b){
     const selected=b.getAttribute('data-priority-theme-choice')===theme;
     b.setAttribute('aria-pressed',selected?'true':'false');
@@ -2909,7 +3030,7 @@ async function registerFCMToken() {
 /* Giờ chuẩn từ máy chủ Firebase (chống chỉnh giờ điện thoại để gian lận giờ vào ca) */
 let SERVER_TIME_OFFSET = 0;
 if (useFirebase && db) { db.ref('.info/serverTimeOffset').on('value', function(s){ SERVER_TIME_OFFSET = Number(s.val()) || 0; });
-  db.ref('.info/connected').on('value', function(s){ window.__fbConnected = !!s.val(); if(s.val()){ setTimeout(function(){ try{ meoxamOutboxApply(); }catch(e){} }, 1500); } else { try{ showToast('📵 Mất kết nối máy chủ — đơn mới sẽ được lưu tạm trên máy và tự gửi lại khi có mạng.'); }catch(e){} } }); }
+  db.ref('.info/connected').on('value', function(s){ window.__fbConnected = !!s.val(); if(s.val()){ setTimeout(function(){ try{ meoxamOutboxApply(); }catch(e){} try{ if(typeof mxFlushDeleteOutbox==='function') mxFlushDeleteOutbox(); }catch(e){} }, 1500); } else { try{ showToast('📵 Mất kết nối máy chủ — đơn mới sẽ được lưu tạm trên máy và tự gửi lại khi có mạng.'); }catch(e){} } }); }
 
 let CURRENT_USER = null;
 let CURRENT_SHOP_ID = 'main';
@@ -3069,10 +3190,12 @@ let _syncedJson = {};      // key cấp 1 -> JSON lần đồng bộ gần nhấ
 let _syncedOrders = {};    // id đơn -> JSON lần đồng bộ gần nhất với server
 let _lastSaveErrAt = 0;
 function ordersToArray(v){ return Array.isArray(v) ? v.filter(Boolean) : (v && typeof v === 'object' ? Object.keys(v).map(function(k){ return v[k]; }).filter(Boolean) : []); }
+function isDeletedOrderMarker(o){ return !!(o && o.__mxDeletedOrder === true); }
+function activeOrdersOnly(v){ return ordersToArray(v).filter(function(o){ return !isDeletedOrderMarker(o); }); }
 function noteSynced(val){
   try{
     _syncedJson = {};
-    Object.keys(val || {}).forEach(function(k){ _syncedJson[k] = JSON.stringify(val[k]); });
+    Object.keys(val || {}).forEach(function(k){ _syncedJson[k] = JSON.stringify(k === 'orders' ? activeOrdersOnly(val[k]) : val[k]); });
     _syncedOrders = {};
     ordersToArray(val && val.orders).forEach(function(o){ if(o && o.id) _syncedOrders[o.id] = JSON.stringify(o); });
   }catch(e){ _syncedJson = {}; _syncedOrders = {}; }
@@ -3089,6 +3212,9 @@ function meoxamOutboxAdd(order){
   box[order.id] = { order: JSON.parse(JSON.stringify(order)), at: Date.now() };
   meoxamOutboxSave(box);
 }
+function meoxamOutboxRemove(id){
+  try{ const box=meoxamOutboxLoad(); if(Object.prototype.hasOwnProperty.call(box,id)){ delete box[id]; meoxamOutboxSave(box); } }catch(e){}
+}
 function meoxamOutboxClear(serverOrders){
   try{
     const box = meoxamOutboxLoad(); const ids = Object.keys(box); if(!ids.length) return;
@@ -3103,7 +3229,12 @@ function meoxamOutboxApply(){
   try{
     if(!DATA || window.DATA_IS_STALE) return;
     let box = meoxamOutboxLoad(); let ids = Object.keys(box); if(!ids.length) return;
-    // đơn đã thấy trên máy chủ → coi như đã gửi xong, bỏ khỏi hộp thư đi
+    const locallyDeleted={};
+    ordersToArray(DATA.deletedOrders).forEach(function(o){ if(o&&o.id) locallyDeleted[String(o.id)]=1; });
+    ordersToArray(DATA.orders).forEach(function(o){ if(isDeletedOrderMarker(o)&&o.id) locallyDeleted[String(o.id)]=1; });
+    const _deleted = ids.filter(function(id){ return !!locallyDeleted[id] || (box[id]&&isDeletedOrderMarker(box[id].order)); });
+    if(_deleted.length){ _deleted.forEach(function(id){ delete box[id]; }); meoxamOutboxSave(box); ids=Object.keys(box); if(!ids.length) return; }
+    // đơn đã thấy trên máy chủ (kể cả tombstone) → không khôi phục đơn cũ từ outbox
     const _confirmed = ids.filter(function(id){ return id in _syncedOrders; });
     if(_confirmed.length){ _confirmed.forEach(function(id){ delete box[id]; }); meoxamOutboxSave(box); ids = Object.keys(box); if(!ids.length) return; }
     if(!Array.isArray(DATA.orders)) DATA.orders = ordersToArray(DATA.orders);
@@ -3120,21 +3251,28 @@ function meoxamOutboxApply(){
     }
   }catch(e){ console.error('outbox apply', e); }
 }
-function mergeOrdersForSave(remote, local){
-  const rem = ordersToArray(remote), loc = ordersToArray(local);
-  const locIds = {}; loc.forEach(function(o){ if(o && o.id) locIds[o.id] = 1; });
-  const remMap = {}; rem.forEach(function(o){ if(o && o.id) remMap[o.id] = o; });
-  // Đơn có trên server mà máy này CHƯA TỪNG thấy → đơn mới từ máy khác / app khách → giữ lại
-  const fresh = rem.filter(function(o){ return o && o.id && !locIds[o.id] && !(o.id in _syncedOrders); });
-  const out = [];
+function mergeOrdersForSave(remote, local, syncedSnapshot){
+  const synced = syncedSnapshot || _syncedOrders;
+  const rem = ordersToArray(remote), loc = ordersToArray(local).filter(function(o){ return !isDeletedOrderMarker(o); });
+  const remMap = {}, tombstones = {}, locIds = {};
+  rem.forEach(function(o){ if(o && o.id){ remMap[o.id]=o; if(isDeletedOrderMarker(o)) tombstones[o.id]=o; } });
+  loc.forEach(function(o){ if(o && o.id) locIds[o.id]=1; });
+  // A deletion marker is authoritative: a stale copy from any device cannot revive the order.
+  const fresh = rem.filter(function(o){ return o && o.id && !isDeletedOrderMarker(o) && !locIds[o.id] && !(o.id in synced); });
+  const out = [], emitted = {};
+  function pushOnce(o){ if(!o) return; const k=o.id ? String(o.id) : null; if(k && emitted[k]) return; if(k) emitted[k]=1; out.push(o); }
+  fresh.forEach(pushOnce);
   loc.forEach(function(o){
-    const r = remMap[o.id];
-    const untouched = (o.id in _syncedOrders) && JSON.stringify(o) === _syncedOrders[o.id];
-    if(untouched && r){ out.push(r); }          // máy này không sửa đơn này → lấy bản mới nhất trên server (giữ chỉnh sửa của máy khác)
-    else if(untouched && !r){ /* máy khác đã xóa/gộp đơn này, máy này không đụng tới → không "hồi sinh" */ }
-    else out.push(o);                           // máy này đã sửa / tạo mới đơn này
+    if(!o) return;
+    const id=String(o.id||''), r=id ? remMap[id] : null;
+    if(id && tombstones[id]){ pushOnce(tombstones[id]); return; }
+    const untouched = id && (id in synced) && JSON.stringify(o) === synced[id];
+    if(untouched && r){ pushOnce(r); }
+    else if(untouched && !r){ /* remote delete/gộp, không hồi sinh */ }
+    else pushOnce(o);
   });
-  return fresh.concat(out);
+  rem.filter(isDeletedOrderMarker).forEach(pushOnce);
+  return out;
 }
 function reportSaveError(err){
   console.error('Lỗi lưu Firebase:', err);
@@ -3300,23 +3438,32 @@ function saveDataDirect(){
             }, false);
         }
         if(localOrders !== undefined){
-            shopRef('orders').transaction(function(remote){
-                const merged = mergeOrdersForSave(remote, localOrders);
+            const _orderSaveShopId = CURRENT_SHOP_ID;
+            const _orderSaveSynced = Object.assign({}, _syncedOrders);
+            const _orderSaveRef = db.ref(shopDataPath(_orderSaveShopId) + '/orders');
+            window.__orderSavePendingByShop = window.__orderSavePendingByShop || {};
+            window.__orderSavePendingByShop[_orderSaveShopId] = (window.__orderSavePendingByShop[_orderSaveShopId] || 0) + 1;
+            _orderSaveRef.transaction(function(remote){
+                const merged = mergeOrdersForSave(remote, localOrders, _orderSaveSynced);
                 return merged.length ? merged : null;
             }, function(err, committed, snapshot){
+                window.__orderSavePendingByShop[_orderSaveShopId] = Math.max(0, (window.__orderSavePendingByShop[_orderSaveShopId] || 1) - 1);
                 if(err || !committed){
-                    delete _syncedJson.orders; reportSaveError(err || 'Giao dịch lưu đơn không được xác nhận');
-                    window.__ordersRetry = (window.__ordersRetry || 0) + 1;
-                    if(window.__ordersRetry <= 8){ setTimeout(function(){ try{ saveDataDirect(); }catch(e){} }, 4000 * window.__ordersRetry); }
+                    if(CURRENT_SHOP_ID === _orderSaveShopId){
+                      delete _syncedJson.orders; reportSaveError(err || 'Giao dịch lưu đơn không được xác nhận');
+                      window.__ordersRetry = (window.__ordersRetry || 0) + 1;
+                      if(window.__ordersRetry <= 8){ setTimeout(function(){ if(CURRENT_SHOP_ID === _orderSaveShopId && DATA && !window.DATA_IS_STALE){ try{ saveDataDirect(); }catch(e){} } }, 4000 * window.__ordersRetry); }
+                    }
                     return;
                 }
+                if(CURRENT_SHOP_ID !== _orderSaveShopId) return;
                 window.__ordersRetry = 0;
                 try{
                     const saved = snapshot && snapshot.val();
                     meoxamOutboxClear(saved);
                     _syncedOrders = {};
                     ordersToArray(saved).forEach(function(o){ if(o && o.id) _syncedOrders[o.id] = JSON.stringify(o); });
-                    _syncedJson.orders = JSON.stringify(saved || []);
+                    _syncedJson.orders = JSON.stringify(activeOrdersOnly(saved));
                 }catch(e){ delete _syncedJson.orders; }
             }, false);
         }
@@ -3380,11 +3527,14 @@ function seedData(){
 
 let isInitialLoad = true;
 
+let _shopDataLoadGeneration=0;
 function loadData(){
+    const __loadGeneration=++_shopDataLoadGeneration, __loadShopId=CURRENT_SHOP_ID;
     if (useFirebase && db) {
         if(_shopDataListenerRef && _shopDataListenerFn) _shopDataListenerRef.off('value', _shopDataListenerFn);
-        _shopDataListenerRef = db.ref(shopDataPath(CURRENT_SHOP_ID));
+        _shopDataListenerRef = db.ref(shopDataPath(__loadShopId));
         _shopDataListenerFn = (snapshot) => {
+            if(__loadGeneration!==_shopDataLoadGeneration || __loadShopId!==CURRENT_SHOP_ID) return;
             const val = snapshot.val();
 
             // --- BẮT ĐẦU ĐOẠN CHỐT CHẶN (ĐÃ SỬA LỖI ĐĂNG NHẬP) ---
@@ -3399,7 +3549,7 @@ function loadData(){
                     window.DATA_IS_STALE = false;
                     noteSynced(val);
                     const preservedCustomers = (DATA && DATA.customers && DATA.customers.length) ? DATA.customers : [];
-                    DATA = val; setTimeout(meoxamOutboxApply, 0); if(CURRENT_SHOP_ID === 'main') BASE_SHOP_DATA = JSON.parse(JSON.stringify(val)); if(typeof posRefreshShiftClockControls === 'function') posRefreshShiftClockControls(); if(typeof posRenderProductSalesRanking === 'function') posRenderProductSalesRanking(); DATA.customers = preservedCustomers;
+                    DATA = val; DATA.orders = activeOrdersOnly(DATA.orders); setTimeout(meoxamOutboxApply, 0); if(CURRENT_SHOP_ID === 'main') BASE_SHOP_DATA = JSON.parse(JSON.stringify(val)); if(typeof posRefreshShiftClockControls === 'function') posRefreshShiftClockControls(); if(typeof posRenderProductSalesRanking === 'function') posRenderProductSalesRanking(); DATA.customers = preservedCustomers;
                     if(!DATA.productImages) DATA.productImages = {};
                 } else {
                     // val null hoặc không hợp lệ → GIỮ NGUYÊN DATA hiện có, khóa ghi Firebase
@@ -3420,7 +3570,7 @@ function loadData(){
         previousAttendanceCount = val.attendance ? val.attendance.length : 0;
         noteSynced(val);
         const preservedCustomers = (DATA && DATA.customers && DATA.customers.length) ? DATA.customers : [];
-        DATA = val; setTimeout(meoxamOutboxApply, 0);
+        DATA = val; DATA.orders = activeOrdersOnly(DATA.orders); setTimeout(meoxamOutboxApply, 0);
         if(CURRENT_SHOP_ID === 'main') BASE_SHOP_DATA = JSON.parse(JSON.stringify(val));
         DATA.customers = preservedCustomers;
         if(!DATA.productImages) DATA.productImages = {};
@@ -3702,7 +3852,8 @@ function canCollectUnpaid(o){
 function paidOnBehalfTag(o){
   return (o && o.collectedBy && o.collectedBy !== o.staffName) ? ` · 🤝 <b>${escapeHtml(o.collectedBy)}</b> thu hộ cho <b>${escapeHtml(o.staffName || '')}</b> (doanh số tính cho ${escapeHtml(o.staffName || '')})` : '';
 }
-function isNonRevenueOrder(o){ return isCancelledOrder(o) || isDebtOrder(o) || isUnpaidOrder(o); }
+function mxUnassignedPending(o){ try{ return !!(o && isWebLikeOrder(o) && !o.assignedShopId && !o.webMirror && !isCompletedOrder(o)); }catch(e){ return false; } }
+function isNonRevenueOrder(o){ return isCancelledOrder(o) || isDebtOrder(o) || isUnpaidOrder(o) || mxForeignOrder(o) || mxUnassignedPending(o); }
 function isOrderSettled(o){ const d = getOrderShiftDay(o); return !!d && d < getShiftDayStr(); }
 /* Mốc thời gian (cùng hệ với nowVN.getTime()) của 1 đơn, đọc từ chuỗi giờ "HH:MM:SS — DD/MM/YYYY". Không đọc được → null */
 function getOrderTs(o){
@@ -4451,6 +4602,15 @@ function showShopPicker(){
 function selectShopAfterLogin(shopId){
   if(!SHOP_LIST.some(s => s.id === shopId)) return;
   const shopChanged = CURRENT_SHOP_ID !== shopId;
+  if(shopChanged && CURRENT_USER && typeof getCurrentUserBill === 'function' && getCurrentUserBill().length){
+    alert('⚠️ Quán hiện tại còn bill nháp chưa gửi. Hãy gửi hoặc xóa bill nháp trước khi chuyển quán để tránh ghi đơn nhầm quán.');
+    return;
+  }
+  const pendingOrderSaves = window.__orderSavePendingByShop || {};
+  if(shopChanged && (pendingOrderSaves[CURRENT_SHOP_ID] || 0) > 0){
+    alert('⏳ Đơn của quán hiện tại đang đồng bộ. Vui lòng chờ xác nhận lưu xong rồi hãy chuyển quán.');
+    return;
+  }
   CURRENT_SHOP_ID = shopId;
   CURRENT_SHOP_NAME = getShopName(shopId);
   setShopStorageKey(shopId);
@@ -4533,7 +4693,7 @@ function addShopBranch(){
   const base = BASE_SHOP_DATA || DATA;
   if(!base){ alert('Chưa tải được dữ liệu quán gốc. Thử lại sau.'); return; }
   const initial = JSON.parse(JSON.stringify(base));
-  if(initial.config){ delete initial.config.shopLat; delete initial.config.shopLng; }
+  if(initial.config){ delete initial.config.shopLat; delete initial.config.shopLng; initial.config.priceAdjust = 0; }
   initial.orders = []; initial.monthlySchedules = []; initial.attendance = []; initial.closedPayrolls = []; initial.inventoryLogs = [];
   initial.cashFund = {cash:0, bank:0, float:0};
   initial.shiftCashFund = {cash:0, bank:0, manualAdjustCash:0, manualAdjustBank:0, lastSettledDate:toVNDateStr(getVietnamTimeNow()), zMoney:0};
@@ -4614,7 +4774,8 @@ function applyRolePermissions(){
   const isOwner = CURRENT_USER && CURRENT_USER.role === 'owner';
   try{ applyPriorityState(); }catch(e){}
   document.getElementById('user-avatar-display').textContent = CURRENT_USER.emoji || (isOwner ? '👑' : '🐱');
-  document.getElementById('user-display').textContent = `${CURRENT_USER.name} (${isOwner?'Chủ quán':'Nhân viên'})`;
+  document.getElementById('user-display').textContent = `${CURRENT_USER.name} · ${isOwner?'Chủ quán':'Nhân viên'}`;
+  document.getElementById('user-display').title = `${CURRENT_USER.name} (${isOwner?'Chủ quán':'Nhân viên'})`;
   document.getElementById('role-subtitle').textContent = (isOwner ? 'Quyền Chủ Quán — Quản lý toàn diện' : 'Quyền Nhân Viên — Order, Chấm công & Đổi PIN') + ' | 🏪 ' + CURRENT_SHOP_NAME; try{ mxShopBadge(); }catch(e){}
   document.querySelectorAll('.owner-only').forEach(el=>{ el.style.display = isOwner ? 'block' : 'none'; });
   const bellContainer = document.getElementById('noti-bell-container');
@@ -4635,7 +4796,7 @@ function applyRolePermissions(){
     document.getElementById('shift-clock-status').textContent = 'Quản lý hệ thống ca làm';
   }
   startLiveClock();
-  switchTab('order', true);
+  { const _kt=window.__mxKeepTab; window.__mxKeepTab=null; if(_kt){ window.__mxSkipPin=true; try{ switchTab(_kt, true); }finally{ window.__mxSkipPin=false; } } else switchTab('order', true); }
   renderPosMenu();
   renderCategoryChips();
   renderProductList();
@@ -4700,13 +4861,13 @@ function switchTab(tabName, force = false){
   if(tabName === 'analytics' && (!CURRENT_USER || CURRENT_USER.role !== 'owner')){ alert('🔒 Chỉ dành riêng cho Chủ Quán!'); return; }
   if(tabName === 'cashfund' && (!CURRENT_USER || CURRENT_USER.role !== 'owner')){ alert('🔒 Chỉ dành riêng cho Chủ Quán!'); return; }
   if(tabName === 'images' && (!CURRENT_USER || CURRENT_USER.role !== 'owner')){ alert('🔒 Chỉ dành riêng cho Chủ Quán!'); return; }
-  if(tabName === 'shift' && CURRENT_USER && CURRENT_USER.role === 'owner'){
+  if(tabName === 'shift' && CURRENT_USER && CURRENT_USER.role === 'owner' && !window.__mxSkipPin){
     const level3Pin = (DATA && DATA.config && DATA.config.level3Pin) ? DATA.config.level3Pin : '2578';
     const code = prompt('🔒 Nhập Mã PIN Cấp Ba để truy cập Tab 4. Lương:');
     if(code === null) return;
     if(code !== level3Pin){ alert('❌ Mã PIN Cấp Ba không chính xác!'); return; }
   }
-  if(tabName === 'cashfund' && CURRENT_USER && CURRENT_USER.role === 'owner'){
+  if(tabName === 'cashfund' && CURRENT_USER && CURRENT_USER.role === 'owner' && !window.__mxSkipPin){
     const level3Pin = (DATA && DATA.config && DATA.config.level3Pin) ? DATA.config.level3Pin : '2578';
     const code = prompt('🔒 Nhập Mã PIN Cấp Ba:');
     if(code === null) return;
@@ -4766,7 +4927,12 @@ document.querySelectorAll('nav.tabs button').forEach(btn=>{
 let activePosCat = 'Trà sữa';
 let selectedProductForModal = null;
 let selectedSizeForModal = 'M';
-function getCurrentUserBill(){ const userKey = CURRENT_USER ? CURRENT_USER.id : 'guest'; if(!userBillsMap[userKey]) userBillsMap[userKey] = []; return userBillsMap[userKey]; }
+function getCurrentUserBill(){
+  const userKey = CURRENT_USER ? CURRENT_USER.id : 'guest';
+  const scopedKey = String(CURRENT_SHOP_ID || 'main') + '::' + String(userKey);
+  if(!Array.isArray(userBillsMap[scopedKey])) userBillsMap[scopedKey] = [];
+  return userBillsMap[scopedKey];
+}
 function renderPosMenu(){
   if(!DATA || !DATA.products) return;
   const chipsWrap = document.getElementById('pos-cat-chips');
@@ -4777,7 +4943,7 @@ function renderPosMenu(){
   const items = DATA.products.filter(p => p.category === activePosCat && p.onMenu !== false);
   listWrap.innerHTML = items.map(p=>{
     const sizes = Object.keys(p.sizes);
-    const minPrice = sizes.length > 0 ? p.sizes[sizes[0]].price : 0;
+    const minPrice = sizes.length > 0 ? mxPx(p, p.sizes[sizes[0]].price) : 0;
     const imgUrl = (!isLiteMode() && DATA.productImages && DATA.productImages[p.id]) ? DATA.productImages[p.id] : null;
     return `
       <div class="pos-item" onclick="openProductModal('${p.id}')" style="display:flex; gap:10px; align-items:center;">
@@ -4802,7 +4968,7 @@ function openProductModal(prodId){
   const sizes = Object.keys(prod.sizes);
   selectedSizeForModal = sizes[0] || 'M';
   const sizeWrap = document.getElementById('modal-size-tabs');
-  sizeWrap.innerHTML = sizes.map(s=>`<button class="${s===selectedSizeForModal?'active':''}" onclick="selectModalSize('${s}')">Size ${s} (${fmt(prod.sizes[s].price)}đ)</button>`).join('');
+  sizeWrap.innerHTML = sizes.map(s=>`<button class="${s===selectedSizeForModal?'active':''}" onclick="selectModalSize('${s}')">Size ${s} (${fmt(mxPx(prod, prod.sizes[s].price))}đ)</button>`).join('');
   const toppingProducts = DATA.products.filter(p => p.category === 'Topping');
   const topWrap = document.getElementById('modal-topping-list');
   if(toppingProducts.length > 0){
@@ -4818,13 +4984,13 @@ function openProductModal(prodId){
 function selectModalSize(s){
   selectedSizeForModal = s;
   const sizes = Object.keys(selectedProductForModal.sizes);
-  document.getElementById('modal-size-tabs').innerHTML = sizes.map(sz=>`<button class="${sz===selectedSizeForModal?'active':''}" onclick="selectModalSize('${sz}')">Size ${sz} (${fmt(selectedProductForModal.sizes[sz].price)}đ)</button>`).join('');
+  document.getElementById('modal-size-tabs').innerHTML = sizes.map(sz=>`<button class="${sz===selectedSizeForModal?'active':''}" onclick="selectModalSize('${sz}')">Size ${sz} (${fmt(mxPx(selectedProductForModal, selectedProductForModal.sizes[sz].price))}đ)</button>`).join('');
 }
 document.getElementById('btn-cancel-modal').addEventListener('click', ()=>{ document.getElementById('product-option-modal').style.display = 'none'; });
 document.getElementById('btn-confirm-add-item').addEventListener('click', ()=>{
   if(!selectedProductForModal) return;
   const sizeObj = selectedProductForModal.sizes[selectedSizeForModal];
-  const basePrice = sizeObj ? sizeObj.price : 0;
+  const basePrice = sizeObj ? mxPx(selectedProductForModal, sizeObj.price) : 0;
   const checkboxes = document.querySelectorAll('#modal-topping-list input[type="checkbox"]:checked');
   const selectedToppings = [];
   let toppingTotalPrice = 0, toppingCostTotal = 0;
@@ -5005,12 +5171,17 @@ function setOpmPay(method){
 }
 function closeOrderPayModal(){ document.getElementById('order-pay-modal').style.display = 'none'; _payOrderId = null; }
 function confirmOrderPayModal(){ const id = _payOrderId, m = _payMethod; closeOrderPayModal(); if(id) finalizeOrderPaid(id, m); }
+let _orderSubmitLockUntil = 0;
 function submitOrderBill(dineIn){
   if(CURRENT_USER && CURRENT_USER.role === 'staff' && typeof posIsStaffClockedIn === 'function' && !posIsStaffClockedIn(CURRENT_USER)){ alert('🔒 Bạn cần VÀO CA trước khi bấm bill. Vui lòng vào ca rồi thử lại.'); if(typeof posRefreshShiftClockControls === 'function') posRefreshShiftClockControls(); return; }
-  closeOrderTypeModal();
-  if(!DATA) { loadData(); return; }
+  if(!DATA) { closeOrderTypeModal(); loadData(); return; }
   const currentBill = getCurrentUserBill();
-  if(currentBill.length === 0){ alert('⚠️ Vui lòng chọn món!'); return; }
+  if(currentBill.length === 0){ closeOrderTypeModal(); alert('⚠️ Vui lòng chọn món!'); return; }
+  const _submitNow=Date.now();
+  if(_submitNow < _orderSubmitLockUntil){ showToast('⏳ Đơn vừa được gửi, vui lòng chờ trước khi bấm gửi lần nữa.'); return; }
+  _orderSubmitLockUntil=_submitNow+2500;
+  setTimeout(function(){ if(Date.now()>=_orderSubmitLockUntil) _orderSubmitLockUntil=0; },2600);
+  closeOrderTypeModal();
   const tableName = document.getElementById('table-number').value.trim() || (dineIn ? 'Khách ngồi lại' : 'Mang đi / Khách lẻ');
   const paymentMethod = dineIn ? 'Tiền mặt' : document.getElementById('order-payment-method').value; // ngồi lại: chưa biết hình thức, chọn lúc thu tiền ở tab 2
   const generalNote = document.getElementById('order-general-note').value.trim();
@@ -5040,7 +5211,7 @@ function submitOrderBill(dineIn){
   const isBank = (paymentMethod === 'Chuyển khoản');
   if(!dineIn) logCashFundOnly('order', isBank ? 'shiftBank' : 'shiftCash', totalPrice, `Order bàn ${tableName}`, order.id);
   saveDataDirect();
-  userBillsMap[CURRENT_USER ? CURRENT_USER.id : 'guest'] = [];
+  getCurrentUserBill().length = 0;
   document.getElementById('table-number').value = '';
   document.getElementById('order-general-note').value = '';
   renderBill();
@@ -5173,7 +5344,7 @@ function renderHistoryOrders(){
   const selMonth = document.getElementById('history-month').value;
   const dateFrom = document.getElementById('history-date-from').value;
   const dateTo = document.getElementById('history-date-to').value;
-  let filtered = DATA.orders || [];
+  let filtered = (DATA.orders || []).filter(o => !mxForeignOrder(o) && !mxUnassignedPending(o)); // đơn app chưa phân bổ / của quán khác nằm ở khung riêng, không lẫn vào danh sách & doanh thu quán này
   let labelText = "Tất cả các ngày";
   if(selDate){ filtered = filtered.filter(o => o.dateIso === selDate); labelText = `Ngày: ${selDate}`; }
   else if(selWeek){
@@ -5596,7 +5767,7 @@ function openAddMoreOption(prodId, key){
 }
 function amRenderOptSizes(){
   const prod = (DATA.products || []).find(p => p.id === addMoreOpt.prodId); if(!prod) return;
-  document.getElementById('am-opt-sizes').innerHTML = Object.keys(prod.sizes || {}).map(s => `<button type="button" class="chip ${s === addMoreOpt.size ? 'active' : ''}" onclick="amSetOptSize('${String(s).replace(/'/g, "\\'")}')">Size ${escapeHtml(s)} (${fmt(prod.sizes[s].price)}đ)</button>`).join('');
+  document.getElementById('am-opt-sizes').innerHTML = Object.keys(prod.sizes || {}).map(s => `<button type="button" class="chip ${s === addMoreOpt.size ? 'active' : ''}" onclick="amSetOptSize('${String(s).replace(/'/g, "\\'")}')">Size ${escapeHtml(s)} (${fmt(mxPx(prod, prod.sizes[s].price))}đ)</button>`).join('');
 }
 function amSetOptSize(s){ addMoreOpt.size = s; amRenderOptSizes(); amUpdateOptPrice(); }
 function amReadOptToppings(){
@@ -5639,7 +5810,7 @@ function renderAddMore(){
   document.getElementById('add-more-cats').innerHTML = cats.map(c => `<button class="chip ${c === addMoreState.cat ? 'active' : ''}" style="flex:0 0 auto;" onclick="setAddMoreCat('${String(c).replace(/'/g, "\\'")}')">${escapeHtml(c)}</button>`).join('');
   document.getElementById('add-more-grid').innerHTML = prods.filter(p => p.category === addMoreState.cat).map(p => {
     const sizes = Object.keys(p.sizes || {});
-    const minPrice = sizes.length ? Math.min.apply(null, sizes.map(k => p.sizes[k].price || 0)) : 0;
+    const minPrice = sizes.length ? Math.min.apply(null, sizes.map(k => mxPx(p, p.sizes[k].price || 0))) : 0;
     const imgUrl = (!isLiteMode() && DATA.productImages && DATA.productImages[p.id]) ? DATA.productImages[p.id] : null;
     const q = (addMoreState.drafts || []).filter(d => d.prodId === p.id).reduce((s, d) => s + (d.qty || 0), 0);
     return `<div onclick="openAddMoreOption('${p.id}')" style="position:relative; background:#fff; border:2px solid ${q ? '#e67e22' : 'var(--line)'}; border-radius:16px; padding:8px; cursor:pointer; display:flex; flex-direction:column; gap:4px;">
@@ -5767,13 +5938,21 @@ function applyHistoryDateFilterTo(list){
 }
 function renderAppOrdersBox(){
   const wrap = document.getElementById('app-order-list'); if(!wrap) return;
-  const all = DATA.orders || [];
-  const list = all.filter(o => o && isWebLikeOrder(o) && !isCompletedOrder(o) && !isCancelledOrder(o) && !isDebtOrder(o)
-      && !(o.mergedInto && all.some(x => x.id === o.mergedInto)));
+  const _sh = document.getElementById('app-orders-shop'); if(_sh) _sh.textContent = CURRENT_SHOP_NAME ? '· ' + (typeof mxShort === 'function' ? mxShort(CURRENT_SHOP_NAME) : CURRENT_SHOP_NAME) : '';
+  /* Mọi quán dùng cùng 1 cách: đơn app đã được quán này nhận nằm trong dữ liệu của quán (quán chính: bản gốc; chi nhánh: bản sao đồng bộ ngược về bản gốc) → có đủ nút Chỉnh đơn / Gọi thêm món / Công nợ / Xóa */
+  const all = (DATA && DATA.orders) || [];
+  const list = all.filter(o => o && isWebLikeOrder(o) && !isCompletedOrder(o) && !isCancelledOrder(o) && !isDebtOrder(o) && o.assignedShopId === CURRENT_SHOP_ID
+        && !(o.mergedInto && all.some(x => x.id === o.mergedInto)));
   list.sort((a, b) => (getOrderTs(b) || 0) - (getOrderTs(a) || 0));
+  const _isOwnerBox = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
+  /* đơn đã giao cho quán này nhưng bản sao chưa về kịp: hiện tạm + tự tạo bản sao */
+  const extra = (CURRENT_SHOP_ID === 'main') ? [] : mxWoPool().filter(o => o.assignedShopId === CURRENT_SHOP_ID && !all.some(x => x && x.id === o.id));
+  extra.forEach(mxWoHeal);
+  /* chủ quán xem được đơn đang chờ hoàn thành của MỌI quán */
+  const others = _isOwnerBox ? mxWoPool().filter(o => o.assignedShopId && o.assignedShopId !== CURRENT_SHOP_ID) : [];
   const cnt = document.getElementById('app-orders-count');
   if(cnt) cnt.textContent = list.length ? `(${list.length} đơn đang chờ)` : '';
-  if(!list.length){ wrap.innerHTML = '<p style="font-size:13px; color:var(--good); text-align:center; padding:14px 0; font-weight:700;">✅ Không có đơn app nào đang chờ hoàn thành.</p>'; return; }
+  if(!list.length && !extra.length && !others.length){ wrap.innerHTML = '<p style="font-size:13px; color:var(--good); text-align:center; padding:14px 0; font-weight:700;">✅ Không có đơn app nào đang chờ hoàn thành.</p>'; return; }
   const _openDet = new Set(Array.prototype.map.call(wrap.querySelectorAll('details.order-detail-box[open]'), d => d.getAttribute('data-k')));
   const isOwnerNow = !!(CURRENT_USER && CURRENT_USER.role === 'owner');
   wrap.innerHTML = list.map(o => {
@@ -5800,6 +5979,7 @@ function renderAppOrdersBox(){
         ${(o.items || []).map(i => `• <b>${escapeHtml(i.name)}</b> (${escapeHtml(i.size || '')}) x ${i.qty} — ${fmt((i.unitPrice || 0) * (i.qty || 1))}đ${(i.toppings && i.toppings.length) ? `<br>&nbsp;&nbsp;➕ ${i.toppings.map(t => escapeHtml(t.name)).join(', ')}` : ''}${i.note ? `<br>&nbsp;&nbsp;📝 <i>${escapeHtml(i.note)}</i>` : ''}`).join('<br>')}
       </div>
       ${orderDetailsBlock(o)}
+      <div style="margin-top:8px;">${mxShopBig(o)}</div>
       <div class="order-actions">
         ${CURRENT_USER ? `<button class="btn small" style="background:#2e9e5b; color:#fff; border-color:#2e9e5b; font-size:14px; padding:8px 16px;" onclick="completeOrder('${o.id}')">✅ Hoàn thành</button>` : ''}
         ${canPrint ? `<button class="btn small ghost" onclick="printOrderById('${o.id}')">🖨️ In lại bill</button>` : ''}
@@ -5808,9 +5988,11 @@ function renderAppOrdersBox(){
         <button class="btn small" style="background:#e67e22; color:#fff; border-color:#e67e22;" onclick="addMoreToOrder('${o.id}')">➕ Gọi thêm món</button>` : ''}
         ${isOwnerNow ? `<button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="deleteOrder('${o.id}')">🗑️ Xóa đơn</button>` : ''}
       </div>
+      ${isOwnerNow ? mxWoReassignRow(o) : ''}
       ${canPay ? `<button class="btn" style="width:100%; margin-top:10px; padding:12px; font-size:15px; background:#2e9e5b; border-color:#2e9e5b; color:#fff;" onclick="markOrderPaid('${o.id}')">✅ ĐÃ THANH TOÁN (${isMixedOrder(o) ? 'TM ' + fmt(orderCashAmt(o)) + 'đ + CK ' + fmt(orderBankAmt(o)) + 'đ' : fmt(o.totalPrice || 0) + 'đ'})</button>` : ''}
     </div>`;
-  }).join('');
+  }).join('') + extra.map(o => mxWoPendingCard(o, false)).join('')
+    + (others.length ? '<div style="margin:14px 0 8px; padding:8px 10px; background:#eaf3ff; border:1.5px solid #2f80ed; border-radius:10px; font-weight:900; font-size:13px; color:#1b5fbf;">🏪 Đang chờ hoàn thành ở các quán khác (' + others.length + ') — chỉ chủ quán thấy</div>' + others.map(o => mxWoPendingCard(o, true)).join('') : '');
   _openDet.forEach(k => { const d = wrap.querySelector('details.order-detail-box[data-k="' + k + '"]'); if(d) d.open = true; });
 }
 function renderCancelledOrdersBox(){
@@ -5928,6 +6110,7 @@ function completeOrder(id){
   const order = (DATA.orders || []).find(o => o.id === id);
   if(!order){ alert('⚠️ Không tìm thấy đơn hàng!'); return; }
   if(isCompletedOrder(order)) return;
+  if(mxForeignOrder(order)){ alert('⚠️ Đơn này đã giao cho quán ' + (order.assignedShopName || 'khác') + ' làm. Chủ quán có thể đổi quán ở khung "Chờ Hoàn Thành" của quán đang giữ đơn.'); return; }
   if(isDebtOrder(order)){ alert('⚠️ Đơn đang ghi công nợ nên không thao tác được. Chủ quán bấm "Khách đã trả nợ" ở khung dưới cùng trước nhé.'); return; }
   if(isCancelledOrder(order)){ alert('⚠️ Đơn đang yêu cầu hủy / đã hủy nên không hoàn thành được. Xử lý hủy trước nhé.'); return; }
   if(!confirm(`Xác nhận ĐÃ GIAO XONG đơn "${order.table}" (${fmt(order.totalPrice || 0)}đ)?\n\nSau khi hoàn thành, khách sẽ không xóa/hủy được đơn này nữa.`)) return;
@@ -5935,6 +6118,7 @@ function completeOrder(id){
   order.status = 'Hoàn thành';
   order.completedAt = Date.now();
   order.completedBy = getFormattedUserDisplayName(CURRENT_USER);
+  if(isWebLikeOrder(order)){ order.assignedShopId = order.assignedShopId || CURRENT_SHOP_ID; order.assignedShopName = order.assignedShopName || CURRENT_SHOP_NAME; order.completedShopId = CURRENT_SHOP_ID; order.completedShopName = CURRENT_SHOP_NAME; }
   order.completedTime = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')} — ${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`;
   saveDataDirect();
   renderHistoryOrders();
@@ -6050,7 +6234,7 @@ function deleteOrder(id){
   refreshDiscrepanciesForOrder(order);
   saveDataDirect();
   renderHistoryOrders();
-  alert('✅ Đã xóa hóa đơn!');
+  showToast('✅ Đã xóa hóa đơn và ghi vào lịch sử xóa trên thiết bị. Đang đồng bộ dấu xóa với máy chủ…');
 }
 
 let editingOrderId = null, editOrderDraftItems = null;
@@ -6123,7 +6307,7 @@ function recalcEditItem(item){
   const prod = (DATA.products || []).find(p => p.id === item.prodId);
   if(prod && prod.sizes && prod.sizes[item.size]){
     const sizeObj = prod.sizes[item.size];
-    basePrice = sizeObj.price;
+    basePrice = mxPx(prod, sizeObj.price);
     const recipe = sizeObj.recipe || [];
     baseUnitCost = recipe.reduce((sum, line)=>{ const ing = getIng(line.ing); return sum + (ing ? unitCost(ing) * (line.qty||0) : 0); }, 0);
   }
@@ -6200,7 +6384,7 @@ function renderEditOrderItems(){
       const _lockRemove = editOrderPayOnly || (editOrderStaffMode && _origQty > 0);
       const _minusLocked = editOrderStaffMode && item.qty <= _origQty;
       const swapOptionsHtml = (swapProducts.some(p => p.id === item.prodId) ? '' : `<option value="" selected disabled>${escapeHtml(item.name)}</option>`) + swapProducts.map(p => `<option value="${p.id}" ${p.id === item.prodId ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('');
-      const sizeOptionsHtml = prod ? Object.keys(prod.sizes).map(s=>`<option value="${s}" ${s===item.size?'selected':''}>Size ${s} (${fmt(prod.sizes[s].price)}đ)</option>`).join('') : '';
+      const sizeOptionsHtml = prod ? Object.keys(prod.sizes).map(s=>`<option value="${s}" ${s===item.size?'selected':''}>Size ${s} (${fmt(mxPx(prod, prod.sizes[s].price))}đ)</option>`).join('') : '';
       const toppingListHtml = toppingProducts.length > 0 ? toppingProducts.map(tp=>{
         const szKey = Object.keys(tp.sizes)[0] || 'M';
         const price = tp.sizes[szKey].price;
@@ -6325,7 +6509,7 @@ document.getElementById('btn-edit-order-add-item').addEventListener('click', ()=
   const sizes = Object.keys(prod.sizes);
   const firstSize = sizes[0] || 'M';
   const sizeObj = prod.sizes[firstSize];
-  const basePrice = sizeObj ? sizeObj.price : 0;
+  const basePrice = sizeObj ? mxPx(prod, sizeObj.price) : 0;
   const recipe = sizeObj ? (sizeObj.recipe || []) : [];
   const baseUnitCost = recipe.reduce((sum, line)=>{ const ing = getIng(line.ing); return sum + (ing ? unitCost(ing) * (line.qty||0) : 0); }, 0);
   editOrderDraftItems.push({ itemKey: uid('item'), prodId: prod.id, name: prod.name, size: firstSize, basePrice, toppings: [], toppingPrice: 0, unitPrice: basePrice, unitCost: baseUnitCost, note: '', qty: 1, bankQty: (document.getElementById('edit-order-payment').value === 'Chuyển khoản') ? 1 : 0 });
@@ -7930,6 +8114,7 @@ document.getElementById('btn-save-calendar-shift').addEventListener('click', ()=
 function openQuickShift(){
   if(!CURRENT_USER || CURRENT_USER.role !== 'owner'){ alert('🔒 Chỉ Chủ Quán mới xếp ca được!'); return; }
   if(!DATA || !(DATA.users || []).length){ alert('Chưa có nhân viên để xếp ca.'); return; }
+  if(window.mxQsOpen){ mxQsOpen(); return; }
   const t = getVietnamTimeNow(), sd = getShiftDayStr();
   currentCalendarDate = new Date(Number(sd.slice(0, 4)), Number(sd.slice(5, 7)) - 1, 1);
   switchTab('shift');
@@ -9972,8 +10157,8 @@ function buildMenuPrintHTML(){
     prods.forEach(p=>{
       const sizes = Object.keys(p.sizes||{});
       const priceStr = sizes.length<=1
-        ? `${fmt((p.sizes[sizes[0]]||{}).price||0)}đ`
-        : sizes.map(s=>`${s}: ${fmt(p.sizes[s].price||0)}đ`).join(' / ');
+        ? `${fmt(mxPx(p, (p.sizes[sizes[0]]||{}).price||0))}đ`
+        : sizes.map(s=>`${s}: ${fmt(mxPx(p, p.sizes[s].price||0))}đ`).join(' / ');
       body += `<tr><td class="mname">${escapeHtml(p.name)}</td><td class="mprice">${priceStr}</td></tr>`;
     });
     body += `</tbody></table>`;
@@ -10842,6 +11027,7 @@ function mxSwitchShop(id){
   if(Object.keys(dirtyTabs).some(k=>dirtyTabs[k]) && !confirm('Quán hiện tại còn thay đổi chưa lưu. Vẫn chuyển quán?')) return;
   MX_IPUR.cache={}; MX_ATT.cache={}; MX_ATT.t=0; MX_MAIN.ids=null; MX_MAIN.loading=false;
   try{ showToast('🏪 Đang chuyển sang '+getShopName(id)+'…'); }catch(e){}
+  { const _ab=document.querySelector('nav.tabs button.active'); window.__mxKeepTab=_ab?_ab.dataset.tab:null; }
   selectShopAfterLogin(id);
 }
 /* --- chi phí nguyên liệu theo quán --- */
@@ -10908,5 +11094,499 @@ function mxAttSetPos(id,btn){
 }
 setTimeout(()=>{ try{ mxShopBadge(); }catch(e){} },1500);
 </script>
+<script>
+/* ===== v16: cộng/trừ giá nước + xếp ca nhanh theo tuần ===== */
+function mxModal(id,html){
+  let m=document.getElementById(id);
+  if(!m){ m=document.createElement('div'); m.id=id; m.className='modal-overlay'; m.style.zIndex=1000; m.addEventListener('click',e=>{ if(e.target===m) m.style.display='none'; }); document.body.appendChild(m); }
+  if(html!=null) m.innerHTML=html; return m;
+}
+const MX_PA={cache:{}};
+function mxPaRow(sh,val,ok){
+  const cur=sh.id===CURRENT_SHOP_ID;
+  return `<div class="mx-pa-row${cur?' cur':''}"><div><b>${escapeHtml(mxShort(sh.name))}</b>${cur?'<small>đang mở</small>':''}</div><input type="number" step="500" id="mx-pa-${sh.id}" value="${ok?val:''}" placeholder="${ok?'0':'…'}" ${ok?'':'disabled'}><button type="button" class="btn success small" onclick="mxPaSave('${sh.id}')">Lưu</button></div>`;
+}
+function mxPaDraw(){
+  const box=document.getElementById('mx-pa-rows'); if(!box) return;
+  box.innerHTML=SHOP_LIST.map(sh=>{
+    if(sh.id===CURRENT_SHOP_ID) return mxPaRow(sh,Number(DATA.config&&DATA.config.priceAdjust)||0,true);
+    const c=MX_PA.cache[sh.id]; return mxPaRow(sh,c||0,c!==undefined);
+  }).join('');
+}
+function mxPaOpen(){
+  if(!CURRENT_USER||CURRENT_USER.role!=='owner'){ alert('🔒 Chỉ Chủ Quán mới chỉnh được giá!'); return; }
+  const m=mxModal('mx-pa-modal','<div class="modal-card" style="max-width:440px;width:94%;"><h3 style="margin:0 0 6px;">💲 Cộng / Trừ giá nước</h3><p style="font-size:12.5px;color:var(--muted);margin:0 0 4px;">Cài <b>riêng từng quán</b>: quán nào chỉnh thì chỉ quán đó đổi giá, quán khác giữ nguyên. Số dương = cộng, số âm = giảm (VD: 3000 hoặc -2000), áp dụng mọi món nước và mọi size. <b>Topping không đổi.</b> Giá gốc trong Công thức giữ nguyên; web đặt món không bị ảnh hưởng.</p><div id="mx-pa-rows"></div><button type="button" class="btn ghost" style="width:100%;margin-top:12px;" onclick="document.getElementById(\'mx-pa-modal\').style.display=\'none\'">Đóng</button></div>');
+  m.style.display='flex'; mxPaDraw();
+  if(useFirebase&&db) Promise.all(SHOP_LIST.filter(sh=>sh.id!==CURRENT_SHOP_ID).map(sh=>
+    db.ref(shopDataPath(sh.id)+'/config/priceAdjust').once('value').then(sn=>{ MX_PA.cache[sh.id]=Number(sn.val())||0; }).catch(()=>{ MX_PA.cache[sh.id]=0; })
+  )).then(mxPaDraw);
+}
+function mxPaSave(id){
+  const v=Math.round(parseInt(document.getElementById('mx-pa-'+id).value,10)||0);
+  if(Math.abs(v)>100000){ alert('⚠️ Số tiền cộng/trừ quá lớn, vui lòng kiểm tra lại.'); return; }
+  const label=mxShort(getShopName(id)), done=()=>{ try{ showToast(v?('💲 '+label+': giá nước '+(v>0?'+':'−')+fmt(Math.abs(v))+'đ (trừ topping)'):('💲 '+label+': về giá gốc')); }catch(e){} };
+  if(id===CURRENT_SHOP_ID){
+    if(!DATA.config) DATA.config={};
+    DATA.config.priceAdjust=v; saveDataDirect(); mxPaLabel(); try{ renderPosMenu(); }catch(e){} done();
+  } else {
+    db.ref(shopDataPath(id)+'/config').update({priceAdjust:v}).then(()=>{ MX_PA.cache[id]=v; done(); }).catch(e=>alert('Không lưu được: '+(e.message||e)));
+  }
+}
+function mxPaLabel(){
+  const b=document.getElementById('btn-price-adjust'); if(!b||!DATA) return;
+  const a=Number(DATA.config&&DATA.config.priceAdjust)||0;
+  b.textContent='💲 Cộng/Trừ giá nước'+(a?' ('+(a>0?'+':'−')+fmt(Math.abs(a))+'đ)':'');
+}
+/* --- xếp ca nhanh: bảng ngang 7 ngày --- */
+const MX_QS={start:null};
+function mxQsOpen(){
+  MX_QS.start=wkRange(getShiftDayStr()).from;
+  const m=mxModal('mx-qs-modal','<div class="modal-card mx-qs-card"><div class="mx-qs-top"><div class="mx-qs-title"></div><button type="button" class="btn ghost small" onclick="mxQsMove(-1)" title="Tuần trước">◀</button><button type="button" class="btn ghost small" onclick="mxQsToday()">Nay</button><button type="button" class="btn ghost small" onclick="mxQsMove(1)" title="Tuần sau">▶</button></div><div class="mx-qs-grid"></div><div style="display:flex;gap:8px;margin-top:10px;"><button type="button" class="btn success small" onclick="mxQsDetail()">📊 Chi tiết &amp; lương</button><button type="button" class="btn ghost small" style="margin-left:auto;" onclick="mxQsClose()">Đóng</button></div></div>');
+  m.style.display='flex'; mxQsRender();
+}
+function mxQsClose(){ const m=document.getElementById('mx-qs-modal'); if(m) m.style.display='none'; }
+function mxQsDetail(){ mxQsClose(); switchTab('shift'); }
+function mxQsMove(d){ MX_QS.start=addDaysToDateStr(MX_QS.start,d*7); mxQsRender(); }
+function mxQsToday(){ MX_QS.start=wkRange(getShiftDayStr()).from; mxQsRender(); }
+function mxQsShortName(n){ return String(n||'').split(' (')[0]; }
+function mxQsHue(n){ let h=0; String(n).split('').forEach(c=>{ h=(h*31+c.charCodeAt(0))%360; }); return h; }
+function mxQsTime(t){
+  const p=String(t||'').split('-').map(x=>x.trim()); if(p.length!==2) return String(t||'');
+  const f=x=>{ const q=x.split(':'); return q[1]&&q[1]!=='00'?(+q[0])+':'+q[1]:String(+q[0]); };
+  return f(p[0])+'-'+f(p[1]);
+}
+function mxQsRender(){
+  const m=document.getElementById('mx-qs-modal'); if(!m||m.style.display==='none'||!DATA||!MX_QS.start) return;
+  const today=getShiftDayStr(), nm=['T2','T3','T4','T5','T6','T7','CN']; let cols='';
+  for(let k=0;k<7;k++){
+    const d=addDaysToDateStr(MX_QS.start,k);
+    const list=(DATA.monthlySchedules||[]).filter(x=>x.date===d).sort((a,b)=>String(a.timeframe).localeCompare(String(b.timeframe)));
+    cols+=`<div class="mx-qs-col${d===today?' today':''}"><div class="mx-qs-h"><b>${nm[k]}</b><span>${d.slice(8)}/${d.slice(5,7)}</span></div><div class="mx-qs-list">`
+      +list.map(x=>`<span class="mx-qs-chip" style="--c:hsl(${mxQsHue(x.name)},60%,48%)" onclick="openShiftModal('${d}','${x.id}')" title="${escapeHtml(x.name)} · ${escapeHtml(x.shift||'')}"><b>${escapeHtml(mxQsShortName(x.name))}</b><small>${escapeHtml(mxQsTime(x.timeframe))}</small><i title="Xóa ca" onclick="event.stopPropagation();deleteCalendarShift('${x.id}')">✕</i></span>`).join('')
+      +`<button type="button" class="mx-qs-add" onclick="openShiftModal('${d}')">＋</button></div></div>`;
+  }
+  const e=addDaysToDateStr(MX_QS.start,6), w=x=>x.slice(8)+'/'+x.slice(5,7);
+  m.querySelector('.mx-qs-title').textContent='⏰ Ca tuần '+w(MX_QS.start)+' → '+w(e);
+  m.querySelector('.mx-qs-grid').innerHTML=cols;
+}
+if(typeof renderShiftTab==='function'){ const _o=renderShiftTab; renderShiftTab=function(){ const r=_o.apply(this,arguments); try{ mxQsRender(); }catch(e){} return r; }; }
+if(typeof renderPosMenu==='function'){ const _p=renderPosMenu; renderPosMenu=function(){ const r=_p.apply(this,arguments); try{ mxPaLabel(); }catch(e){} return r; }; }
+setTimeout(()=>{ try{ mxPaLabel(); }catch(e){} },1500);
+</script>
+<script>
+/* ===== v17: đơn app chung các quán — hộp thông báo nhận đơn ===== */
+const MX_WO={list:[],byId:{},keys:{},seen:{},refs:[],attachKey:''};
+function mxWoSkipKey(){ return 'mx_wo_skip_'+(CURRENT_USER?CURRENT_USER.id:''); }
+function mxWoSkipped(){ try{ return JSON.parse(localStorage.getItem(mxWoSkipKey())||'{}')||{}; }catch(e){ return {}; } }
+function mxWoSkip(id){
+  const k=mxWoSkipped(); k[id]=Date.now();
+  const live={}; Object.keys(k).forEach(x=>{ if(MX_WO.byId[x]) live[x]=k[x]; });
+  try{ localStorage.setItem(mxWoSkipKey(),JSON.stringify(live)); }catch(e){}
+  try{ showToast('⏭ Đã bỏ qua — đơn vẫn nằm ở mục chờ cho đến khi có quán nhận.'); }catch(e){}
+  mxWoRefresh();
+}
+function mxWoPool(){
+  return MX_WO.list.filter(o=>!isDeletedOrderMarker(o)&&isWebLikeOrder(o)&&!isCompletedOrder(o)&&!isCancelledOrder(o)&&!isDebtOrder(o)&&!o.mergedInto)
+    .sort((a,b)=>(getOrderTs(b)||0)-(getOrderTs(a)||0));
+}
+function mxWoCollect(parts){
+  const by={}, keys={};
+  parts.forEach(p=>{ Object.keys(p).forEach(k=>{ const o=p[k]; if(o&&o.id){ by[o.id]=o; keys[o.id]=k; } }); });
+  MX_WO.byId=by; MX_WO.keys=keys; MX_WO.list=Object.keys(by).map(k=>by[k]);
+}
+function mxWoDetach(){ MX_WO.refs.forEach(x=>{ try{ x.ref.off('value',x.fn); }catch(e){} }); MX_WO.refs=[]; MX_WO.attachKey=''; MX_WO.part={}; }
+function mxWoAttach(){
+  if(!(useFirebase&&db)||!CURRENT_USER) return;
+  if(MX_WO.attachKey) return; MX_WO.attachKey='on'; MX_WO.part={};
+  const base=db.ref(shopDataPath('main')+'/orders');
+  [['first',base.orderByKey().limitToFirst(60)],['last',base.orderByKey().limitToLast(30)]].forEach(pr=>{
+    const fn=snap=>{ const o={}; snap.forEach(ch=>{ o[ch.key]=ch.val(); }); MX_WO.part[pr[0]]=o; mxWoCollect(Object.keys(MX_WO.part).map(k=>MX_WO.part[k])); mxWoRefresh(); };
+    pr[1].on('value',fn,()=>{}); MX_WO.refs.push({ref:pr[1],fn:fn});
+  });
+}
+function mxWoTick(){ if(CURRENT_USER){ mxWoAttach(); try{ mxWoHealAll(); }catch(e){} try{ mxSyncMirrors(); }catch(e){} } else if(MX_WO.attachKey){ mxWoDetach(); MX_WO.list=[]; MX_WO.seen={}; mxWoRefresh(); } }
+function mxWoItems(o){
+  return (o.items||[]).map(i=>`• <b>${escapeHtml(i.name)}</b> (${escapeHtml(i.size||'')}) x ${i.qty}${(i.toppings&&i.toppings.length)?' + '+i.toppings.map(t=>escapeHtml(t.name)).join(', '):''}${i.note?' <i>['+escapeHtml(i.note)+']</i>':''}`).join('<br>');
+}
+function mxWoCardHtml(o){
+  const id=String(o.id).replace(/'/g,"\\'"), owner=CURRENT_USER&&CURRENT_USER.role==='owner', claimed=!!o.assignedShopId;
+  const mine=claimed&&o.assignedShopId===CURRENT_SHOP_ID;
+  const short=n=>(typeof mxShort==='function'?mxShort(n):n);
+  let tag, act='';
+  if(!claimed){
+    tag='<span class="mx-wo-tag">⏳ Chưa có quán nào nhận</span>';
+    if(owner){
+      act=`<small>Chỉ định quán làm đơn này:</small>`+SHOP_LIST.map(s=>`<button type="button" class="btn success small" onclick="mxWoAssign('${id}','${s.id}')">🏪 ${escapeHtml(short(s.name))}</button>`).join('');
+    } else act=`<button type="button" class="btn success" onclick="mxWoAssign('${id}','${CURRENT_SHOP_ID}')">✅ Nhận đơn (quán ${escapeHtml(short(CURRENT_SHOP_NAME))})</button>`;
+    act+=`<button type="button" class="btn ghost" onclick="mxWoSkip('${id}')">⏭ Bỏ qua</button>`;
+  } else {
+    tag=`<span class="mx-wo-tag ok">🏪 Quán ${escapeHtml(short(o.assignedShopName||getShopName(o.assignedShopId)))} đang làm${o.assignedBy?' · '+escapeHtml(o.assignedBy):''}</span>`;
+    if(owner||mine) act=`<button type="button" class="btn success" onclick="mxWoComplete('${id}')">✅ Hoàn thành</button>`;
+    if(owner) act+=`<small>Đổi sang quán khác:</small>`+SHOP_LIST.filter(s=>s.id!==o.assignedShopId).map(s=>`<button type="button" class="btn ghost small" onclick="mxWoAssign('${id}','${s.id}')">🏪 ${escapeHtml(short(s.name))}</button>`).join('');
+  }
+  return `<div class="mx-wo-card${mine?' mine':''}"><div class="mx-wo-hd"><b>📱 ${escapeHtml(o.table||'Đơn app')}</b><b>${fmt(o.totalPrice||0)}đ</b></div>
+  <div class="mx-wo-meta">🕒 ${escapeHtml(o.time||'')} | 🥤 ${o.totalQty||0} ly | 💳 ${escapeHtml(orderPayLabel(o))}${o.appliedVoucher&&o.appliedVoucher!=='none'?'<br>✨ Voucher: '+escapeHtml(o.appliedVoucher):''}${o.generalNote?'<br>📝 '+escapeHtml(o.generalNote):''}</div>
+  <div class="mx-wo-items">${mxWoItems(o)}</div>${tag}<div class="mx-wo-act">${act}</div></div>`;
+}
+function mxWoReassignRow(o){
+  const id=String(o.id).replace(/'/g,"\\'"), short=n=>(typeof mxShort==='function'?mxShort(n):n);
+  const others=SHOP_LIST.filter(s=>s.id!==o.assignedShopId);
+  if(!others.length) return '';
+  return `<div class="mx-wo-act" style="margin-top:8px;"><small>🔁 Chủ quán: đổi sang quán khác</small>`+others.map(s=>`<button type="button" class="btn ghost small" onclick="mxWoAssign('${id}','${s.id}')">🏪 ${escapeHtml(short(s.name))}</button>`).join('')+`</div>`;
+}
+function mxShopBig(o){
+  const nm=(typeof mxShort==='function'?mxShort(o.assignedShopName||getShopName(o.assignedShopId)):(o.assignedShopName||'')), h=(typeof mxQsHue==='function'?mxQsHue(nm):140);
+  return `<div><span class="mx-shop-big" style="background:hsl(${h},65%,90%);color:hsl(${h},70%,20%);border-color:hsl(${h},60%,42%);">🏪 QUÁN ${escapeHtml(String(nm).toUpperCase())} ĐÃ NHẬN${o.assignedBy?`<small>${escapeHtml(o.assignedBy)}</small>`:''}</span></div>`;
+}
+function mxWoAct(id,kind){
+  const O=MX_WO.byId[id]; if(!O||!DATA){ showToast('⚠️ Chưa tải xong đơn, thử lại sau giây lát.'); return; }
+  if(O.assignedShopId!==CURRENT_SHOP_ID){ showToast('⚠️ Đơn này thuộc quán khác.'); return; }
+  if(!Array.isArray(DATA.orders)) DATA.orders=ordersToArray(DATA.orders);
+  if(!DATA.orders.some(x=>x&&x.id===id)) mxWoMirror(O,CURRENT_SHOP_ID);
+  if(kind==='edit') openEditOrderModal(id); else if(kind==='more') addMoreToOrder(id); else if(kind==='del') deleteOrder(id);
+}
+function mxWoPrint(id){ const o=MX_WO.byId[id]; if(!o){ showToast('⚠️ Không tìm thấy đơn.'); return; } try{ printOrder(o); }catch(e){ alert('Không in được: '+e.message); } }
+function mxWoPendingCard(o,foreign){
+  const id=String(o.id).replace(/'/g,"\\'"), owner=CURRENT_USER&&CURRENT_USER.role==='owner';
+  const short=n=>(typeof mxShort==='function'?mxShort(n):n);
+  const canPrint=!!CURRENT_USER&&(typeof printerEnabled==='function')&&printerEnabled();
+  return `<div style="background:#fff5cc; border:2px solid #e0b020; border-left:6px solid #e67e22; border-radius:12px; padding:12px; margin-bottom:10px; position:relative;">
+    <div style="position:absolute; top:-8px; right:12px; background:#e67e22; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px;">⏳ CHỜ HOÀN THÀNH</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; font-weight:800; font-size:14px; margin-bottom:4px;"><span>📍 ${escapeHtml(o.table||'')}</span><span style="white-space:nowrap; color:#b45309;">${fmt(o.totalPrice||0)}đ</span></div>
+    <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">🕒 ${escapeHtml(o.time||'')} | 🥤 ${o.totalQty||0} ly | 💳 ${escapeHtml(orderPayLabel(o))}${o.appliedVoucher&&o.appliedVoucher!=='none'?'<br>✨ <b>Voucher:</b> '+escapeHtml(o.appliedVoucher):''}${o.generalNote?'<br>📝 <b>Ghi chú:</b> '+escapeHtml(o.generalNote):''}</div>
+    <div style="font-size:12px; background:#fffaf0; border:1px dashed #e6d9bd; padding:8px 10px; border-radius:8px;">${mxWoItems(o)}</div>
+    <div style="margin-top:8px;">${mxShopBig(o)}</div>
+    <div class="order-actions" style="margin-top:8px;">
+      <button class="btn small" style="background:#2e9e5b; color:#fff; border-color:#2e9e5b; font-size:14px; padding:8px 16px;" onclick="mxWoComplete('${id}')">✅ Hoàn thành</button>
+      ${canPrint?`<button class="btn small ghost" onclick="mxWoPrint('${id}')">🖨️ In lại bill</button>`:''}
+      ${(owner&&!foreign)?`<button class="btn small ghost" onclick="mxWoAct('${id}','edit')">✏️ Chỉnh đơn</button>
+      <button class="btn small" style="background:#e67e22; color:#fff; border-color:#e67e22;" onclick="mxWoAct('${id}','more')">➕ Gọi thêm món</button>
+      <button class="btn small" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="mxWoAct('${id}','del')">🗑️ Xóa đơn</button>`:''}
+    </div>
+    ${foreign?`<div style="font-size:11.5px; color:var(--muted); margin-top:6px;">ℹ️ Muốn chỉnh đơn / gọi thêm món / công nợ / xóa: chuyển sang quán <b>${escapeHtml(short(o.assignedShopName||getShopName(o.assignedShopId)))}</b> (nút ⇄ đổi quán ở đầu trang).</div>`:''}
+    ${owner?mxWoReassignRow(o):''}
+  </div>`;
+}
+/* Khung chung: CHỈ đơn chưa quán nào nhận (hiện cho mọi quán, kể cả quán mới) */
+function mxWoSharedPanel(){
+  const card=document.getElementById('mx-wo-card'), box=document.getElementById('mx-wo-list'); if(!card||!box) return;
+  const list=mxWoPool().filter(o=>!o.assignedShopId);
+  card.style.display=CURRENT_USER?'':'none';
+  const c=document.getElementById('mx-wo-count'); if(c) c.textContent=list.length?'('+list.length+' đơn chưa có quán nhận)':'';
+  box.innerHTML=list.length?list.map(mxWoCardHtml).join(''):'<p style="font-size:13px; color:var(--good); text-align:center; padding:10px 0; font-weight:700; margin:0;">✅ Không có đơn app nào đang chờ quán nhận.</p>';
+}
+/* Làm mới cả 2 khung (khung chung + khung Chờ Hoàn Thành của quán đang đăng nhập) */
+function mxWoPanel(){
+  if(typeof renderAppOrdersBox==='function') renderAppOrdersBox(); else mxWoSharedPanel();
+}
+function mxBeep(){
+  try{ const C=window.AudioContext||window.webkitAudioContext, c=new C(), o=c.createOscillator(), g=c.createGain(); o.connect(g); g.connect(c.destination); o.frequency.value=880; g.gain.setValueAtTime(.15,c.currentTime); o.start(); o.stop(c.currentTime+.25); setTimeout(()=>{ try{ c.close(); }catch(e){} },700); }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
+}
+function mxWoRefresh(){
+  try{ mxWoPanel(); }catch(e){}
+  const me=CURRENT_USER;
+  let ok=!!me&&(me.role==='owner'||(typeof posIsStaffClockedIn!=='function')||posIsStaffClockedIn(me));
+  const skip=mxWoSkipped();
+  const list=ok?mxWoPool().filter(o=>!o.assignedShopId&&!skip[o.id]):[];
+  const m=document.getElementById('mx-wo-modal');
+  if(!list.length){ if(m) m.style.display='none'; return; }
+  const fresh=list.filter(o=>!MX_WO.seen[o.id]); list.forEach(o=>{ MX_WO.seen[o.id]=1; });
+  const modal=mxModal('mx-wo-modal',null);
+  modal.innerHTML=`<div class="modal-card mx-wo-pop"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><h3 style="margin:0;flex:1;">🔔 Đơn mới từ App (${list.length})</h3><button type="button" class="btn ghost small" onclick="document.getElementById('mx-wo-modal').style.display='none'">Đóng</button></div><p style="font-size:12px;color:var(--muted);margin:0 0 8px;">Quán nào bấm <b>Nhận đơn</b> thì đơn tính cho quán đó. Bấm <b>Bỏ qua</b> thì đơn nằm ở mục chờ cho tới khi có quán nhận.</p>${list.map(mxWoCardHtml).join('')}</div>`;
+  if(fresh.length&&modal.style.display!=='flex'){ modal.style.display='flex'; mxBeep(); }
+}
+/* ===== Đơn app của chi nhánh: bản gốc ở quán chính + bản sao ở chi nhánh (webMirror), đồng bộ 2 chiều ===== */
+const MX_SYNC={}, MX_BASE={}, MX_HEAL={}; let MX_SYNC_BUSY=false;
+function mxCanon(v){
+  if(Array.isArray(v)){ const a=v.map(mxCanon); return a.length?'['+a.join(',')+']':''; }
+  if(v&&typeof v==='object'){ const a=Object.keys(v).sort().map(k=>{ const c=mxCanon(v[k]); return c===''?'':JSON.stringify(k)+':'+c; }).filter(Boolean); return a.length?'{'+a.join(',')+'}':''; }
+  if(v===undefined||v===null) return '';
+  return JSON.stringify(v);
+}
+function mxAsMirror(o,shopId){ const c=JSON.parse(JSON.stringify(o)); c.webMirror=true; if(shopId){ c.assignedShopId=shopId; c.assignedShopName=getShopName(shopId); } return c; }
+function mxWoAssign(id,shopId){
+  const key=MX_WO.keys[id]; if(key==null||!CURRENT_USER){ showToast('⚠️ Không tìm thấy đơn, thử lại sau giây lát.'); return; }
+  if(!SHOP_LIST.some(s=>s.id===shopId)){ showToast('⚠️ Quán nhận đơn không hợp lệ.'); return; }
+  if(isDeletedOrderMarker(MX_WO.byId[id])){ showToast('⛔ Đơn đã xóa, không thể chuyển sang quán khác.'); return; }
+  const owner=CURRENT_USER.role==='owner', by=getFormattedUserDisplayName(CURRENT_USER), name=getShopName(shopId);
+  let prev=null, snap=null;
+  db.ref(shopDataPath('main')+'/orders/'+key).transaction(cur=>{
+    if(!cur||cur.id!==id||isDeletedOrderMarker(cur)||isCompletedOrder(cur)||isCancelledOrder(cur)) return;
+    if(cur.assignedShopId&&cur.assignedShopId!==shopId&&!owner) return;
+    if(!owner&&shopId!==CURRENT_SHOP_ID) return;
+    prev=cur.assignedShopId||null;
+    cur.assignedShopId=shopId; cur.assignedShopName=name; cur.assignedBy=by; cur.assignedAt=Date.now();
+    snap=JSON.parse(JSON.stringify(cur));
+    return cur;
+  },(err,committed)=>{
+    if(err||!committed||!snap){ showToast('⚠️ Không nhận được — đơn đã có quán khác nhận hoặc đã thay đổi.'); return; }
+    try{ if(prev&&prev!=='main'&&prev!==shopId) mxWoRemoveMirror(prev,id); }catch(e){ console.error(e); }
+    try{ if(shopId!=='main') mxWoMirror(snap,shopId); }catch(e){ console.error(e); }
+    showToast('✅ Đơn đã giao cho quán <b>'+escapeHtml(name)+'</b>');
+  },false);
+}
+function mxWoMirror(order,target){
+  if(!target||target==='main') return;
+  const copy=mxAsMirror(order,target);
+  const upsert=a=>{ const i=a.findIndex(x=>x&&x.id===copy.id); if(i>=0) a[i]=copy; else a.unshift(copy); return a; };
+  if(target===CURRENT_SHOP_ID){
+    if(!DATA) return;
+    if(!Array.isArray(DATA.orders)) DATA.orders=ordersToArray(DATA.orders);
+    upsert(DATA.orders); const c=mxCanon(copy); MX_SYNC[copy.id]=c; MX_BASE[copy.id]=c;
+    saveDataDirect(); try{ renderHistoryOrders(); }catch(e){}
+  } else {
+    db.ref(shopDataPath(target)+'/orders').transaction(cur=>upsert(ordersToArray(cur)),null,false);
+  }
+}
+function mxWoRemoveMirror(shopId,id){
+  if(!shopId||shopId==='main') return;
+  if(shopId===CURRENT_SHOP_ID){
+    if(DATA&&Array.isArray(DATA.orders)){ const n=DATA.orders.length; DATA.orders=DATA.orders.filter(o=>!(o&&o.id===id&&o.webMirror)); if(DATA.orders.length!==n){ delete MX_SYNC[id]; delete MX_BASE[id]; saveDataDirect(); try{ renderHistoryOrders(); }catch(e){} } }
+  } else {
+    db.ref(shopDataPath(shopId)+'/orders').transaction(cur=>{ const a=ordersToArray(cur); const b=a.filter(o=>!(o&&o.id===id&&o.webMirror)); return b.length===a.length?undefined:b; },null,false);
+  }
+}
+function mxWoHeal(o){
+  if(CURRENT_SHOP_ID==='main'||!DATA||window.DATA_IS_STALE||!Array.isArray(DATA.orders)) return;
+  const t=Date.now(); if(MX_HEAL[o.id]&&t-MX_HEAL[o.id]<6000) return; MX_HEAL[o.id]=t;
+  if(ordersToArray(DATA.deletedOrders).some(x=>x&&x.id===o.id)) return;
+  setTimeout(()=>{ try{ if(DATA&&Array.isArray(DATA.orders)&&!DATA.orders.some(x=>x&&x.id===o.id)) mxWoMirror(o,CURRENT_SHOP_ID); }catch(e){ console.error(e); } },0);
+}
+function mxWoHealAll(){
+  if(CURRENT_SHOP_ID==='main'||!DATA||window.DATA_IS_STALE||!Array.isArray(DATA.orders)) return;
+  mxWoPool().filter(o=>o.assignedShopId===CURRENT_SHOP_ID&&!DATA.orders.some(x=>x&&x.id===o.id)).forEach(mxWoHeal);
+}
+function mxWoDropOriginal(id){
+  const key=MX_WO.keys[id]; delete MX_SYNC[id]; delete MX_BASE[id];
+  if(key==null||!(useFirebase&&db)) return;
+  db.ref(shopDataPath('main')+'/orders/'+key).transaction(cur=>{ if(cur&&cur.id===id) return null; return cur; },null,false);
+}
+/* chi nhánh ↔ bản gốc: sửa ở chi nhánh thì đẩy lên bản gốc; khách sửa/hủy ở bản gốc thì kéo về chi nhánh */
+function mxSyncMirrors(){
+  if(MX_SYNC_BUSY||CURRENT_SHOP_ID==='main'||!(useFirebase&&db)||!DATA||window.DATA_IS_STALE||!Array.isArray(DATA.orders)) return;
+  MX_SYNC_BUSY=true;
+  const mirrorShopId=CURRENT_SHOP_ID;
+  try{
+    let pulled=false;
+    DATA.orders.forEach((m,i)=>{
+      if(!m||!m.webMirror||!m.id||m.assignedShopId!==mirrorShopId) return;
+      const O=MX_WO.byId[m.id], key=MX_WO.keys[m.id];
+      const sigM=mxCanon(m), sigO=O?mxCanon(mxAsMirror(O,mirrorShopId)):null;
+      if(MX_SYNC[m.id]===undefined){
+        if(sigO===null||sigO===sigM){ MX_SYNC[m.id]=sigM; MX_BASE[m.id]=sigO===null?sigM:sigO; return; }
+        DATA.orders[i]=mxAsMirror(O,mirrorShopId); MX_SYNC[m.id]=MX_BASE[m.id]=sigO; pulled=true; return; /* lần đầu thấy mà lệch: lấy bản gốc (khách có thể vừa sửa) */
+      }
+      if(sigM!==MX_SYNC[m.id]){
+        if(key==null||!O) return;
+        MX_SYNC[m.id]=sigM; MX_BASE[m.id]=sigM;
+        const copy=JSON.parse(JSON.stringify(m)); delete copy.webMirror;
+        db.ref(shopDataPath('main')+'/orders/'+key).transaction(cur=>{
+          if(CURRENT_SHOP_ID!==mirrorShopId||!cur||cur.id!==copy.id||isDeletedOrderMarker(cur)||cur.assignedShopId!==mirrorShopId||isCancelledOrder(cur)||isCompletedOrder(cur)) return;
+          ['assignedShopId','assignedShopName','assignedBy','assignedAt','completedAt','completedBy','completedTime','completedShopId','completedShopName'].forEach(k=>{
+            if(Object.prototype.hasOwnProperty.call(cur,k)) copy[k]=cur[k]; else delete copy[k];
+          });
+          return copy;
+        },null,false);
+        return;
+      }
+      if(O&&sigO!==MX_BASE[m.id]&&sigO!==sigM){
+        DATA.orders[i]=mxAsMirror(O,mirrorShopId); MX_SYNC[m.id]=MX_BASE[m.id]=sigO; pulled=true;
+      } else if(O&&sigO===sigM){ MX_BASE[m.id]=sigO; }
+    });
+    if(pulled){ saveDataDirect(); try{ renderHistoryOrders(); }catch(e){} }
+  } finally { MX_SYNC_BUSY=false; }
+}
+const MX_ORDER_DELETE_OUTBOX_KEY='meoxam_order_delete_outbox_v1';
+function mxDeleteOutboxLoad(){ try{ return JSON.parse(localStorage.getItem(MX_ORDER_DELETE_OUTBOX_KEY)||'{}')||{}; }catch(e){ return {}; } }
+function mxDeleteOutboxSave(box){ try{ localStorage.setItem(MX_ORDER_DELETE_OUTBOX_KEY,JSON.stringify(box)); }catch(e){ console.error('delete outbox save',e); } }
+function mxDeleteArchiveRecord(order, fallback){
+  const saved=ordersToArray(DATA&&DATA.deletedOrders).find(x=>x&&x.id===order.id)||fallback||order;
+  const rec=JSON.parse(JSON.stringify(saved)); rec.__mxDeletedOrder=true; rec.status='Đã hủy';
+  if(!rec.deletedAtMs) rec.deletedAtMs=Date.now();
+  if(!rec.deletedBy) rec.deletedBy=CURRENT_USER?getFormattedUserDisplayName(CURRENT_USER):'';
+  if(!rec.deletedReason) rec.deletedReason='Đơn đã xóa';
+  return rec;
+}
+function mxPersistDeleteRecord(shopId, record){
+  if(!(useFirebase&&db)) return Promise.resolve(false);
+  const id=String(record&&record.id||''); if(!id||!SHOP_LIST.some(s=>s.id===shopId)) return Promise.resolve(false);
+  const marker=mxDeleteArchiveRecord(record,record);
+  const orderRef=db.ref(shopDataPath(shopId)+'/orders');
+  const archiveRef=db.ref(shopDataPath(shopId)+'/deletedOrders');
+  function tx(ref, updater){ return new Promise(resolve=>{ ref.transaction(updater,(err,committed)=>resolve(!err&&!!committed),false); }); }
+  const writeOrder=tx(orderRef,cur=>{
+    const a=ordersToArray(cur), i=a.findIndex(x=>x&&String(x.id)===id);
+    if(i>=0){ a[i]=Object.assign({},a[i],marker,{__mxDeletedOrder:true,status:'Đã hủy'}); }
+    else a.unshift(marker);
+    return a;
+  });
+  const writeArchive=tx(archiveRef,cur=>{
+    const a=ordersToArray(cur), i=a.findIndex(x=>x&&String(x.id)===id);
+    if(i>=0) a[i]=Object.assign({},a[i],marker); else a.unshift(marker);
+    return a.slice(0,500);
+  });
+  return Promise.all([writeOrder,writeArchive]).then(r=>r.every(Boolean));
+}
+function mxQueueDeleteAndPersist(shopId,record){
+  const box=mxDeleteOutboxLoad(), key=String(shopId)+'::'+String(record.id);
+  box[key]={shopId:shopId,record:JSON.parse(JSON.stringify(record)),queuedAt:Date.now()}; mxDeleteOutboxSave(box);
+  meoxamOutboxRemove(record.id);
+  if(!(useFirebase&&db)) return;
+  mxPersistDeleteRecord(shopId,record).then(ok=>{
+    if(ok){ const q=mxDeleteOutboxLoad(); delete q[key]; mxDeleteOutboxSave(q); showToast('✅ Dấu xóa và lịch sử đơn đã được máy chủ xác nhận.'); }
+    else showToast('⚠️ Đơn đã ẩn và lưu lịch sử trên máy này; dấu xóa đang chờ mạng để đồng bộ.');
+  }).catch(()=>showToast('⚠️ Dấu xóa đang chờ kết nối để đồng bộ với máy chủ.'));
+}
+function mxFlushDeleteOutbox(){
+  if(!(useFirebase&&db)||window.__fbConnected===false) return;
+  const box=mxDeleteOutboxLoad();
+  Object.keys(box).forEach(key=>{ const x=box[key]; if(!x||!x.shopId||!x.record||!SHOP_LIST.some(s=>s.id===x.shopId))return;
+    mxPersistDeleteRecord(x.shopId,x.record).then(ok=>{ if(ok){ const latest=mxDeleteOutboxLoad(); delete latest[key]; mxDeleteOutboxSave(latest); } }).catch(()=>{});
+  });
+}
+setInterval(mxFlushDeleteOutbox,5000);
+if(typeof saveDataDirect==='function'){ const _sd=saveDataDirect; saveDataDirect=function(){ const r=_sd.apply(this,arguments); try{ mxSyncMirrors(); }catch(e){ console.error(e); } return r; }; }
+if(typeof deleteOrder==='function'){ const _do=deleteOrder; deleteOrder=function(id){
+  const shopId=CURRENT_SHOP_ID, had=(DATA&&DATA.orders||[]).find(o=>o&&o.id===id);
+  const r=_do.apply(this,arguments);
+  try{
+    const archived=ordersToArray(DATA&&DATA.deletedOrders).find(x=>x&&x.id===id);
+    const removed=!!had&&!(DATA.orders||[]).some(o=>o&&o.id===id);
+    if(removed){
+      const record=mxDeleteArchiveRecord(had,archived||had);
+      mxQueueDeleteAndPersist(shopId,record);
+      if(had.webMirror||had.assignedShopId){
+        SHOP_LIST.forEach(function(shop){ if(shop&&shop.id!==shopId) mxQueueDeleteAndPersist(shop.id,record); });
+      }
+    }
+  }catch(e){ console.error('Không thể xếp hàng dấu xóa đơn:',e); }
+  return r;
+}; }
+/* nhân viên/chủ quán đang VÀO CA ở quán này thì chưa được sang quán khác khi chưa RA CA */
+function mxClockedOpen(att,user){
+  const arr=mxArr(att).filter(a=>a&&(a.type==='Vào ca làm'||a.type==='Ra ca làm')&&((user.id&&a.staffId===user.id)||((!a.staffId||!user.id)&&a.staffName===user.name)));
+  arr.sort((a,b)=>(Number(b.timestamp)||0)-(Number(a.timestamp)||0));
+  const last=arr[0]; return !!(last&&last.type==='Vào ca làm'&&posClockShiftDay(last)===getShiftDayStr());
+}
+function mxClockedElsewhere(targetId){
+  const u=CURRENT_USER; if(!u) return Promise.resolve(null);
+  if(targetId!==CURRENT_SHOP_ID&&DATA&&typeof posIsStaffClockedIn==='function'&&u.role!=='owner'&&posIsStaffClockedIn(u)) return Promise.resolve({id:CURRENT_SHOP_ID,name:CURRENT_SHOP_NAME});
+  if(!(useFirebase&&db)) return Promise.resolve(null);
+  const one=s=>Promise.race([
+    db.ref(shopDataPath(s.id)+'/attendance').orderByKey().limitToFirst(80).once('value').then(sn=>mxClockedOpen(sn.val(),u)?s:null),
+    new Promise(r=>setTimeout(()=>r(null),5000))
+  ]).catch(()=>null);
+  return Promise.all(SHOP_LIST.filter(s=>s.id!==targetId).map(one)).then(r=>r.find(Boolean)||null);
+}
+if(typeof selectShopAfterLogin==='function'){
+  const _sel=selectShopAfterLogin;
+  selectShopAfterLogin=function(shopId){
+    const args=arguments, self=this;
+    if(!CURRENT_USER||SHOP_LIST.length<2) return _sel.apply(self,args);
+    mxClockedElsewhere(shopId).then(busy=>{
+      if(busy){ window.__mxKeepTab=null; alert('⛔ Bạn đang VÀO CA ở quán "'+busy.name+'" mà chưa RA CA.\n\nHãy quay lại quán "'+busy.name+'", bấm Ra ca rồi mới sang quán khác được.'); return; }
+      _sel.apply(self,args);
+    }).catch(()=>_sel.apply(self,args));
+  };
+}
+function mxWoComplete(id){
+  const o=MX_WO.byId[id], key=MX_WO.keys[id]; if(!o||key==null||!CURRENT_USER){ showToast('⚠️ Không tìm thấy đơn.'); return; }
+  if(isDeletedOrderMarker(o)){ showToast('⛔ Đơn đã xóa, không thể hoàn thành hoặc chuyển quán.'); return; }
+  const target=o.assignedShopId||CURRENT_SHOP_ID;
+  if(CURRENT_USER.role!=='owner'&&target!==CURRENT_SHOP_ID){ alert('⚠️ Đơn này đã giao cho quán khác làm.'); return; }
+  if(!confirm('Xác nhận ĐÃ GIAO XONG đơn "'+o.table+'" ('+fmt(o.totalPrice||0)+'đ)?\nĐơn được ghi nhận hoàn thành cho quán '+getShopName(target)+'.')) return;
+  const n=getVietnamTimeNow(), p=x=>String(x).padStart(2,'0'), by=getFormattedUserDisplayName(CURRENT_USER);
+  const tm=p(n.getHours())+':'+p(n.getMinutes())+' — '+p(n.getDate())+'/'+p(n.getMonth()+1)+'/'+n.getFullYear();
+  let done=null;
+  db.ref(shopDataPath('main')+'/orders/'+key).transaction(cur=>{
+    if(!cur||cur.id!==id||isDeletedOrderMarker(cur)||isCompletedOrder(cur)||isCancelledOrder(cur)||isDebtOrder(cur)) return;
+    Object.assign(cur,{status:'Hoàn thành',completedAt:Date.now(),completedBy:by,completedTime:tm,completedShopId:target,completedShopName:getShopName(target),assignedShopId:target,assignedShopName:getShopName(target)});
+    done=JSON.parse(JSON.stringify(cur)); return cur;
+  },(err,committed)=>{
+    if(err||!committed||!done){ showToast('⚠️ Không hoàn thành được — đơn đã đổi trạng thái hoặc lỗi mạng.'); return; }
+    mxWoMirror(done,target);
+    showToast('✅ Đã hoàn thành đơn — ghi nhận cho quán <b>'+escapeHtml(getShopName(target))+'</b>');
+  },false);
+}
+if(typeof renderAppOrdersBox==='function'){ const _ao=renderAppOrdersBox; renderAppOrdersBox=function(){ let r; try{ r=_ao.apply(this,arguments); }catch(e){ console.error(e); } try{ mxWoSharedPanel(); }catch(e){} return r; }; }
+setInterval(mxWoTick,3000); setTimeout(mxWoTick,1200);
+</script>
+
+<script id="mx-header-sort-test">
+(function(){
+  const box=document.querySelector('.header-stats');if(!box)return;
+  const STORE='mx_header_stats_order_v1';
+  const selector='.quick-z-badge,.shift-money-badge,.owner-money-badge,.views-badge';
+  const sortable=()=>Array.from(box.children).filter(el=>el.matches(selector)&&el.id);
+  function saveOrder(){try{localStorage.setItem(STORE,JSON.stringify(sortable().map(el=>el.id)));}catch(e){}}
+  try{const saved=JSON.parse(localStorage.getItem(STORE)||'[]');if(Array.isArray(saved))saved.forEach(id=>{const el=document.getElementById(id);if(el&&el.parentElement===box&&el.matches(selector))box.appendChild(el);});}catch(e){}
+  sortable().forEach(el=>{el.classList.add('header-sortable');el.title=(el.title?el.title+' · ':'')+'Nhấn giữ khoảng nửa giây rồi kéo. Giữ trên ô đích chốc lát để xác nhận vị trí.';});
+  let pending=null,dragging=null,placeholder=null,timer=0,startX=0,startY=0,pointerId=null,suppressClick=false;
+  let moveTimer=0,hoverKey='',hoverTarget=null,hoverBefore=false,lastX=0,lastY=0,positionFrame=0;
+  function clearPending(){if(timer)clearTimeout(timer);timer=0;pending=null;pointerId=null;}
+  function clearHover(){if(moveTimer)clearTimeout(moveTimer);moveTimer=0;if(hoverTarget)hoverTarget.classList.remove('header-drop-target');hoverTarget=null;hoverKey='';}
+  function applyDragPosition(){positionFrame=0;if(dragging)dragging.style.transform='translate3d('+(lastX-startX)+'px,'+(lastY-startY-8)+'px,0) scale(1.035)';}
+  function scheduleDragPosition(){if(!positionFrame)positionFrame=requestAnimationFrame(applyDragPosition);}
+  function animateNeighbors(beforeRects){
+    Array.from(box.children).forEach(el=>{if(!el.matches(selector))return;const a=beforeRects.get(el),b=el.getBoundingClientRect();if(!a)return;const dx=a.left-b.left,dy=a.top-b.top;if(Math.abs(dx)+Math.abs(dy)<1)return;
+      el.style.transition='none';el.style.transform='translate('+dx+'px,'+dy+'px)';
+      requestAnimationFrame(()=>{el.style.transition='transform 300ms cubic-bezier(.22,.72,.22,1)';el.style.transform='';setTimeout(()=>{el.style.transition='';},330);});
+    });
+  }
+  function moveSlot(target,before){
+    if(!placeholder||!target||target.parentElement!==box)return;
+    const already=before?placeholder.nextSibling===target:target.nextSibling===placeholder;if(already)return;
+    const rects=new Map(sortable().map(el=>[el,el.getBoundingClientRect()]));box.insertBefore(placeholder,before?target:target.nextSibling);animateNeighbors(rects);
+  }
+  function queueSlot(target,before){
+    const key=target.id+':'+(before?'before':'after');if(key===hoverKey)return;
+    clearHover();hoverKey=key;hoverTarget=target;hoverBefore=before;target.classList.add('header-drop-target');
+    moveTimer=setTimeout(()=>{
+      const t=hoverTarget,b=hoverBefore;if(!dragging||!t||t.parentElement!==box){clearHover();return;}
+      const r=t.getBoundingClientRect(),pad=5;if(lastX<r.left-pad||lastX>r.right+pad||lastY<r.top-pad||lastY>r.bottom+pad){clearHover();return;}
+      moveSlot(t,b);clearHover();
+    },170);
+  }
+  function startDrag(item){
+    if(!item||document.documentElement.classList.contains('lite')){clearPending();return;}
+    const r=item.getBoundingClientRect(),cs=getComputedStyle(item);
+    placeholder=document.createElement('div');placeholder.className='header-drag-placeholder';placeholder.style.flex=cs.flex;placeholder.style.width=r.width+'px';placeholder.style.height=r.height+'px';placeholder.style.minWidth=cs.minWidth;
+    item.parentNode.replaceChild(placeholder,item);item.classList.add('header-dragging');
+    item.style.position='fixed';item.style.left=r.left+'px';item.style.top=r.top+'px';item.style.width=r.width+'px';item.style.height=r.height+'px';item.style.margin='0';item.style.zIndex='100000';item.style.pointerEvents='none';item.style.transition='none';item.style.willChange='transform';item.style.transform='translate3d(0,-8px,0) scale(1.035)';
+    document.body.appendChild(item);dragging=item;
+  }
+  function finish(save){
+    if(timer)clearTimeout(timer);timer=0;clearHover();
+    if(positionFrame){cancelAnimationFrame(positionFrame);positionFrame=0;if(dragging)applyDragPosition();}
+    if(dragging){const item=dragging,slot=placeholder;if(slot&&slot.parentNode)slot.parentNode.replaceChild(item,slot);else box.appendChild(item);
+      item.classList.remove('header-dragging','header-drag-lifted');['position','left','top','width','height','margin','z-index','pointer-events','transition','will-change','transform'].forEach(k=>item.style.removeProperty(k));
+      item.classList.add('header-dropped');setTimeout(()=>item.classList.remove('header-dropped'),310);dragging=null;placeholder=null;if(save)saveOrder();suppressClick=true;setTimeout(()=>{suppressClick=false;},500);
+    }
+    pending=null;pointerId=null;
+  }
+  box.addEventListener('pointerdown',function(e){
+    if(document.documentElement.classList.contains('lite'))return;if(e.button!==undefined&&e.button!==0)return;if(e.target.closest('button,a,input,select,textarea,summary'))return;
+    const item=e.target.closest(selector);if(!item||item.parentElement!==box||!item.id)return;
+    clearPending();pending=item;pointerId=e.pointerId;startX=lastX=e.clientX;startY=lastY=e.clientY;
+    timer=setTimeout(()=>{if(pending===item&&!document.documentElement.classList.contains('lite'))startDrag(item);},500);
+  });
+  window.addEventListener('pointermove',function(e){
+    if(pointerId!==null&&e.pointerId!==pointerId)return;lastX=e.clientX;lastY=e.clientY;
+    if(!dragging){if(pending&&Math.hypot(e.clientX-startX,e.clientY-startY)>12)clearPending();return;}
+    e.preventDefault();scheduleDragPosition();
+    const peers=sortable().filter(el=>el!==dragging&&el.getClientRects().length);
+    const target=peers.find(el=>{const r=el.getBoundingClientRect();return e.clientX>=r.left-5&&e.clientX<=r.right+5&&e.clientY>=r.top-5&&e.clientY<=r.bottom+5;});
+    if(!target){clearHover();return;}
+    const r=target.getBoundingClientRect();const before=(Math.abs(e.clientY-(r.top+r.height/2))<r.height*.38)?e.clientX<r.left+r.width/2:e.clientY<r.top+r.height/2;
+    const already=placeholder&&(before?placeholder.nextSibling===target:target.nextSibling===placeholder);if(already){clearHover();return;}queueSlot(target,before);
+  },{passive:false});
+  window.addEventListener('pointerup',function(e){if(pointerId!==null&&e.pointerId!==pointerId)return;if(dragging)finish(true);else clearPending();});
+  window.addEventListener('pointercancel',function(e){if(pointerId!==null&&e.pointerId!==pointerId)return;if(dragging)finish(true);else clearPending();});
+  box.addEventListener('click',function(e){if(suppressClick){e.preventDefault();e.stopImmediatePropagation();suppressClick=false;}},true);
+  new MutationObserver(()=>{if(document.documentElement.classList.contains('lite')){if(timer)clearPending();if(dragging)finish(false);}}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+})();
+</script>
+
 </body>
 </html>
