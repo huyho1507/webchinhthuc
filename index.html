@@ -1725,6 +1725,19 @@ html.lite .header-drag-hint{display:none!important;}
 html.lite .header-lite-hint{display:inline!important;}
 </style>
 
+<style id="clock-layout-fit">
+.live-clock-badge{box-sizing:border-box;min-width:0;max-width:100%;overflow:hidden;white-space:normal;}
+.live-clock-icon{flex:0 0 auto;line-height:1;}
+.live-clock-content{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%;white-space:nowrap;line-height:1.1;}
+#clock-time-span,#clock-date-span{display:inline-block;white-space:nowrap;}
+#clock-date-span{font-size:.9em;opacity:.92;}
+@media(max-width:600px){
+  .header-right-area > .live-clock-badge{gap:4px;padding:5px 4px;overflow:hidden;}
+  .live-clock-content{flex-direction:column;align-items:flex-start;gap:2px;}
+  #clock-date-span{font-size:.86em;}
+}
+</style>
+
 </head>
 <body>
 
@@ -2235,7 +2248,7 @@ html.lite .header-lite-hint{display:inline!important;}
           <button type="button" data-priority-theme-choice="indigo" aria-pressed="false"><i class="theme-dot theme-indigo"></i><span>Biển đêm</span></button>
         </div>
       </details>
-      <div class="live-clock-badge" id="live-clock-display">🕒 <span id="clock-time-span">00:00:00</span></div>
+      <div class="live-clock-badge" id="live-clock-display" aria-label="Giờ và ngày hiện tại"><span class="live-clock-icon" aria-hidden="true">🕒</span><span class="live-clock-content"><span id="clock-time-span">00:00:00</span><span id="clock-date-span">00/00/0000</span></span></div>
       <div class="notification-bell-container" id="noti-bell-container" style="display:none;">
         <button class="bell-btn" id="btn-toggle-noti">🔔<span class="bell-badge" id="noti-badge-count">0</span></button>
         <div class="noti-dropdown" id="noti-dropdown-menu">
@@ -3150,6 +3163,7 @@ function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;
 
 function startLiveClock() {
   const clockSpan = document.getElementById('clock-time-span');
+  const clockDateSpan = document.getElementById('clock-date-span');
   const clockBadge = document.getElementById('live-clock-display');
   if(!clockSpan || !clockBadge) return;
   if(CURRENT_USER) clockBadge.style.display = 'inline-flex'; else { clockBadge.style.display = 'none'; return; }
@@ -3162,7 +3176,10 @@ function startLiveClock() {
     const day = String(vnTime.getDate()).padStart(2, '0');
     const month = String(vnTime.getMonth() + 1).padStart(2, '0');
     const year = vnTime.getFullYear();
-    if(!document.hidden) clockSpan.textContent = `${hours}:${mins}:${secs} (${day}/${month}/${year})`;
+    if(!document.hidden){
+      clockSpan.textContent = `${hours}:${mins}:${secs}`;
+      if(clockDateSpan) clockDateSpan.textContent = `${day}/${month}/${year}`;
+    }
     if (checkShiftDayRollover()) {
       renderHeaderMoneyBadge();
       showToast(`🔄 Đã sang ngày mới! Doanh thu ngày trước đã chốt dồn vào Quỹ Tổng.`);
@@ -5271,6 +5288,21 @@ function calculateBreakEven(){
   document.getElementById('be-gross-profit').textContent = fmt(totalGrossProfit) + 'đ';
 }
 let _systemRevenueRequestId = 0;
+let _systemRevenueOrdersPromise = null;
+let _systemRevenueOrdersShopKey = '';
+function getSystemRevenueOrdersSnapshot(){
+  const shopKey = JSON.stringify((SHOP_LIST || []).map(shop => shop.id));
+  if(_systemRevenueOrdersPromise && _systemRevenueOrdersShopKey === shopKey) return _systemRevenueOrdersPromise;
+  const pending = Promise.all((SHOP_LIST || []).map(shop => db.ref(shopDataPath(shop.id) + '/orders').once('value').then(s => s.val()).catch(() => null)));
+  _systemRevenueOrdersShopKey = shopKey;
+  _systemRevenueOrdersPromise = pending;
+  pending.then(function(){
+    if(_systemRevenueOrdersPromise === pending){ _systemRevenueOrdersPromise = null; _systemRevenueOrdersShopKey = ''; }
+  }, function(){
+    if(_systemRevenueOrdersPromise === pending){ _systemRevenueOrdersPromise = null; _systemRevenueOrdersShopKey = ''; }
+  });
+  return pending;
+}
 function refreshSystemRevenue(){
   const valueEl = document.getElementById('stat-system-revenue');
   const subEl = document.getElementById('stat-system-revenue-sub');
@@ -5288,7 +5320,7 @@ function refreshSystemRevenue(){
     valueEl.textContent = fmt(total) + 'đ'; subEl.textContent = 'Quán đang dùng · ' + period; return;
   }
   valueEl.textContent = 'Đang tải…'; subEl.textContent = 'Đang cộng doanh thu của ' + SHOP_LIST.length + ' quán';
-  Promise.all(SHOP_LIST.map(shop => db.ref(shopDataPath(shop.id) + '/orders').once('value').then(s => s.val()).catch(() => null))).then(values => {
+  getSystemRevenueOrdersSnapshot().then(values => {
     if(requestId !== _systemRevenueRequestId) return;
     const allOrders = [];
     values.forEach(v => { if(Array.isArray(v)) allOrders.push(...v.filter(Boolean)); else if(v && typeof v==='object') allOrders.push(...Object.values(v).filter(Boolean)); });
@@ -10810,7 +10842,7 @@ posRenderProductSalesRanking();
   if(!orb || !box) return;
 
   /* ---- PING: đo thời gian 1 request nhỏ tới máy chủ Firebase (nhận 401 cũng tính, vì vẫn là 1 vòng đi-về) ---- */
-  var samples = [], failStreak = 0, pingTimer = null;
+  var samples = [], failStreak = 0, pingTimer = null, pingInFlight = false;
   function setOrb(ms){
     var cls = 'p-off', txt = '--', tip = 'Mất kết nối máy chủ';
     if(ms != null){
@@ -10822,25 +10854,26 @@ posRenderProductSalesRanking();
     orb.className = 'ping-orb ' + cls; val.textContent = txt; orb.title = tip;
   }
   function measure(){
-    if(document.hidden || typeof CURRENT_USER === 'undefined' || !CURRENT_USER){ return; }
+    if(document.hidden || typeof CURRENT_USER === 'undefined' || !CURRENT_USER || pingInFlight){ return; }
+    pingInFlight = true;
     var t0 = performance.now();
     var ctl = ('AbortController' in window) ? new AbortController() : null;
     var to = setTimeout(function(){ if(ctl) ctl.abort(); }, 8000);
     fetch(DB_URL + PING_PATH + '?_=' + Date.now(), { cache:'no-store', signal: ctl ? ctl.signal : undefined })
       .then(function(r){ return r.text(); })
       .then(function(){
-        clearTimeout(to); failStreak = 0;
+        clearTimeout(to); pingInFlight = false; failStreak = 0;
         var ms = Math.max(1, Math.round(performance.now() - t0));
         samples.push(ms); if(samples.length > 3) samples.shift();
         var sorted = samples.slice().sort(function(a,b){ return a-b; });
         setOrb(sorted[Math.floor(sorted.length/2)]);   /* trung vị 3 lần đo gần nhất cho đỡ giật số */
       })
-      .catch(function(){ clearTimeout(to); failStreak++; samples = []; setOrb(null); });
+      .catch(function(){ clearTimeout(to); pingInFlight = false; failStreak++; samples = []; setOrb(null); });
   }
   function schedulePing(){
     clearInterval(pingTimer);
     var lite = document.documentElement.classList.contains('lite');
-    pingTimer = setInterval(measure, lite ? 15000 : 5000);
+    pingTimer = setInterval(measure, lite ? 20000 : 10000);
   }
   document.addEventListener('visibilitychange', function(){ if(!document.hidden) measure(); });
   window.addEventListener('online', measure);
