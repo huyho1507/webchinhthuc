@@ -25,8 +25,9 @@
 /* Tải thư viện nặng theo nhu cầu để app mở nhanh trên mạng yếu */
 window.meoxamLoadLib=function(url,ok){return new Promise(function(res,rej){if(ok()){res();return;}var s=document.createElement('script');s.src=url;s.onload=res;s.onerror=function(){rej(new Error('lib'));};document.head.appendChild(s);});};
 window.ensureXLSX=function(){return meoxamLoadLib('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',function(){return window.XLSX;});};
-window.ensureChart=function(){return meoxamLoadLib('https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',function(){return window.Chart;});};
-window.addEventListener('load',function(){setTimeout(function(){(window.requestIdleCallback||setTimeout)(function(){ensureChart().catch(function(){});});},6000);});
+var __mxChartLoadPromise = null;
+window.ensureChart=function(){if(window.Chart)return Promise.resolve(window.Chart);if(!__mxChartLoadPromise){__mxChartLoadPromise=meoxamLoadLib('https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',function(){return window.Chart;}).catch(function(err){__mxChartLoadPromise=null;throw err;});}return __mxChartLoadPromise;};
+window.addEventListener('load',function(){if(document.documentElement.classList.contains('lite'))return;setTimeout(function(){(window.requestIdleCallback||setTimeout)(function(){ensureChart().catch(function(){});});},6000);});
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('#btn-export-excel,#btn-export-week');if(!b||window.XLSX)return;e.stopImmediatePropagation();e.preventDefault();try{showToast('⏳ Đang tải thư viện Excel...');}catch(x){}ensureXLSX().then(function(){b.click();}).catch(function(){alert('❌ Mạng yếu, chưa tải được thư viện Excel. Thử lại sau.');});},true);
 </script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -660,7 +661,7 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
   html.lite .card, html.lite .bill-card, html.lite .pos-item, html.lite .stat-card, html.lite .modal-card, html.lite .noti-dropdown, html.lite .toast{ box-shadow:none !important; }
   html.lite img{ image-rendering:auto; }
   html.lite{ scroll-behavior:auto !important; }
-  html.lite body{ -webkit-font-smoothing:auto; }
+  html.lite body{ -webkit-font-smoothing:auto; background-image:none !important; }
   html.lite .login-screen{ background:#86b98a !important; }
   html.lite .modal-overlay{ background:rgba(15,15,15,.55); }
   html.lite .topup-overlay{ background:rgba(0,0,0,.45); }
@@ -4903,7 +4904,10 @@ function switchTab(tabName, force = false){
   refreshActiveTabContent(tabName);
 }
 
+let __mxAnalyticsRenderToken = 0;
+let __mxAnalyticsChartPromise = null;
 function refreshActiveTabContent(tabName){
+  const _mxAnalyticsToken = ++__mxAnalyticsRenderToken;
   if(tabName==='history') { renderHistoryOrders(); }
   if(tabName==='shift') { renderShiftTab(); if(CURRENT_USER && CURRENT_USER.role==='owner') initCheckoutFormulaCard(); }
   if(tabName==='recipe') { renderCategoryChips(); renderProductList(); }
@@ -4917,7 +4921,22 @@ function refreshActiveTabContent(tabName){
           if(typeof renderWheelConfig === 'function') renderWheelConfig();
       }
   }
-  if(tabName==='analytics' && CURRENT_USER && CURRENT_USER.role === 'owner') { initExpensesUI(); initAnalyticsUI(); }
+  if(tabName==='analytics' && CURRENT_USER && CURRENT_USER.role === 'owner') {
+    initExpensesUI();
+    if(typeof window.Chart === 'undefined' && typeof window.ensureChart === 'function'){
+      if(!__mxAnalyticsChartPromise) __mxAnalyticsChartPromise = window.ensureChart();
+      const _mxChartLoad = __mxAnalyticsChartPromise;
+      _mxChartLoad.then(function(){
+        if(__mxAnalyticsChartPromise === _mxChartLoad) __mxAnalyticsChartPromise = null;
+        const _mxPanel = document.getElementById('tab-analytics');
+        if(_mxAnalyticsToken === __mxAnalyticsRenderToken && _mxPanel && _mxPanel.classList.contains('active') && CURRENT_USER && CURRENT_USER.role === 'owner') initAnalyticsUI();
+      }).catch(function(){
+        if(__mxAnalyticsChartPromise === _mxChartLoad) __mxAnalyticsChartPromise = null;
+        const _mxPanel = document.getElementById('tab-analytics');
+        if(_mxAnalyticsToken === __mxAnalyticsRenderToken && _mxPanel && _mxPanel.classList.contains('active')){ try{ showToast('Chưa tải được biểu đồ. Kiểm tra mạng rồi mở lại mục Thống kê.'); }catch(e){} }
+      });
+    } else initAnalyticsUI();
+  }
   if(tabName==='cashfund' && CURRENT_USER && CURRENT_USER.role === 'owner') renderCashFundTab();
   if(tabName==='images' && CURRENT_USER && CURRENT_USER.role === 'owner') renderImageTab();
 }
@@ -5428,7 +5447,8 @@ function renderHistoryOrders(){
   try{ renderStaffCupsPanel(filtered.concat(_allShown.filter(isUnpaidOrder), _debtList)); }catch(e){ console.error(e); }
   const wrap = document.getElementById('history-order-list');
   const _view = window.__histView || 'all';
-  const _notMergedChild = o => !(o.mergedInto && (DATA.orders || []).some(x => x.id === o.mergedInto));
+  const _mergedOrderIds = new Set((DATA.orders || []).filter(x => x && x.id).map(x => x.id));
+  const _notMergedChild = o => !(o && o.mergedInto && _mergedOrderIds.has(o.mergedInto));
   let _listShown;
   if(_view === 'all'){
     _listShown = _allShown.filter(_notMergedChild)
@@ -8791,6 +8811,14 @@ document.getElementById('btn-add-ing').addEventListener('click', ()=>{ markDirty
   if(clr) clr.addEventListener('click', ()=>{ inp.value=''; applyIngFilter(); inp.focus(); });
 })();
 function renderInventoryCharts() {
+  if(typeof window.Chart === 'undefined'){
+    const _mxIngPanel = document.getElementById('tab-ing');
+    if(!_mxIngPanel || !_mxIngPanel.classList.contains('active') || typeof window.ensureChart !== 'function') return;
+    if(!window.__mxInventoryChartRenderPromise){
+      window.__mxInventoryChartRenderPromise = window.ensureChart().then(function(){ window.__mxInventoryChartRenderPromise = null; renderInventoryCharts(); },function(){ window.__mxInventoryChartRenderPromise = null; });
+    }
+    return;
+  }
   const ingredients = DATA.ingredients || [];
   const costLabels = ingredients.map(i => i.name);
   const costData = ingredients.map(i => (i.pkgPrice || 0) * (i.restockCount || 1));
@@ -8808,6 +8836,18 @@ function renderInventoryCharts() {
   }
 }
 function renderTotalExpenseBarChart(rent, elec, water, haohut, other, staffSalary, ingCost) {
+  if(typeof window.Chart === 'undefined'){
+    if(typeof window.ensureChart !== 'function') return;
+    window.__mxPendingExpenseChartArgs = Array.prototype.slice.call(arguments);
+    if(!window.__mxExpenseChartRenderPromise){
+      window.__mxExpenseChartRenderPromise = window.ensureChart().then(function(){
+        const _mxArgs = window.__mxPendingExpenseChartArgs || [];
+        window.__mxPendingExpenseChartArgs = null; window.__mxExpenseChartRenderPromise = null;
+        renderTotalExpenseBarChart.apply(null, _mxArgs);
+      },function(){ window.__mxPendingExpenseChartArgs = null; window.__mxExpenseChartRenderPromise = null; });
+    }
+    return;
+  }
   const ctx = document.getElementById('totalExpenseBarChart');
   if(!ctx) return;
   const labels = ['Mặt bằng', 'Tiền điện', 'Tiền nước', 'Hao hụt', 'Chi phí khác', 'Lương nhân sự', 'Nguyên vật liệu'];
@@ -10894,6 +10934,7 @@ posRenderProductSalesRanking();
   var shopRecs = {};          /* shopId -> mảng chấm công mới nhất của quán đó */
   var shopRefs = [];          /* [{ref, fn}] để gỡ listener khi đổi danh sách quán */
   var listenKey = '';
+  var lastRenderKey = '';
   function esc(x){ return (typeof escapeHtml === 'function') ? escapeHtml(x) : String(x||'').replace(/[&<>"']/g,''); }
   function shortShop(name){
     var n = String(name||'').replace(/^\s*Tiệm\s+Trà\s+Mèo\s+Xám\s*/i,'').trim();
@@ -10956,9 +10997,12 @@ posRenderProductSalesRanking();
   }
   function tick(){
     var logged = (typeof CURRENT_USER !== 'undefined' && CURRENT_USER);
-    box.style.display = logged ? '' : 'none';
-    if(!logged){ detach(); listenKey = ''; renderMe(); return; }
-    attach(); renderOnShift();
+    var desiredDisplay = logged ? '' : 'none';
+    if(box.style.display !== desiredDisplay) box.style.display = desiredDisplay;
+    if(!logged){ detach(); listenKey = ''; lastRenderKey = ''; renderMe(); return; }
+    attach();
+    var renderKey = String(CURRENT_USER.id || CURRENT_USER.username || CURRENT_USER.name || '') + '|' + String(CURRENT_USER.role || '') + '|' + String(typeof CURRENT_SHOP_ID !== 'undefined' ? CURRENT_SHOP_ID : '') + '|' + String(getShiftDayStr());
+    if(renderKey !== lastRenderKey){ lastRenderKey = renderKey; renderOnShift(); }
   }
   setInterval(tick, 3000);       /* theo dõi đăng nhập/đổi quán + tự cập nhật khi qua mốc ca mới */
   setTimeout(tick, 800);
